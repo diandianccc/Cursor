@@ -97,13 +97,19 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 <span className="font-semibold text-purple-800">Stages</span>
               </div>
             </td>
-            {stageSpans.map((stageSpan) => (
+            {stageSpans.map((stageSpan, index) => (
               <td 
                 key={`stage-${stageSpan.stageName}`}
                 colSpan={stageSpan.span}
-                className="bg-purple-100 border-r border-gray-200 last:border-r-0 p-4 text-center"
+                className={`bg-purple-100 border-r border-gray-200 last:border-r-0 text-center ${
+                  index > 0 ? 'border-l-4 border-l-white' : ''
+                }`}
               >
-                <div className="font-semibold text-purple-800">
+                <div className={`font-semibold text-purple-800 py-4 ${
+                  index > 0 ? 'ml-4' : ''
+                } ${
+                  index < stageSpans.length - 1 ? 'mr-4' : ''
+                }`}>
                   {stageSpan.stageName}
                 </div>
               </td>

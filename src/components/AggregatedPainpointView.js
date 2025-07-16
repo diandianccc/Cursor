@@ -88,12 +88,12 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
   };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full border-collapse">
+    <div className="overflow-x-auto bg-white p-4">
+      <table className="min-w-full border-separate border-spacing-2">
         <tbody>
           {/* Stages Row */}
-          <tr className="border-b border-gray-200">
-            <td className="w-32 bg-purple-50 p-4 border-r border-gray-200">
+          <tr>
+            <td className="w-32 bg-purple-50 p-4 rounded-lg">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -101,19 +101,13 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 <span className="font-semibold text-purple-800">Stages</span>
               </div>
             </td>
-            {stageSpans.map((stageSpan, index) => (
+            {stageSpans.map((stageSpan) => (
               <td 
                 key={`stage-${stageSpan.stageName}`}
                 colSpan={stageSpan.span}
-                className={`bg-purple-100 border-r border-gray-200 last:border-r-0 text-center ${
-                  index > 0 ? 'border-l-4 border-l-white' : ''
-                }`}
+                className="bg-purple-100 text-center rounded-lg"
               >
-                <div className={`font-semibold text-purple-800 py-4 ${
-                  index > 0 ? 'ml-4' : ''
-                } ${
-                  index < stageSpans.length - 1 ? 'mr-4' : ''
-                }`}>
+                <div className="font-semibold text-purple-800 py-4 px-4">
                   {stageSpan.stageName}
                 </div>
               </td>
@@ -121,8 +115,8 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
           </tr>
 
           {/* Tasks Row */}
-          <tr className="border-b border-gray-200">
-            <td className="w-32 bg-blue-50 p-4 border-r border-gray-200">
+          <tr>
+            <td className="w-32 bg-blue-50 p-4 rounded-lg">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -130,16 +124,10 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 <span className="font-semibold text-blue-800">Tasks</span>
               </div>
             </td>
-            {allTasks.map((task, index) => (
+            {allTasks.map((task) => (
               <td 
                 key={`task-${task.taskId}`} 
-                className={`min-w-64 align-top ${
-                  task.isLastTaskInStage && index < allTasks.length - 1 
-                    ? 'pr-6 border-r-4 border-r-white' 
-                    : 'pr-2 border-r border-gray-200'
-                } ${
-                  index === allTasks.length - 1 ? '' : ''
-                } pl-2 py-4`}
+                className="min-w-64 align-top"
               >
                 <div className="bg-blue-100 rounded-lg p-3">
                   <div className="font-semibold text-blue-800 mb-2">{task.taskName}</div>
@@ -152,8 +140,8 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
           </tr>
 
           {/* Steps Row */}
-          <tr className="border-b border-gray-200">
-            <td className="w-32 bg-indigo-50 p-4 border-r border-gray-200">
+          <tr>
+            <td className="w-32 bg-indigo-50 p-4 rounded-lg">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -161,16 +149,10 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 <span className="font-semibold text-indigo-800">Steps</span>
               </div>
             </td>
-            {allTasks.map((task, index) => (
+            {allTasks.map((task) => (
               <td 
                 key={`steps-${task.taskId}`} 
-                className={`min-w-64 align-top ${
-                  task.isLastTaskInStage && index < allTasks.length - 1 
-                    ? 'pr-6 border-r-4 border-r-white' 
-                    : 'pr-2 border-r border-gray-200'
-                } ${
-                  index === allTasks.length - 1 ? '' : ''
-                } pl-2 py-4`}
+                className="min-w-64 align-top"
               >
                 <div className="space-y-2">
                   {task.steps.map((step) => (
@@ -196,8 +178,8 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
           </tr>
 
           {/* Pain Points Row */}
-          <tr className="border-b border-gray-200">
-            <td className="w-32 bg-red-50 p-4 border-r border-gray-200">
+          <tr>
+            <td className="w-32 bg-red-50 p-4 rounded-lg">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
@@ -205,16 +187,10 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 <span className="font-semibold text-red-800">Pain Points</span>
               </div>
             </td>
-            {allTasks.map((task, index) => (
+            {allTasks.map((task) => (
               <td 
                 key={`pain-${task.taskId}`} 
-                className={`min-w-64 align-top ${
-                  task.isLastTaskInStage && index < allTasks.length - 1 
-                    ? 'pr-6 border-r-4 border-r-white' 
-                    : 'pr-2 border-r border-gray-200'
-                } ${
-                  index === allTasks.length - 1 ? '' : ''
-                } pl-2 py-4`}
+                className="min-w-64 align-top"
               >
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {task.painPoints.map((item, index) => (
@@ -243,7 +219,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
 
           {/* Opportunities Row */}
           <tr>
-            <td className="w-32 bg-green-50 p-4 border-r border-gray-200">
+            <td className="w-32 bg-green-50 p-4 rounded-lg">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -251,16 +227,10 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 <span className="font-semibold text-green-800">Opportunities</span>
               </div>
             </td>
-            {allTasks.map((task, index) => (
+            {allTasks.map((task) => (
               <td 
                 key={`opp-${task.taskId}`} 
-                className={`min-w-64 align-top ${
-                  task.isLastTaskInStage && index < allTasks.length - 1 
-                    ? 'pr-6 border-r-4 border-r-white' 
-                    : 'pr-2 border-r border-gray-200'
-                } ${
-                  index === allTasks.length - 1 ? '' : ''
-                } pl-2 py-4`}
+                className="min-w-64 align-top"
               >
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {task.opportunities.map((item, index) => (

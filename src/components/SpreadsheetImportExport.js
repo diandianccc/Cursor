@@ -17,7 +17,8 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
         'Step Description': 'User searches for product information',
         'Step Persona': 'Developer',
         'Pain Points': 'Hard to find relevant information, Too many options',
-        'Opportunities': 'Improve search functionality, Add filtering options'
+        'Opportunities': 'Improve search functionality, Add filtering options',
+        'Customer Insights': 'Users often feel overwhelmed by search results. Research shows 70% abandon search after first attempt.'
       },
       {
         'Stage Name': 'Awareness',
@@ -25,7 +26,8 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
         'Step Description': 'User reads reviews',
         'Step Persona': 'Merchandiser',
         'Pain Points': 'Reviews are outdated',
-        'Opportunities': 'Encourage recent reviews'
+        'Opportunities': 'Encourage recent reviews',
+        'Customer Insights': 'Customer trust heavily depends on review recency. Recent reviews increase conversion by 15%.'
       },
       {
         'Stage Name': 'Consideration',
@@ -33,7 +35,8 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
         'Step Description': 'User compares different products',
         'Step Persona': 'Ecommerce Leader',
         'Pain Points': 'Difficult to compare features',
-        'Opportunities': 'Create comparison tool'
+        'Opportunities': 'Create comparison tool',
+        'Customer Insights': 'Users spend an average of 12 minutes comparing products. Side-by-side comparison increases purchase intent.'
       },
       {
         'Stage Name': '',
@@ -41,7 +44,8 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
         'Step Description': '',
         'Step Persona': '',
         'Pain Points': '',
-        'Opportunities': ''
+        'Opportunities': '',
+        'Customer Insights': ''
       }
     ];
   };
@@ -60,7 +64,8 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
       { width: 30 }, // Step Description
       { width: 15 }, // Step Persona
       { width: 40 }, // Pain Points
-      { width: 40 }  // Opportunities
+      { width: 40 }, // Opportunities
+      { width: 50 }  // Customer Insights
     ];
 
     // Create workbook
@@ -76,8 +81,9 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
       { 'Instructions': '3. Task Name: A specific task within that stage' },
       { 'Instructions': '4. Step Description: Individual steps within the task' },
       { 'Instructions': '5. Step Persona: Must be one of: Developer, Merchandiser, Ecommerce Leader' },
-              { 'Instructions': '6. Pain Points: Separate multiple pain points with periods' },
-        { 'Instructions': '7. Opportunities: Separate multiple opportunities with periods' },
+      { 'Instructions': '6. Pain Points: Separate multiple pain points with periods' },
+      { 'Instructions': '7. Opportunities: Separate multiple opportunities with periods' },
+      { 'Instructions': '8. Customer Insights: Research findings, user behavior data, or contextual information' },
       { 'Instructions': '' },
       { 'Instructions': 'Notes:' },
       { 'Instructions': '- You can have multiple steps for the same task' },
@@ -147,6 +153,7 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
       const personaName = row['Step Persona']?.trim() || '';
       const painPointsText = row['Pain Points']?.trim() || '';
       const opportunitiesText = row['Opportunities']?.trim() || '';
+      const insightsText = row['Customer Insights']?.trim() || '';
 
       // Find persona ID
       const persona = PERSONAS.find(p => 
@@ -187,7 +194,8 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
         description: stepDescription,
         personaId: personaId,
         painPoints: painPoints,
-        opportunities: opportunities
+        opportunities: opportunities,
+        insights: insightsText
       };
       task.steps.push(step);
     });
@@ -209,7 +217,8 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
             'Step Description': step.description || '',
             'Step Persona': persona ? persona.name : '',
             'Pain Points': step.painPoints ? step.painPoints.join(', ') : '',
-            'Opportunities': step.opportunities ? step.opportunities.join(', ') : ''
+            'Opportunities': step.opportunities ? step.opportunities.join(', ') : '',
+            'Customer Insights': step.insights || ''
           });
         });
       });
@@ -223,14 +232,15 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
         'Step Description': '',
         'Step Persona': '',
         'Pain Points': '',
-        'Opportunities': ''
+        'Opportunities': '',
+        'Customer Insights': ''
       });
     }
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     ws['!cols'] = [
       { width: 15 }, { width: 20 }, { width: 30 },
-      { width: 15 }, { width: 40 }, { width: 40 }
+      { width: 15 }, { width: 40 }, { width: 40 }, { width: 50 }
     ];
 
     const wb = XLSX.utils.book_new();

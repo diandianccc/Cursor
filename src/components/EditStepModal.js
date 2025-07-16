@@ -7,13 +7,15 @@ const EditStepModal = ({ isOpen, onClose, step, onUpdate }) => {
   const [personaId, setPersonaId] = useState(PERSONAS[0].id);
   const [painPoints, setPainPoints] = useState('');
   const [opportunities, setOpportunities] = useState('');
+  const [insights, setInsights] = useState('');
 
   useEffect(() => {
     if (step && isOpen) {
       setDescription(step.description || '');
       setPersonaId(step.personaId || PERSONAS[0].id);
-      setPainPoints(step.painPoints ? step.painPoints.join(', ') : '');
-      setOpportunities(step.opportunities ? step.opportunities.join(', ') : '');
+      setPainPoints(step.painPoints ? step.painPoints.join('. ') : '');
+      setOpportunities(step.opportunities ? step.opportunities.join('. ') : '');
+      setInsights(step.insights || '');
     }
   }, [step, isOpen]);
 
@@ -23,8 +25,9 @@ const EditStepModal = ({ isOpen, onClose, step, onUpdate }) => {
       const stepData = {
         description: description.trim(),
         personaId,
-              painPoints: painPoints.split('.').map(p => p.trim()).filter(p => p),
-      opportunities: opportunities.split('.').map(o => o.trim()).filter(o => o)
+        painPoints: painPoints.split('.').map(p => p.trim()).filter(p => p),
+        opportunities: opportunities.split('.').map(o => o.trim()).filter(o => o),
+        insights: insights.trim()
       };
       onUpdate(stepData);
       onClose();
@@ -94,7 +97,22 @@ const EditStepModal = ({ isOpen, onClose, step, onUpdate }) => {
             rows="2"
             placeholder="Enter opportunities separated by periods..."
           />
-                      <p className="text-xs text-gray-500 mt-1">Separate multiple opportunities with periods</p>
+          <p className="text-xs text-gray-500 mt-1">Separate multiple opportunities with periods</p>
+        </div>
+
+        <div>
+          <label htmlFor="editInsights" className="block text-sm font-medium text-gray-700 mb-1">
+            Customer Insights
+          </label>
+          <textarea
+            id="editInsights"
+            value={insights}
+            onChange={(e) => setInsights(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            rows="3"
+            placeholder="Enter customer insights, research findings, or additional context..."
+          />
+          <p className="text-xs text-gray-500 mt-1">Add any customer research, behavioral insights, or contextual information</p>
         </div>
         
         <div className="flex justify-end gap-3 pt-4">

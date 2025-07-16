@@ -1,101 +1,136 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 const usePanScroll = () => {
   const elementRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isActuallyDragging, setIsActuallyDragging] = useState(false);
-  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const [scrollStart, setScrollStart] = useState({ left: 0, top: 0 });
+  const [hasDragged, setHasDragged] = useState(false);
+  const startPosRef = useRef({ x: 0, y: 0 });
+  const scrollStartRef = useRef({ left: 0, top: 0 });
+
+  const handleMouseDown = useCallback((e) => {
+    // Don't interfere with clicks on buttons, inputs, or other interactive elements
+    if (e.target.closest('button, input, textarea, select, a, [role="button"]')) {
+      return;
+    }
+
+    const element = elementRef.current;
+    if (!element) return;
+
+    setIsDragging(true);
+    setHasDragged(false);
+    startPosRef.current = { x: e.clientX, y: e.clientY };
+    scrollStartRef.current = { left: element.scrollLeft, top: element.scrollTop };
+    
+    // Change cursor immediately
+    element.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+    
+    // Prevent default to avoid text selection
+    e.preventDefault();
+  }, []);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging) return;
+
+    const element = elementRef.current;
+    if (!element) return;
+
+    const deltaX = e.clientX - startPosRef.current.x;
+    const deltaY = e.clientY - startPosRef.current.y;
+    
+    // Check if user has moved enough to be considered dragging
+    if (!hasDragged && (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)) {
+      setHasDragged(true);
+    }
+    
+    if (hasDragged || Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Apply scroll
+      element.scrollLeft = scrollStartRef.current.left - deltaX;
+      element.scrollTop = scrollStartRef.current.top - deltaY;
+    }
+  }, [isDragging, hasDragged]);
+
+  const handleMouseUp = useCallback(() => {
+    const element = elementRef.current;
+    if (!element) return;
+
+    setIsDragging(false);
+    element.style.cursor = 'grab';
+    document.body.style.userSelect = '';
+    
+    // Small delay to prevent click events if user dragged
+    if (hasDragged) {
+      setTimeout(() => setHasDragged(false), 10);
+    } else {
+      setHasDragged(false);
+    }
+  }, [hasDragged]);
+
+  const handleMouseLeave = useCallback(() => {
+    const element = elementRef.current;
+    if (!element) return;
+
+    setIsDragging(false);
+    setHasDragged(false);
+    element.style.cursor = 'grab';
+    document.body.style.userSelect = '';
+  }, []);
+
+  // Touch events for mobile
+  const handleTouchStart = useCallback((e) => {
+    if (e.target.closest('button, input, textarea, select, a, [role="button"]')) {
+      return;
+    }
+
+    const element = elementRef.current;
+    if (!element) return;
+
+    const touch = e.touches[0];
+    setIsDragging(true);
+    setHasDragged(false);
+    startPosRef.current = { x: touch.clientX, y: touch.clientY };
+    scrollStartRef.current = { left: element.scrollLeft, top: element.scrollTop };
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!isDragging) return;
+
+    const element = elementRef.current;
+    if (!element) return;
+
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - startPosRef.current.x;
+    const deltaY = touch.clientY - startPosRef.current.y;
+    
+    // Check if user has moved enough to be considered dragging
+    if (!hasDragged && (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)) {
+      setHasDragged(true);
+    }
+    
+    if (hasDragged || Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+      e.preventDefault();
+      element.scrollLeft = scrollStartRef.current.left - deltaX;
+      element.scrollTop = scrollStartRef.current.top - deltaY;
+    }
+  }, [isDragging, hasDragged]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+    
+    // Small delay to prevent click events if user dragged
+    if (hasDragged) {
+      setTimeout(() => setHasDragged(false), 10);
+    } else {
+      setHasDragged(false);
+    }
+  }, [hasDragged]);
 
   useEffect(() => {
     const element = elementRef.current;
     if (!element) return;
-
-    const handleMouseDown = (e) => {
-      // Don't interfere with clicks on buttons, inputs, or other interactive elements
-      if (e.target.closest('button, input, textarea, select, a, [role="button"]')) {
-        return;
-      }
-
-      setIsDragging(true);
-      setStartPos({ x: e.clientX, y: e.clientY });
-      setScrollStart({ left: element.scrollLeft, top: element.scrollTop });
-      
-      // Change cursor immediately
-      element.style.cursor = 'grabbing';
-      document.body.style.userSelect = 'none';
-    };
-
-    const handleMouseMove = (e) => {
-      if (!isDragging) return;
-
-      const deltaX = e.clientX - startPos.x;
-      const deltaY = e.clientY - startPos.y;
-      
-      // Only start actual dragging after minimum movement threshold
-      if (!isActuallyDragging && (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
-        setIsActuallyDragging(true);
-        e.preventDefault();
-      }
-      
-      if (isActuallyDragging) {
-        e.preventDefault();
-        // Apply scroll
-        element.scrollLeft = scrollStart.left - deltaX;
-        element.scrollTop = scrollStart.top - deltaY;
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-      setIsActuallyDragging(false);
-      element.style.cursor = 'grab';
-      document.body.style.userSelect = '';
-    };
-
-    const handleMouseLeave = () => {
-      setIsDragging(false);
-      setIsActuallyDragging(false);
-      element.style.cursor = 'grab';
-      document.body.style.userSelect = '';
-    };
-
-    // Touch events for mobile
-    const handleTouchStart = (e) => {
-      if (e.target.closest('button, input, textarea, select, a, [role="button"]')) {
-        return;
-      }
-
-      const touch = e.touches[0];
-      setIsDragging(true);
-      setStartPos({ x: touch.clientX, y: touch.clientY });
-      setScrollStart({ left: element.scrollLeft, top: element.scrollTop });
-    };
-
-    const handleTouchMove = (e) => {
-      if (!isDragging) return;
-
-      const touch = e.touches[0];
-      const deltaX = touch.clientX - startPos.x;
-      const deltaY = touch.clientY - startPos.y;
-      
-      // Only start actual dragging after minimum movement threshold
-      if (!isActuallyDragging && (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
-        setIsActuallyDragging(true);
-        e.preventDefault();
-      }
-      
-      if (isActuallyDragging) {
-        e.preventDefault();
-        element.scrollLeft = scrollStart.left - deltaX;
-        element.scrollTop = scrollStart.top - deltaY;
-      }
-    };
-
-    const handleTouchEnd = () => {
-      setIsDragging(false);
-      setIsActuallyDragging(false);
-    };
 
     // Set initial cursor
     element.style.cursor = 'grab';
@@ -127,14 +162,15 @@ const usePanScroll = () => {
       }
       document.body.style.userSelect = '';
     };
-  }, [isDragging, isActuallyDragging, startPos, scrollStart]);
+  }, [handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, 
+      handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   return { 
     ref: elementRef, 
     isDragging,
-    isActuallyDragging,
+    hasDragged,
     style: {
-      cursor: isActuallyDragging ? 'grabbing' : 'grab'
+      cursor: isDragging ? 'grabbing' : 'grab'
     }
   };
 };

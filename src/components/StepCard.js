@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { getPersonaById } from '../constants/personas';
 import EditStepModal from './EditStepModal';
 
-const StepCard = ({ step, stageId, taskId, currentView, onUpdateStep, onDeleteStep, isHighlighted }) => {
+const StepCard = ({ step, stageId, taskId, stageName, taskName, currentView, onUpdateStep, onDeleteStep, onOpenStepDetail, isHighlighted }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const persona = getPersonaById(step.personaId);
 
@@ -20,7 +20,13 @@ const StepCard = ({ step, stageId, taskId, currentView, onUpdateStep, onDeleteSt
     <>
       <div 
         className={`${persona.color} ${persona.borderColor} border-l-4 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${highlightClasses}`}
-        onClick={() => setIsEditModalOpen(true)}
+        onClick={() => {
+          if (onOpenStepDetail) {
+            onOpenStepDetail(step, stageId, taskId, stageName, taskName);
+          } else {
+            setIsEditModalOpen(true);
+          }
+        }}
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">

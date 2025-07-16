@@ -15,7 +15,8 @@ const Stage = ({
   onAddStep, 
   onUpdateStep, 
   onDeleteStep,
-  onSwitchToStepView
+  onSwitchToStepView,
+  onOpenStepDetail
 }) => {
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
   const [isEditStageModalOpen, setIsEditStageModalOpen] = useState(false);
@@ -66,7 +67,7 @@ const Stage = ({
 
       <div 
         ref={panScroll.ref}
-        className={`flex gap-4 overflow-x-auto pb-4 pan-scroll-container ${panScroll.isDragging ? 'dragging' : ''}`}
+        className={`flex gap-4 overflow-x-auto pb-4 pan-scroll-container ${panScroll.hasDragged ? 'dragging' : ''}`}
         title="Click and drag to pan horizontally"
       >
         {stage.tasks.map((task) => (
@@ -74,6 +75,7 @@ const Stage = ({
             key={task.id}
             task={task}
             stageId={stage.id}
+            stageName={stage.name}
             currentView={currentView}
             onUpdateTask={onUpdateTask}
             onDeleteTask={onDeleteTask}
@@ -81,6 +83,7 @@ const Stage = ({
             onUpdateStep={onUpdateStep}
             onDeleteStep={onDeleteStep}
             onSwitchToStepView={onSwitchToStepView}
+            onOpenStepDetail={onOpenStepDetail}
           />
         ))}
         

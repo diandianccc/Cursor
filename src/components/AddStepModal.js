@@ -7,6 +7,7 @@ const AddStepModal = ({ isOpen, onClose, onAdd }) => {
   const [personaId, setPersonaId] = useState(PERSONAS[0].id);
   const [painPoints, setPainPoints] = useState('');
   const [opportunities, setOpportunities] = useState('');
+  const [insights, setInsights] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -14,8 +15,9 @@ const AddStepModal = ({ isOpen, onClose, onAdd }) => {
       const stepData = {
         description: description.trim(),
         personaId,
-              painPoints: painPoints.split('.').map(p => p.trim()).filter(p => p),
-      opportunities: opportunities.split('.').map(o => o.trim()).filter(o => o)
+        painPoints: painPoints.split('.').map(p => p.trim()).filter(p => p),
+        opportunities: opportunities.split('.').map(o => o.trim()).filter(o => o),
+        insights: insights.trim()
       };
       onAdd(stepData);
       resetForm();
@@ -28,6 +30,7 @@ const AddStepModal = ({ isOpen, onClose, onAdd }) => {
     setPersonaId(PERSONAS[0].id);
     setPainPoints('');
     setOpportunities('');
+    setInsights('');
   };
 
   const handleClose = () => {
@@ -98,7 +101,22 @@ const AddStepModal = ({ isOpen, onClose, onAdd }) => {
             rows="2"
             placeholder="Enter opportunities separated by periods..."
           />
-                      <p className="text-xs text-gray-500 mt-1">Separate multiple opportunities with periods</p>
+          <p className="text-xs text-gray-500 mt-1">Separate multiple opportunities with periods</p>
+        </div>
+
+        <div>
+          <label htmlFor="insights" className="block text-sm font-medium text-gray-700 mb-1">
+            Customer Insights
+          </label>
+          <textarea
+            id="insights"
+            value={insights}
+            onChange={(e) => setInsights(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            rows="3"
+            placeholder="Enter customer insights, research findings, or additional context..."
+          />
+          <p className="text-xs text-gray-500 mt-1">Add any customer research, behavioral insights, or contextual information</p>
         </div>
         
         <div className="flex justify-end gap-3 pt-4">

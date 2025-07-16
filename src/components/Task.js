@@ -6,13 +6,15 @@ import EditTaskModal from './EditTaskModal';
 const Task = ({ 
   task,
   stageId,
+  stageName,
   currentView,
   onUpdateTask,
   onDeleteTask, 
   onAddStep, 
   onUpdateStep, 
   onDeleteStep,
-  onSwitchToStepView
+  onSwitchToStepView,
+  onOpenStepDetail
 }) => {
   const [isAddStepModalOpen, setIsAddStepModalOpen] = useState(false);
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
@@ -36,9 +38,12 @@ const Task = ({
             step={step}
             stageId={stageId}
             taskId={task.id}
+            stageName={stageName}
+            taskName={task.name}
             currentView={currentView}
             onUpdateStep={onUpdateStep}
             onDeleteStep={onDeleteStep}
+            onOpenStepDetail={onOpenStepDetail}
             isHighlighted={highlightedStepId === step.id}
           />
         ))}

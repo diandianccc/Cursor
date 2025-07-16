@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { getPersonaById } from '../constants/personas';
 import usePanScroll from '../hooks/usePanScroll';
 
-const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
+const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail }) => {
   const [highlightedItems, setHighlightedItems] = useState({ 
     stepId: null, 
     painPointIndex: null, 
@@ -106,6 +106,40 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
   // Function to handle item clicks (pain points, opportunities, or steps)
   const handleItemClick = (clickedItem, itemType, itemIndex) => {
     if (!panScroll.ref.current) return;
+    
+    // Prevent clicks when user has dragged
+    if (panScroll.hasDragged) {
+      return;
+    }
+
+    // Open step detail panel - find the full step data
+    if (onOpenStepDetail) {
+      let foundStep = null;
+      let foundStageId = null;
+      
+      // Find the full step data from stages
+      for (const stage of stages) {
+        for (const task of stage.tasks) {
+          const step = task.steps.find(s => s.id === clickedItem.stepId);
+          if (step) {
+            foundStep = step;
+            foundStageId = stage.id;
+            break;
+          }
+        }
+        if (foundStep) break;
+      }
+      
+      if (foundStep) {
+        onOpenStepDetail(
+          foundStep,
+          foundStageId,
+          clickedItem.taskId,
+          clickedItem.stageName,
+          clickedItem.taskName
+        );
+      }
+    }
     
     // Check if this item is already highlighted - if so, clear highlighting
     const isAlreadyHighlighted = 
@@ -239,11 +273,11 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
   return (
     <div 
       ref={panScroll.ref}
-      className={`overflow-x-auto bg-white p-4 relative pan-scroll-container ${panScroll.isActuallyDragging ? 'dragging' : ''}`}
+      className={`overflow-x-auto bg-white p-4 relative pan-scroll-container ${panScroll.hasDragged ? 'dragging' : ''}`}
       title="Click and drag to pan horizontally, or use scrollbar"
       onClick={(e) => {
-        // Clear highlighting if clicking on background
-        if (e.target === e.currentTarget) {
+        // Clear highlighting if clicking on background (but not when panning)
+        if (e.target === e.currentTarget && !panScroll.hasDragged) {
           clearHighlighting();
         }
       }}

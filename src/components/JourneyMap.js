@@ -4,6 +4,7 @@ import AddStageModal from './AddStageModal';
 import PersonaLegend from './PersonaLegend';
 import AggregatedPainpointView from './AggregatedPainpointView';
 import PanScrollIndicator from './PanScrollIndicator';
+import StepDetailPanel from './StepDetailPanel';
 import { PERSONAS } from '../constants/personas';
 import usePanScroll from '../hooks/usePanScroll';
 
@@ -22,7 +23,37 @@ const JourneyMap = ({
   onSwitchToStepView
 }) => {
   const [isAddStageModalOpen, setIsAddStageModalOpen] = useState(false);
+  const [stepDetailPanel, setStepDetailPanel] = useState({
+    isOpen: false,
+    step: null,
+    stageId: null,
+    taskId: null,
+    stageName: '',
+    taskName: ''
+  });
   const panScroll = usePanScroll();
+
+  const openStepDetailPanel = (step, stageId, taskId, stageName, taskName) => {
+    setStepDetailPanel({
+      isOpen: true,
+      step,
+      stageId,
+      taskId,
+      stageName,
+      taskName
+    });
+  };
+
+  const closeStepDetailPanel = () => {
+    setStepDetailPanel({
+      isOpen: false,
+      step: null,
+      stageId: null,
+      taskId: null,
+      stageName: '',
+      taskName: ''
+    });
+  };
 
   return (
     <div className="bg-white rounded-lg p-6">
@@ -49,7 +80,7 @@ const JourneyMap = ({
       {currentView === 'step' ? (
         <div 
           ref={panScroll.ref}
-          className={`flex gap-6 overflow-x-auto pb-4 pan-scroll-container ${panScroll.isDragging ? 'dragging' : ''}`}
+          className={`flex gap-6 overflow-x-auto pb-4 pan-scroll-container ${panScroll.hasDragged ? 'dragging' : ''}`}
           title="Click and drag to pan horizontally"
         >
           {stages.map((stage) => (
@@ -66,6 +97,7 @@ const JourneyMap = ({
               onUpdateStep={onUpdateStep}
               onDeleteStep={onDeleteStep}
               onSwitchToStepView={onSwitchToStepView}
+              onOpenStepDetail={openStepDetailPanel}
             />
           ))}
           
@@ -84,6 +116,7 @@ const JourneyMap = ({
           <AggregatedPainpointView 
             stages={stages}
             onSwitchToStepView={onSwitchToStepView}
+            onOpenStepDetail={openStepDetailPanel}
           />
         </div>
       )}
@@ -92,6 +125,17 @@ const JourneyMap = ({
         isOpen={isAddStageModalOpen}
         onClose={() => setIsAddStageModalOpen(false)}
         onAdd={onAddStage}
+      />
+
+      <StepDetailPanel
+        isOpen={stepDetailPanel.isOpen}
+        onClose={closeStepDetailPanel}
+        step={stepDetailPanel.step}
+        onSave={onUpdateStep}
+        stageId={stepDetailPanel.stageId}
+        taskId={stepDetailPanel.taskId}
+        stageName={stepDetailPanel.stageName}
+        taskName={stepDetailPanel.taskName}
       />
     </div>
   );

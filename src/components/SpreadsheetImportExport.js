@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,6 +6,7 @@ import { PERSONAS } from '../constants/personas';
 
 const SpreadsheetImportExport = ({ stages, onImportData }) => {
   const fileInputRef = useRef(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Generate template data
   const generateTemplate = () => {
@@ -241,63 +242,87 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
   };
 
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-      <div className="flex items-center gap-2 mb-4">
-        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        <h3 className="font-semibold text-gray-800">Spreadsheet Import/Export</h3>
-      </div>
-
-      <div className="flex flex-wrap gap-3">
-        {/* Download Template */}
-        <button
-          onClick={downloadTemplate}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="bg-gray-50 border border-gray-200 rounded-lg mb-6 overflow-hidden">
+      {/* Accordion Header */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between p-4 hover:bg-gray-100 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          Download Template
-        </button>
-
-        {/* Import File */}
-        <div className="relative">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            onChange={handleFileUpload}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          />
-          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-            </svg>
-            Import Spreadsheet
-          </button>
+          <h3 className="font-semibold text-gray-800">Spreadsheet Import/Export</h3>
+          <span className="text-sm text-gray-500">
+            - Bulk edit with Excel/CSV
+          </span>
         </div>
-
-        {/* Export Current Data */}
-        <button
-          onClick={exportCurrentData}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+        
+        {/* Chevron Icon */}
+        <svg 
+          className={`w-5 h-5 text-gray-600 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-          </svg>
-          Export Current Data
-        </button>
-      </div>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
 
-      <div className="mt-4 text-sm text-gray-600">
-        <p><strong>How to use:</strong></p>
-        <ol className="list-decimal list-inside mt-1 space-y-1">
-          <li><strong>Download Template</strong> - Get an Excel file with sample data and instructions</li>
-          <li><strong>Fill the template</strong> - Add your stages, tasks, steps, personas, pain points, and opportunities</li>
-          <li><strong>Import Spreadsheet</strong> - Upload your completed file to replace current data</li>
-          <li><strong>Export Current Data</strong> - Download your current journey map as a spreadsheet</li>
-        </ol>
+      {/* Accordion Content */}
+      <div className={`transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="p-4 pt-0 border-t border-gray-200">
+          <div className="flex flex-wrap gap-3 mb-4">
+            {/* Download Template */}
+            <button
+              onClick={downloadTemplate}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download Template
+            </button>
+
+            {/* Import File */}
+            <div className="relative">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleFileUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
+                Import Spreadsheet
+              </button>
+            </div>
+
+            {/* Export Current Data */}
+            <button
+              onClick={exportCurrentData}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              Export Current Data
+            </button>
+          </div>
+
+          <div className="text-sm text-gray-600">
+            <p><strong>How to use:</strong></p>
+            <ol className="list-decimal list-inside mt-1 space-y-1">
+              <li><strong>Download Template</strong> - Get an Excel file with sample data and instructions</li>
+              <li><strong>Fill the template</strong> - Add your stages, tasks, steps, personas, pain points, and opportunities</li>
+              <li><strong>Import Spreadsheet</strong> - Upload your completed file to replace current data</li>
+              <li><strong>Export Current Data</strong> - Download your current journey map as a spreadsheet</li>
+            </ol>
+          </div>
+        </div>
       </div>
     </div>
   );

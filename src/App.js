@@ -3,37 +3,27 @@ import { v4 as uuidv4 } from 'uuid';
 import JourneyMap from './components/JourneyMap';
 import ViewToggle from './components/ViewToggle';
 import SpreadsheetImportExport from './components/SpreadsheetImportExport';
+import LoadingSpinner from './components/LoadingSpinner';
 import { PERSONAS } from './constants/personas';
 import './styles/panScroll.css';
 
-function App() {
-  // Load data from localStorage or use default stages
-  const loadStagesFromStorage = () => {
-    try {
-      const savedStages = localStorage.getItem('journeyMapStages');
-      if (savedStages) {
-        return JSON.parse(savedStages);
-      }
-    } catch (error) {
-      console.error('Error loading data from localStorage:', error);
-    }
-    
-    // Return default stages if no saved data
-    return [
-      {
-        id: uuidv4(),
-        name: 'Awareness',
-        tasks: []
-      },
-      {
-        id: uuidv4(),
-        name: 'Consideration', 
-        tasks: []
-      }
-    ];
-  };
+// Supabase imports
+import { 
+  subscribeToJourneyMap, 
+  updateJourneyMapStages, 
+  createJourneyMap 
+} from './firebase/journeyService';
+import { 
+  signInAnonymous, 
+  onAuthChange, 
+  getUserDisplayName 
+} from './firebase/authService';
 
-  const [stages, setStages] = useState(loadStagesFromStorage);
+function App() {
+  const [user, setUser] = useState(null);
+  const [journeyMapId, setJourneyMapId] = useState(null);
+  const [stages, setStages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState(() => {
     try {
       return localStorage.getItem('journeyMapView') || 'step';
@@ -42,14 +32,76 @@ function App() {
     }
   });
 
-  // Save stages to localStorage whenever they change
+  // Initialize authentication
   useEffect(() => {
+    const unsubscribe = onAuthChange(async (authUser) => {
+      if (authUser) {
+        setUser(authUser);
+        // Load or create default journey map
+        await initializeJourneyMap();
+      } else {
+        // Sign in anonymously
+        try {
+          await signInAnonymous();
+        } catch (error) {
+          console.error('Failed to sign in:', error);
+          setLoading(false);
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  // Initialize journey map
+  const initializeJourneyMap = async () => {
     try {
-      localStorage.setItem('journeyMapStages', JSON.stringify(stages));
+      // For now, we'll use a default journey map ID
+      // In the future, you could have multiple journey maps per user
+      let mapId = localStorage.getItem('currentJourneyMapId');
+      
+      if (!mapId) {
+        // Create a new journey map
+        mapId = await createJourneyMap('My Journey Map');
+        localStorage.setItem('currentJourneyMapId', mapId);
+      }
+      
+      setJourneyMapId(mapId);
     } catch (error) {
-      console.error('Error saving stages to localStorage:', error);
+      console.error('Failed to initialize journey map:', error);
+      setLoading(false);
     }
-  }, [stages]);
+  };
+
+  // Subscribe to journey map changes
+  useEffect(() => {
+    if (!journeyMapId) return;
+
+    const unsubscribe = subscribeToJourneyMap(journeyMapId, (journeyMap) => {
+      if (journeyMap && journeyMap.stages) {
+        setStages(journeyMap.stages);
+      } else {
+        // Initialize with default stages if empty
+        const defaultStages = [
+          {
+            id: uuidv4(),
+            name: 'Awareness',
+            tasks: []
+          },
+          {
+            id: uuidv4(),
+            name: 'Consideration', 
+            tasks: []
+          }
+        ];
+        setStages(defaultStages);
+        updateJourneyMapStages(journeyMapId, defaultStages);
+      }
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, [journeyMapId]);
 
   // Save current view to localStorage whenever it changes
   useEffect(() => {
@@ -60,37 +112,56 @@ function App() {
     }
   }, [currentView]);
 
-  const addStage = (stageName) => {
+  // Helper function to update stages in Firebase
+  const updateStagesInFirebase = async (newStages) => {
+    if (journeyMapId) {
+      try {
+        await updateJourneyMapStages(journeyMapId, newStages);
+      } catch (error) {
+        console.error('Failed to update stages:', error);
+      }
+    }
+  };
+
+  const addStage = async (stageName) => {
     const newStage = {
       id: uuidv4(),
       name: stageName,
       tasks: []
     };
-    setStages([...stages, newStage]);
+    const newStages = [...stages, newStage];
+    setStages(newStages);
+    await updateStagesInFirebase(newStages);
   };
 
-  const updateStage = (stageId, stageName) => {
-    setStages(stages.map(stage => 
+  const updateStage = async (stageId, stageName) => {
+    const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { ...stage, name: stageName }
         : stage
-    ));
+    );
+    setStages(newStages);
+    await updateStagesInFirebase(newStages);
   };
 
-  const deleteStage = (stageId) => {
-    setStages(stages.filter(stage => stage.id !== stageId));
+  const deleteStage = async (stageId) => {
+    const newStages = stages.filter(stage => stage.id !== stageId);
+    setStages(newStages);
+    await updateStagesInFirebase(newStages);
   };
 
-  const addTask = (stageId, taskData) => {
-    setStages(stages.map(stage => 
+  const addTask = async (stageId, taskData) => {
+    const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { ...stage, tasks: [...stage.tasks, { ...taskData, id: uuidv4(), steps: [] }] }
         : stage
-    ));
+    );
+    setStages(newStages);
+    await updateStagesInFirebase(newStages);
   };
 
-  const updateTask = (stageId, taskId, taskData) => {
-    setStages(stages.map(stage => 
+  const updateTask = async (stageId, taskId, taskData) => {
+    const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { 
             ...stage, 
@@ -99,19 +170,23 @@ function App() {
             ) 
           }
         : stage
-    ));
+    );
+    setStages(newStages);
+    await updateStagesInFirebase(newStages);
   };
 
-  const deleteTask = (stageId, taskId) => {
-    setStages(stages.map(stage => 
+  const deleteTask = async (stageId, taskId) => {
+    const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { ...stage, tasks: stage.tasks.filter(task => task.id !== taskId) }
         : stage
-    ));
+    );
+    setStages(newStages);
+    await updateStagesInFirebase(newStages);
   };
 
-  const addStep = (stageId, taskId, stepData) => {
-    setStages(stages.map(stage => 
+  const addStep = async (stageId, taskId, stepData) => {
+    const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { 
             ...stage, 
@@ -122,11 +197,13 @@ function App() {
             ) 
           }
         : stage
-    ));
+    );
+    setStages(newStages);
+    await updateStagesInFirebase(newStages);
   };
 
-  const updateStep = (stageId, taskId, stepId, stepData) => {
-    setStages(stages.map(stage => 
+  const updateStep = async (stageId, taskId, stepId, stepData) => {
+    const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { 
             ...stage, 
@@ -142,11 +219,13 @@ function App() {
             ) 
           }
         : stage
-    ));
+    );
+    setStages(newStages);
+    await updateStagesInFirebase(newStages);
   };
 
-  const deleteStep = (stageId, taskId, stepId) => {
-    setStages(stages.map(stage => 
+  const deleteStep = async (stageId, taskId, stepId) => {
+    const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { 
             ...stage, 
@@ -157,18 +236,25 @@ function App() {
             ) 
           }
         : stage
-    ));
+    );
+    setStages(newStages);
+    await updateStagesInFirebase(newStages);
   };
 
   const switchToStepView = () => {
     setCurrentView('step');
   };
 
-  const handleImportData = (importedStages) => {
+  const handleImportData = async (importedStages) => {
     if (window.confirm('This will replace all current data. Are you sure you want to continue?')) {
       setStages(importedStages);
+      await updateStagesInFirebase(importedStages);
     }
   };
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -178,6 +264,12 @@ function App() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">User Journey Map</h1>
               <p className="text-gray-600 mt-2">Create and visualize customer journey stages, tasks, and touchpoints</p>
+              {user && (
+                <div className="flex items-center mt-3 text-sm text-green-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                  <span>Connected as {getUserDisplayName(user)} • Real-time collaboration enabled</span>
+                </div>
+              )}
             </div>
             <ViewToggle currentView={currentView} onViewChange={setCurrentView} />
           </div>

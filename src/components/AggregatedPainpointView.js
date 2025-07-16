@@ -3,7 +3,12 @@ import { getPersonaById } from '../constants/personas';
 import usePanScroll from '../hooks/usePanScroll';
 
 const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
-  const [highlightedItems, setHighlightedItems] = useState({ stepId: null, painPointIndex: null, opportunityIndex: null });
+  const [highlightedItems, setHighlightedItems] = useState({ 
+    stepId: null, 
+    painPointIndex: null, 
+    opportunityIndex: null,
+    highlightAllRelated: false  // New flag to highlight all related items when step is clicked
+  });
   const [connectorLines, setConnectorLines] = useState([]);
   const containerRef = useRef(null);
   const cardRefs = useRef({});
@@ -108,7 +113,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
       highlightedItems.stepId === clickedItem.stepId && 
       ((itemType === 'painpoint' && highlightedItems.painPointIndex === itemIndex) ||
        (itemType === 'opportunity' && highlightedItems.opportunityIndex === itemIndex) ||
-       (itemType === 'step'));
+       (itemType === 'step' && highlightedItems.highlightAllRelated));
     
     if (isAlreadyHighlighted) {
       clearHighlighting();
@@ -195,7 +200,8 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
       setHighlightedItems({
         stepId: clickedItem.stepId,
         painPointIndex: itemType === 'painpoint' ? itemIndex : null,
-        opportunityIndex: itemType === 'opportunity' ? itemIndex : null
+        opportunityIndex: itemType === 'opportunity' ? itemIndex : null,
+        highlightAllRelated: itemType === 'step'  // Highlight all related items when step is clicked
       });
     }
     
@@ -204,7 +210,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
 
   // Function to clear highlighting
   const clearHighlighting = () => {
-    setHighlightedItems({ stepId: null, painPointIndex: null, opportunityIndex: null });
+    setHighlightedItems({ stepId: null, painPointIndex: null, opportunityIndex: null, highlightAllRelated: false });
     setConnectorLines([]);
   };
 
@@ -346,7 +352,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                           e.stopPropagation();
                           handleItemClick(step, 'step', null);
                         }}
-                        title="Click to show connections to related pain points and opportunities (click again to dismiss)"
+                        title="Click to highlight and show connections to related pain points and opportunities (click again to dismiss)"
                       >
                         <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
                         {step.persona && (
@@ -384,7 +390,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 <div className="space-y-2">
                   {task.painPoints.map((item, index) => {
                     const isHighlighted = highlightedItems.stepId === item.stepId && 
-                                         highlightedItems.painPointIndex === index;
+                                         (highlightedItems.painPointIndex === index || highlightedItems.highlightAllRelated);
                     const painPointRefKey = `painpoint-${item.taskId}-${item.stepId}-${index}`;
                     
                     return (
@@ -398,7 +404,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                           e.stopPropagation();
                           handleItemClick(item, 'painpoint', index);
                         }}
-                        title="Click to show connections to related step and opportunities (click again to dismiss)"
+                        title="Click to highlight and show connections to related step and opportunities (click again to dismiss)"
                       >
                         <p className="text-red-800 font-medium text-sm">{item.text}</p>
                         {item.persona && (
@@ -436,7 +442,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 <div className="space-y-2">
                   {task.opportunities.map((item, index) => {
                     const isHighlighted = highlightedItems.stepId === item.stepId && 
-                                         highlightedItems.opportunityIndex === index;
+                                         (highlightedItems.opportunityIndex === index || highlightedItems.highlightAllRelated);
                     const opportunityRefKey = `opportunity-${item.taskId}-${item.stepId}-${index}`;
                     
                     return (
@@ -450,7 +456,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                           e.stopPropagation();
                           handleItemClick(item, 'opportunity', index);
                         }}
-                        title="Click to show connections to related step and pain points (click again to dismiss)"
+                        title="Click to highlight and show connections to related step and pain points (click again to dismiss)"
                       >
                         <p className="text-green-800 font-medium text-sm">{item.text}</p>
                         {item.persona && (

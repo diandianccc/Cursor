@@ -6,11 +6,11 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
   const allTasks = [];
   const stageSpans = []; // Track which columns belong to which stage
 
-  stages.forEach(stage => {
+  stages.forEach((stage, stageIndex) => {
     if (stage.tasks.length > 0) {
       const stageStartIndex = allTasks.length;
       
-      stage.tasks.forEach(task => {
+      stage.tasks.forEach((task, taskIndex) => {
         const taskSteps = [];
         const taskPainPoints = [];
         const taskOpportunities = [];
@@ -63,7 +63,11 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
           taskId: task.id,
           steps: taskSteps,
           painPoints: taskPainPoints,
-          opportunities: taskOpportunities
+          opportunities: taskOpportunities,
+          stageIndex: stageIndex,
+          taskIndex: taskIndex,
+          isLastTaskInStage: taskIndex === stage.tasks.length - 1,
+          isFirstTaskInStage: taskIndex === 0
         });
       });
 
@@ -126,8 +130,17 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 <span className="font-semibold text-blue-800">Tasks</span>
               </div>
             </td>
-            {allTasks.map((task) => (
-              <td key={`task-${task.taskId}`} className="min-w-64 p-4 border-r border-gray-200 last:border-r-0">
+            {allTasks.map((task, index) => (
+              <td 
+                key={`task-${task.taskId}`} 
+                className={`min-w-64 align-top ${
+                  task.isLastTaskInStage && index < allTasks.length - 1 
+                    ? 'pr-6 border-r-4 border-r-white' 
+                    : 'pr-2 border-r border-gray-200'
+                } ${
+                  index === allTasks.length - 1 ? '' : ''
+                } pl-2 py-4`}
+              >
                 <div className="bg-blue-100 rounded-lg p-3">
                   <div className="font-semibold text-blue-800 mb-2">{task.taskName}</div>
                   <div className="text-xs text-blue-600">
@@ -148,9 +161,18 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 <span className="font-semibold text-indigo-800">Steps</span>
               </div>
             </td>
-            {allTasks.map((task) => (
-              <td key={`steps-${task.taskId}`} className="min-w-64 p-4 border-r border-gray-200 last:border-r-0 align-top">
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+            {allTasks.map((task, index) => (
+              <td 
+                key={`steps-${task.taskId}`} 
+                className={`min-w-64 align-top ${
+                  task.isLastTaskInStage && index < allTasks.length - 1 
+                    ? 'pr-6 border-r-4 border-r-white' 
+                    : 'pr-2 border-r border-gray-200'
+                } ${
+                  index === allTasks.length - 1 ? '' : ''
+                } pl-2 py-4`}
+              >
+                <div className="space-y-2">
                   {task.steps.map((step) => (
                     <div 
                       key={step.id} 
@@ -183,8 +205,17 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 <span className="font-semibold text-red-800">Pain Points</span>
               </div>
             </td>
-            {allTasks.map((task) => (
-              <td key={`pain-${task.taskId}`} className="min-w-64 p-4 border-r border-gray-200 last:border-r-0 align-top">
+            {allTasks.map((task, index) => (
+              <td 
+                key={`pain-${task.taskId}`} 
+                className={`min-w-64 align-top ${
+                  task.isLastTaskInStage && index < allTasks.length - 1 
+                    ? 'pr-6 border-r-4 border-r-white' 
+                    : 'pr-2 border-r border-gray-200'
+                } ${
+                  index === allTasks.length - 1 ? '' : ''
+                } pl-2 py-4`}
+              >
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {task.painPoints.map((item, index) => (
                     <div 
@@ -220,8 +251,17 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 <span className="font-semibold text-green-800">Opportunities</span>
               </div>
             </td>
-            {allTasks.map((task) => (
-              <td key={`opp-${task.taskId}`} className="min-w-64 p-4 border-r border-gray-200 last:border-r-0 align-top">
+            {allTasks.map((task, index) => (
+              <td 
+                key={`opp-${task.taskId}`} 
+                className={`min-w-64 align-top ${
+                  task.isLastTaskInStage && index < allTasks.length - 1 
+                    ? 'pr-6 border-r-4 border-r-white' 
+                    : 'pr-2 border-r border-gray-200'
+                } ${
+                  index === allTasks.length - 1 ? '' : ''
+                } pl-2 py-4`}
+              >
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {task.opportunities.map((item, index) => (
                     <div 

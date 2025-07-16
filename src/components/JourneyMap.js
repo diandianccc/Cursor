@@ -3,10 +3,8 @@ import Stage from './Stage';
 import AddStageModal from './AddStageModal';
 import PersonaLegend from './PersonaLegend';
 import AggregatedPainpointView from './AggregatedPainpointView';
-import PanScrollIndicator from './PanScrollIndicator';
 import StepDetailPanel from './StepDetailPanel';
 import { PERSONAS } from '../constants/personas';
-import usePanScroll from '../hooks/usePanScroll';
 
 const JourneyMap = ({ 
   stages,
@@ -31,7 +29,6 @@ const JourneyMap = ({
     stageName: '',
     taskName: ''
   });
-  const panScroll = usePanScroll();
 
   const openStepDetailPanel = (step, stageId, taskId, stageName, taskName) => {
     setStepDetailPanel({
@@ -73,13 +70,9 @@ const JourneyMap = ({
         </button>
       </div>
 
-      <PanScrollIndicator containerRef={panScroll.ref} className="mb-4" />
-
       {currentView === 'step' ? (
         <div 
-          ref={panScroll.ref}
-          className={`flex gap-6 overflow-x-auto pb-4 pan-scroll-container ${panScroll.hasDragged ? 'dragging' : ''}`}
-          title="Click and drag to pan horizontally"
+          className="flex gap-6 overflow-x-auto pb-4"
         >
           {stages.map((stage) => (
             <Stage
@@ -115,8 +108,6 @@ const JourneyMap = ({
             stages={stages}
             onSwitchToStepView={onSwitchToStepView}
             onOpenStepDetail={openStepDetailPanel}
-            panScrollRef={panScroll.ref}
-            hasDragged={panScroll.hasDragged}
           />
         </div>
       )}

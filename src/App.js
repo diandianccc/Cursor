@@ -5,7 +5,6 @@ import ViewToggle from './components/ViewToggle';
 import SpreadsheetImportExport from './components/SpreadsheetImportExport';
 import LoadingSpinner from './components/LoadingSpinner';
 import { PERSONAS } from './constants/personas';
-import './styles/panScroll.css';
 
 // Supabase imports
 import { 

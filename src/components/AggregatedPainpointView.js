@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getPersonaById } from '../constants/personas';
 
-const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail, panScrollRef, hasDragged }) => {
+const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail }) => {
   const [highlightedItems, setHighlightedItems] = useState({ 
     stepId: null, 
     painPointIndex: null, 
@@ -270,12 +270,10 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail,
 
   return (
     <div 
-      ref={panScrollRef}
-      className={`overflow-x-auto bg-white p-4 relative pan-scroll-container ${hasDragged ? 'dragging' : ''}`}
-      title="Click and drag to pan horizontally, or use scrollbar"
+      className="overflow-x-auto bg-white p-4 relative"
       onClick={(e) => {
-        // Clear highlighting if clicking on background (but not when panning)
-        if (e.target === e.currentTarget && !hasDragged) {
+        // Clear highlighting if clicking on background
+        if (e.target === e.currentTarget) {
           clearHighlighting();
         }
       }}

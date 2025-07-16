@@ -2,6 +2,8 @@
 
 A React application for creating and managing user journey maps with interactive three-level hierarchy: stages, tasks, and steps with persona-based color coding. Features dual view modes for comprehensive analysis.
 
+<!-- Latest update: Modal-based import/export interface -->
+
 ## Features
 
 - **Stages**: Add horizontally-displayed stages (e.g., "Awareness", "Consideration")

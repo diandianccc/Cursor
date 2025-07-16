@@ -198,7 +198,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                   task.isFirstTaskInStage && task.stageIndex > 0 ? 'pl-8' : ''
                 }`}
               >
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                <div className="space-y-2">
                   {task.painPoints.map((item, index) => (
                     <div 
                       key={`${item.stepId}-${index}`} 
@@ -240,7 +240,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                   task.isFirstTaskInStage && task.stageIndex > 0 ? 'pl-8' : ''
                 }`}
               >
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                <div className="space-y-2">
                   {task.opportunities.map((item, index) => (
                     <div 
                       key={`${item.stepId}-${index}`} 

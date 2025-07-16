@@ -73,9 +73,7 @@ const JourneyMap = ({
         </button>
       </div>
 
-      {currentView === 'step' && (
-        <PanScrollIndicator containerRef={panScroll.ref} className="mb-4" />
-      )}
+      <PanScrollIndicator containerRef={panScroll.ref} className="mb-4" />
 
       {currentView === 'step' ? (
         <div 
@@ -117,6 +115,8 @@ const JourneyMap = ({
             stages={stages}
             onSwitchToStepView={onSwitchToStepView}
             onOpenStepDetail={openStepDetailPanel}
+            panScrollRef={panScroll.ref}
+            hasDragged={panScroll.hasDragged}
           />
         </div>
       )}

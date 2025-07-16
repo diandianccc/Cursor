@@ -26,9 +26,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState(() => {
     try {
-      return localStorage.getItem('journeyMapView') || 'step';
+      return localStorage.getItem('journeyMapView') || 'painpoint';
     } catch (error) {
-      return 'step';
+      return 'painpoint';
     }
   });
 

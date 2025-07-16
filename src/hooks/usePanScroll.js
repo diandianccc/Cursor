@@ -9,7 +9,7 @@ const usePanScroll = () => {
 
   const handleMouseDown = useCallback((e) => {
     // Don't interfere with clicks on buttons, inputs, or other interactive elements
-    if (e.target.closest('button, input, textarea, select, a, [role="button"]')) {
+    if (e.target.closest('button, input, textarea, select, a, [role="button"], [contenteditable]')) {
       return;
     }
 
@@ -38,12 +38,13 @@ const usePanScroll = () => {
     const deltaX = e.clientX - startPosRef.current.x;
     const deltaY = e.clientY - startPosRef.current.y;
     
-    // Check if user has moved enough to be considered dragging
-    if (!hasDragged && (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)) {
+    // Check if user has moved enough to be considered dragging (reduced threshold)
+    const threshold = 2;
+    if (!hasDragged && (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold)) {
       setHasDragged(true);
     }
     
-    if (hasDragged || Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+    if (hasDragged || Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
       e.preventDefault();
       e.stopPropagation();
       
@@ -63,7 +64,7 @@ const usePanScroll = () => {
     
     // Small delay to prevent click events if user dragged
     if (hasDragged) {
-      setTimeout(() => setHasDragged(false), 10);
+      setTimeout(() => setHasDragged(false), 50);
     } else {
       setHasDragged(false);
     }
@@ -81,7 +82,7 @@ const usePanScroll = () => {
 
   // Touch events for mobile
   const handleTouchStart = useCallback((e) => {
-    if (e.target.closest('button, input, textarea, select, a, [role="button"]')) {
+    if (e.target.closest('button, input, textarea, select, a, [role="button"], [contenteditable]')) {
       return;
     }
 
@@ -106,11 +107,12 @@ const usePanScroll = () => {
     const deltaY = touch.clientY - startPosRef.current.y;
     
     // Check if user has moved enough to be considered dragging
-    if (!hasDragged && (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)) {
+    const threshold = 2;
+    if (!hasDragged && (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold)) {
       setHasDragged(true);
     }
     
-    if (hasDragged || Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+    if (hasDragged || Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
       e.preventDefault();
       element.scrollLeft = scrollStartRef.current.left - deltaX;
       element.scrollTop = scrollStartRef.current.top - deltaY;
@@ -122,7 +124,7 @@ const usePanScroll = () => {
     
     // Small delay to prevent click events if user dragged
     if (hasDragged) {
-      setTimeout(() => setHasDragged(false), 10);
+      setTimeout(() => setHasDragged(false), 50);
     } else {
       setHasDragged(false);
     }
@@ -136,8 +138,8 @@ const usePanScroll = () => {
     element.style.cursor = 'grab';
     
     // Add event listeners
-    element.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mousemove', handleMouseMove);
+    element.addEventListener('mousedown', handleMouseDown, { passive: false });
+    document.addEventListener('mousemove', handleMouseMove, { passive: false });
     document.addEventListener('mouseup', handleMouseUp);
     element.addEventListener('mouseleave', handleMouseLeave);
     
@@ -147,14 +149,16 @@ const usePanScroll = () => {
     element.addEventListener('touchend', handleTouchEnd);
 
     return () => {
-      element.removeEventListener('mousedown', handleMouseDown);
+      if (element) {
+        element.removeEventListener('mousedown', handleMouseDown);
+        element.removeEventListener('mouseleave', handleMouseLeave);
+        element.removeEventListener('touchstart', handleTouchStart);
+        element.removeEventListener('touchmove', handleTouchMove);
+        element.removeEventListener('touchend', handleTouchEnd);
+      }
+      
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-      element.removeEventListener('mouseleave', handleMouseLeave);
-      
-      element.removeEventListener('touchstart', handleTouchStart);
-      element.removeEventListener('touchmove', handleTouchMove);
-      element.removeEventListener('touchend', handleTouchEnd);
       
       // Cleanup styles
       if (element) {

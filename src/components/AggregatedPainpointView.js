@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getPersonaById } from '../constants/personas';
-import usePanScroll from '../hooks/usePanScroll';
 
-const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail }) => {
+const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail, panScrollRef, hasDragged }) => {
   const [highlightedItems, setHighlightedItems] = useState({ 
     stepId: null, 
     painPointIndex: null, 
@@ -11,7 +10,6 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail 
   });
   const [connectorLines, setConnectorLines] = useState([]);
   const cardRefs = useRef({});
-  const panScroll = usePanScroll();
   // Collect all tasks and organize by stage, maintaining order
   const allTasks = [];
   const stageSpans = []; // Track which columns belong to which stage
@@ -272,12 +270,12 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail 
 
   return (
     <div 
-      ref={panScroll.ref}
-      className={`overflow-x-auto bg-white p-4 relative pan-scroll-container ${panScroll.hasDragged ? 'dragging' : ''}`}
+      ref={panScrollRef}
+      className={`overflow-x-auto bg-white p-4 relative pan-scroll-container ${hasDragged ? 'dragging' : ''}`}
       title="Click and drag to pan horizontally, or use scrollbar"
       onClick={(e) => {
         // Clear highlighting if clicking on background (but not when panning)
-        if (e.target === e.currentTarget && !panScroll.hasDragged) {
+        if (e.target === e.currentTarget && !hasDragged) {
           clearHighlighting();
         }
       }}

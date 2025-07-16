@@ -1,24 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import JourneyMap from './components/JourneyMap';
 import ViewToggle from './components/ViewToggle';
 import { PERSONAS } from './constants/personas';
 
 function App() {
-  const [stages, setStages] = useState([
-    {
-      id: uuidv4(),
-      name: 'Awareness',
-      tasks: []
-    },
-    {
-      id: uuidv4(),
-      name: 'Consideration', 
-      tasks: []
+  // Load data from localStorage or use default stages
+  const loadStagesFromStorage = () => {
+    try {
+      const savedStages = localStorage.getItem('journeyMapStages');
+      if (savedStages) {
+        return JSON.parse(savedStages);
+      }
+    } catch (error) {
+      console.error('Error loading data from localStorage:', error);
     }
-  ]);
+    
+    // Return default stages if no saved data
+    return [
+      {
+        id: uuidv4(),
+        name: 'Awareness',
+        tasks: []
+      },
+      {
+        id: uuidv4(),
+        name: 'Consideration', 
+        tasks: []
+      }
+    ];
+  };
 
-  const [currentView, setCurrentView] = useState('step'); // 'step' or 'painpoint'
+  const [stages, setStages] = useState(loadStagesFromStorage);
+  const [currentView, setCurrentView] = useState(() => {
+    try {
+      return localStorage.getItem('journeyMapView') || 'step';
+    } catch (error) {
+      return 'step';
+    }
+  });
+
+  // Save stages to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('journeyMapStages', JSON.stringify(stages));
+    } catch (error) {
+      console.error('Error saving stages to localStorage:', error);
+    }
+  }, [stages]);
+
+  // Save current view to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('journeyMapView', currentView);
+    } catch (error) {
+      console.error('Error saving view to localStorage:', error);
+    }
+  }, [currentView]);
 
   const addStage = (stageName) => {
     const newStage = {

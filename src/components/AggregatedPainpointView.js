@@ -549,12 +549,6 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail,
                           type="pain point"
                         >
                           <p className="text-red-800 font-medium text-sm">{item.text}</p>
-                          {item.persona && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <div className={`${item.persona.color} w-2 h-2 rounded-full`}></div>
-                              <span className="text-xs text-red-600">{item.persona.name}</span>
-                            </div>
-                          )}
                         </CardWithEdit>
                       </div>
                     );
@@ -613,12 +607,6 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail,
                           type="opportunity"
                         >
                           <p className="text-green-800 font-medium text-sm">{item.text}</p>
-                          {item.persona && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <div className={`${item.persona.color} w-2 h-2 rounded-full`}></div>
-                              <span className="text-xs text-green-600">{item.persona.name}</span>
-                            </div>
-                          )}
                         </CardWithEdit>
                       </div>
                     );

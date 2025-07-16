@@ -10,7 +10,6 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
     highlightAllRelated: false  // New flag to highlight all related items when step is clicked
   });
   const [connectorLines, setConnectorLines] = useState([]);
-  const containerRef = useRef(null);
   const cardRefs = useRef({});
   const panScroll = usePanScroll();
   // Collect all tasks and organize by stage, maintaining order
@@ -106,7 +105,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
 
   // Function to handle item clicks (pain points, opportunities, or steps)
   const handleItemClick = (clickedItem, itemType, itemIndex) => {
-    if (!containerRef.current) return;
+    if (!panScroll.ref.current) return;
     
     // Check if this item is already highlighted - if so, clear highlighting
     const isAlreadyHighlighted = 
@@ -120,7 +119,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
       return;
     }
     
-    const containerRect = containerRef.current.getBoundingClientRect();
+    const containerRect = panScroll.ref.current.getBoundingClientRect();
     const lines = [];
     
     // Find related step and all pain points/opportunities from the same step
@@ -239,12 +238,9 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
 
   return (
     <div 
-      ref={(el) => {
-        containerRef.current = el;
-        panScroll.ref.current = el;
-      }}
-      className={`overflow-x-auto bg-white p-4 relative pan-scroll-container ${panScroll.isDragging ? 'dragging' : ''}`}
-      title="Click and drag to pan horizontally"
+      ref={panScroll.ref}
+      className={`overflow-x-auto bg-white p-4 relative pan-scroll-container ${panScroll.isActuallyDragging ? 'dragging' : ''}`}
+      title="Click and drag to pan horizontally, or use scrollbar"
       onClick={(e) => {
         // Clear highlighting if clicking on background
         if (e.target === e.currentTarget) {

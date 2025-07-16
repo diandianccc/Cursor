@@ -1,12 +1,26 @@
 .pan-scroll-container {
-  /* Hide scrollbar for IE, Edge and Firefox */
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  /* Show thin scrollbars as fallback */
+  scrollbar-width: thin;
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
+/* Style scrollbar for Chrome, Safari and Opera */
 .pan-scroll-container::-webkit-scrollbar {
-  display: none;
+  height: 8px;
+  width: 8px;
+}
+
+.pan-scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.pan-scroll-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.pan-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 /* Ensure smooth scrolling */

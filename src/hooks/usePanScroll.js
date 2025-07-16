@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 const usePanScroll = () => {
   const elementRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isActuallyDragging, setIsActuallyDragging] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const [scrollStart, setScrollStart] = useState({ left: 0, top: 0 });
 
@@ -20,9 +21,6 @@ const usePanScroll = () => {
       setStartPos({ x: e.clientX, y: e.clientY });
       setScrollStart({ left: element.scrollLeft, top: element.scrollTop });
       
-      // Prevent text selection while dragging
-      e.preventDefault();
-      
       // Change cursor immediately
       element.style.cursor = 'grabbing';
       document.body.style.userSelect = 'none';
@@ -31,24 +29,33 @@ const usePanScroll = () => {
     const handleMouseMove = (e) => {
       if (!isDragging) return;
 
-      e.preventDefault();
-      
       const deltaX = e.clientX - startPos.x;
       const deltaY = e.clientY - startPos.y;
       
-      // Apply scroll with some momentum
-      element.scrollLeft = scrollStart.left - deltaX;
-      element.scrollTop = scrollStart.top - deltaY;
+      // Only start actual dragging after minimum movement threshold
+      if (!isActuallyDragging && (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
+        setIsActuallyDragging(true);
+        e.preventDefault();
+      }
+      
+      if (isActuallyDragging) {
+        e.preventDefault();
+        // Apply scroll
+        element.scrollLeft = scrollStart.left - deltaX;
+        element.scrollTop = scrollStart.top - deltaY;
+      }
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      setIsActuallyDragging(false);
       element.style.cursor = 'grab';
       document.body.style.userSelect = '';
     };
 
     const handleMouseLeave = () => {
       setIsDragging(false);
+      setIsActuallyDragging(false);
       element.style.cursor = 'grab';
       document.body.style.userSelect = '';
     };
@@ -68,18 +75,26 @@ const usePanScroll = () => {
     const handleTouchMove = (e) => {
       if (!isDragging) return;
 
-      e.preventDefault();
-      
       const touch = e.touches[0];
       const deltaX = touch.clientX - startPos.x;
       const deltaY = touch.clientY - startPos.y;
       
-      element.scrollLeft = scrollStart.left - deltaX;
-      element.scrollTop = scrollStart.top - deltaY;
+      // Only start actual dragging after minimum movement threshold
+      if (!isActuallyDragging && (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
+        setIsActuallyDragging(true);
+        e.preventDefault();
+      }
+      
+      if (isActuallyDragging) {
+        e.preventDefault();
+        element.scrollLeft = scrollStart.left - deltaX;
+        element.scrollTop = scrollStart.top - deltaY;
+      }
     };
 
     const handleTouchEnd = () => {
       setIsDragging(false);
+      setIsActuallyDragging(false);
     };
 
     // Set initial cursor
@@ -112,17 +127,14 @@ const usePanScroll = () => {
       }
       document.body.style.userSelect = '';
     };
-  }, [isDragging, startPos, scrollStart]);
+  }, [isDragging, isActuallyDragging, startPos, scrollStart]);
 
   return { 
     ref: elementRef, 
     isDragging,
+    isActuallyDragging,
     style: {
-      cursor: isDragging ? 'grabbing' : 'grab',
-      // Hide scrollbar but keep functionality
-      scrollbarWidth: 'none',
-      msOverflowStyle: 'none',
-      WebkitScrollbar: { display: 'none' }
+      cursor: isActuallyDragging ? 'grabbing' : 'grab'
     }
   };
 };

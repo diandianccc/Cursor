@@ -75,20 +75,20 @@ const StepDetailPanel = ({
   if (!isOpen || !step) return null;
 
   return (
-    <>
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 flex">
+      {/* Backdrop - only covers left side */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+        className="flex-1 bg-black bg-opacity-50 transition-opacity duration-300"
         onClick={handleCancel}
       />
       
-      {/* Panel */}
-      <div className={`fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
+      {/* Panel Container */}
+      <div className={`w-96 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
-      }`}>
+      } flex flex-col h-full relative z-50`}>
         
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50 flex-shrink-0">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Step Details</h2>
             <p className="text-sm text-gray-600 mt-1">
@@ -194,7 +194,7 @@ const StepDetailPanel = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
           <div className="text-sm text-gray-500">
             {hasChanges && (
               <span className="flex items-center gap-1">
@@ -220,7 +220,7 @@ const StepDetailPanel = ({
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

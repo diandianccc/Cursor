@@ -108,6 +108,7 @@ const JourneyMap = ({
             stages={stages}
             onSwitchToStepView={onSwitchToStepView}
             onOpenStepDetail={openStepDetailPanel}
+            onUpdateStep={onUpdateStep}
           />
         </div>
       )}

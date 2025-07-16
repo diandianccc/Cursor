@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getPersonaById } from '../constants/personas';
 
-const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail }) => {
+const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail, onUpdateStep }) => {
   const [highlightedItems, setHighlightedItems] = useState({ 
     stepId: null, 
     painPointIndex: null, 
@@ -18,7 +18,10 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail 
     taskName: '',
     stepId: null
   });
+  const [editablePainPoints, setEditablePainPoints] = useState([]);
+  const [editableOpportunities, setEditableOpportunities] = useState([]);
   const cardRefs = useRef({});
+  const containerRef = useRef(null);
   // Collect all tasks and organize by stage, maintaining order
   const allTasks = [];
   const stageSpans = []; // Track which columns belong to which stage
@@ -197,6 +200,10 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail 
     const step = task?.steps.find(s => s.id === item.stepId);
     
     if (step && task && stage) {
+      // Initialize editable arrays
+      setEditablePainPoints(step.painPoints || []);
+      setEditableOpportunities(step.opportunities || []);
+      
       setEditPanel({
         isOpen: true,
         editData: {
@@ -225,6 +232,60 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail 
       taskName: '',
       stepId: null
     });
+    setEditablePainPoints([]);
+    setEditableOpportunities([]);
+  };
+
+  // Pain Points management functions
+  const addPainPoint = () => {
+    setEditablePainPoints([...editablePainPoints, '']);
+  };
+
+  const removePainPoint = (index) => {
+    setEditablePainPoints(editablePainPoints.filter((_, i) => i !== index));
+  };
+
+  const updatePainPoint = (index, value) => {
+    const updated = [...editablePainPoints];
+    updated[index] = value;
+    setEditablePainPoints(updated);
+  };
+
+  // Opportunities management functions
+  const addOpportunity = () => {
+    setEditableOpportunities([...editableOpportunities, '']);
+  };
+
+  const removeOpportunity = (index) => {
+    setEditableOpportunities(editableOpportunities.filter((_, i) => i !== index));
+  };
+
+  const updateOpportunity = (index, value) => {
+    const updated = [...editableOpportunities];
+    updated[index] = value;
+    setEditableOpportunities(updated);
+  };
+
+  // Save function
+  const saveChanges = () => {
+    if (!editPanel.editData || !onUpdateStep) return;
+
+    // Filter out empty pain points and opportunities
+    const filteredPainPoints = editablePainPoints.filter(point => point.trim() !== '');
+    const filteredOpportunities = editableOpportunities.filter(opp => opp.trim() !== '');
+
+    // Create updated step data
+    const stepData = {
+      ...editPanel.editData.step,
+      painPoints: filteredPainPoints,
+      opportunities: filteredOpportunities
+    };
+
+    // Call the update function
+    onUpdateStep(editPanel.stageId, editPanel.taskId, editPanel.stepId, stepData);
+    
+    // Close the panel
+    closeEditPanel();
   };
 
   // Reusable card component with hover edit icon
@@ -304,6 +365,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail 
   return (
     <>
       <div 
+        ref={containerRef}
         className="overflow-x-auto bg-white p-4 relative"
         onClick={(e) => {
           // Clear highlighting if clicking on background
@@ -575,14 +637,14 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail 
     {/* Comprehensive Edit Panel */}
     {editPanel.isOpen && (
       <div className="fixed inset-0 z-50 flex">
-        {/* Backdrop */}
+        {/* Backdrop - only covers left side */}
         <div 
-          className="absolute inset-0 bg-black bg-opacity-50"
+          className="flex-1 bg-black bg-opacity-50"
           onClick={closeEditPanel}
         ></div>
         
         {/* Side Panel */}
-        <div className="ml-auto w-1/2 max-w-2xl bg-white shadow-2xl h-full overflow-hidden flex flex-col">
+        <div className="w-1/2 max-w-2xl bg-white shadow-2xl h-full overflow-hidden flex flex-col relative z-50">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
             <div className="flex items-center justify-between">
@@ -669,23 +731,45 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail 
 
                 {/* Pain Points Section */}
                 <div className="bg-red-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                    Pain Points
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                      Pain Points ({editablePainPoints.length})
+                    </div>
                   </h3>
                   <div className="space-y-2">
-                    {editPanel.editData.allPainPoints.map((painPoint, index) => (
-                      <input
-                        key={index}
-                        type="text"
-                        defaultValue={painPoint}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                        placeholder={`Pain point ${index + 1}`}
-                      />
-                    ))}
-                    <button className="w-full py-2 px-4 border-2 border-dashed border-red-300 text-red-600 rounded-md hover:bg-red-50 transition-colors">
+                    {editablePainPoints.length > 0 ? (
+                      editablePainPoints.map((painPoint, index) => (
+                        <div key={index} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={painPoint}
+                            onChange={(e) => updatePainPoint(index, e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                            placeholder={`Pain point ${index + 1}`}
+                          />
+                          <button
+                            onClick={() => removePainPoint(index)}
+                            className="px-3 py-2 text-red-600 hover:bg-red-100 rounded-md transition-colors"
+                            title="Remove pain point"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4 text-gray-500 italic">
+                        No pain points yet. Click the button below to add the first one.
+                      </div>
+                    )}
+                    <button 
+                      onClick={addPainPoint}
+                      className="w-full py-2 px-4 border-2 border-dashed border-red-300 text-red-600 rounded-md hover:bg-red-50 transition-colors"
+                    >
                       + Add Pain Point
                     </button>
                   </div>
@@ -693,23 +777,45 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail 
 
                 {/* Opportunities Section */}
                 <div className="bg-green-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v18m9-9H3" />
-                    </svg>
-                    Opportunities
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v18m9-9H3" />
+                      </svg>
+                      Opportunities ({editableOpportunities.length})
+                    </div>
                   </h3>
                   <div className="space-y-2">
-                    {editPanel.editData.allOpportunities.map((opportunity, index) => (
-                      <input
-                        key={index}
-                        type="text"
-                        defaultValue={opportunity}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder={`Opportunity ${index + 1}`}
-                      />
-                    ))}
-                    <button className="w-full py-2 px-4 border-2 border-dashed border-green-300 text-green-600 rounded-md hover:bg-green-50 transition-colors">
+                    {editableOpportunities.length > 0 ? (
+                      editableOpportunities.map((opportunity, index) => (
+                        <div key={index} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={opportunity}
+                            onChange={(e) => updateOpportunity(index, e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                            placeholder={`Opportunity ${index + 1}`}
+                          />
+                          <button
+                            onClick={() => removeOpportunity(index)}
+                            className="px-3 py-2 text-green-600 hover:bg-green-100 rounded-md transition-colors"
+                            title="Remove opportunity"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4 text-gray-500 italic">
+                        No opportunities yet. Click the button below to add the first one.
+                      </div>
+                    )}
+                    <button 
+                      onClick={addOpportunity}
+                      className="w-full py-2 px-4 border-2 border-dashed border-green-300 text-green-600 rounded-md hover:bg-green-50 transition-colors"
+                    >
                       + Add Opportunity
                     </button>
                   </div>
@@ -727,7 +833,10 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail 
               Cancel
             </button>
             <div className="flex gap-3">
-              <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+              <button 
+                onClick={saveChanges}
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
                 Save Changes
               </button>
             </div>

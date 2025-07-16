@@ -4,6 +4,7 @@ import AddStageModal from './AddStageModal';
 import PersonaLegend from './PersonaLegend';
 import AggregatedPainpointView from './AggregatedPainpointView';
 import StepDetailPanel from './StepDetailPanel';
+import SpreadsheetImportExport from './SpreadsheetImportExport';
 import { PERSONAS } from '../constants/personas';
 
 const JourneyMap = ({ 
@@ -18,9 +19,11 @@ const JourneyMap = ({
   onAddStep, 
   onUpdateStep, 
   onDeleteStep,
-  onSwitchToStepView
+  onSwitchToStepView,
+  onImportData
 }) => {
   const [isAddStageModalOpen, setIsAddStageModalOpen] = useState(false);
+  const [isSpreadsheetPanelOpen, setIsSpreadsheetPanelOpen] = useState(false);
   const [stepDetailPanel, setStepDetailPanel] = useState({
     isOpen: false,
     step: null,
@@ -58,6 +61,17 @@ const JourneyMap = ({
         <div className="flex items-center gap-6">
           <h2 className="text-xl font-semibold text-gray-800">Journey Stages</h2>
           <PersonaLegend personas={PERSONAS} />
+          {currentView === 'painpoint' && (
+            <button
+              onClick={() => setIsSpreadsheetPanelOpen(!isSpreadsheetPanelOpen)}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              {isSpreadsheetPanelOpen ? 'Hide' : 'Show'} Import/Export
+            </button>
+          )}
         </div>
         <button
           onClick={() => setIsAddStageModalOpen(true)}
@@ -69,6 +83,16 @@ const JourneyMap = ({
           Add Stage
         </button>
       </div>
+
+      {/* Spreadsheet Import/Export Panel - Only show in painpoint view */}
+      {currentView === 'painpoint' && isSpreadsheetPanelOpen && (
+        <div className="mb-6">
+          <SpreadsheetImportExport
+            stages={stages}
+            onImportData={onImportData}
+          />
+        </div>
+      )}
 
       {currentView === 'step' ? (
         <div 

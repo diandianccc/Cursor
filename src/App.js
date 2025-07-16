@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import JourneyMap from './components/JourneyMap';
 import ViewToggle from './components/ViewToggle';
-import SpreadsheetImportExport from './components/SpreadsheetImportExport';
 import LoadingSpinner from './components/LoadingSpinner';
 import { PERSONAS } from './constants/personas';
 
@@ -275,12 +274,7 @@ function App() {
         </div>
       </header>
       
-      <main className="max-w-full mx-auto px-4 pt-6 pb-8">
-        <SpreadsheetImportExport
-          stages={stages}
-          onImportData={handleImportData}
-        />
-        
+      <main className="max-w-full mx-auto px-4 pt-6 pb-8">        
         <JourneyMap 
           stages={stages}
           currentView={currentView}
@@ -294,6 +288,7 @@ function App() {
           onUpdateStep={updateStep}
           onDeleteStep={deleteStep}
           onSwitchToStepView={switchToStepView}
+          onImportData={handleImportData}
         />
       </main>
     </div>

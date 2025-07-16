@@ -6,7 +6,7 @@ import { PERSONAS } from '../constants/personas';
 
 const SpreadsheetImportExport = ({ stages, onImportData }) => {
   const fileInputRef = useRef(null);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   // Generate template data
   const generateTemplate = () => {

@@ -183,7 +183,7 @@ function App() {
         </div>
       </header>
       
-      <main className="max-w-full mx-auto px-4 pt-0 pb-8">
+      <main className="max-w-full mx-auto px-4 pt-6 pb-8">
         <SpreadsheetImportExport
           stages={stages}
           onImportData={handleImportData}

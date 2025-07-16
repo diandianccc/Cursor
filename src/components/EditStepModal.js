@@ -23,8 +23,8 @@ const EditStepModal = ({ isOpen, onClose, step, onUpdate }) => {
       const stepData = {
         description: description.trim(),
         personaId,
-        painPoints: painPoints.split(',').map(p => p.trim()).filter(p => p),
-        opportunities: opportunities.split(',').map(o => o.trim()).filter(o => o)
+              painPoints: painPoints.split('.').map(p => p.trim()).filter(p => p),
+      opportunities: opportunities.split('.').map(o => o.trim()).filter(o => o)
       };
       onUpdate(stepData);
       onClose();
@@ -77,9 +77,9 @@ const EditStepModal = ({ isOpen, onClose, step, onUpdate }) => {
             onChange={(e) => setPainPoints(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             rows="2"
-            placeholder="Enter pain points separated by commas..."
+            placeholder="Enter pain points separated by periods..."
           />
-          <p className="text-xs text-gray-500 mt-1">Separate multiple pain points with commas</p>
+                      <p className="text-xs text-gray-500 mt-1">Separate multiple pain points with periods</p>
         </div>
 
         <div>
@@ -92,9 +92,9 @@ const EditStepModal = ({ isOpen, onClose, step, onUpdate }) => {
             onChange={(e) => setOpportunities(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             rows="2"
-            placeholder="Enter opportunities separated by commas..."
+            placeholder="Enter opportunities separated by periods..."
           />
-          <p className="text-xs text-gray-500 mt-1">Separate multiple opportunities with commas</p>
+                      <p className="text-xs text-gray-500 mt-1">Separate multiple opportunities with periods</p>
         </div>
         
         <div className="flex justify-end gap-3 pt-4">

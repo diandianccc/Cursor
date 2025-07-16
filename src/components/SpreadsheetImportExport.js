@@ -76,8 +76,8 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
       { 'Instructions': '3. Task Name: A specific task within that stage' },
       { 'Instructions': '4. Step Description: Individual steps within the task' },
       { 'Instructions': '5. Step Persona: Must be one of: Developer, Merchandiser, Ecommerce Leader' },
-      { 'Instructions': '6. Pain Points: Separate multiple pain points with commas' },
-      { 'Instructions': '7. Opportunities: Separate multiple opportunities with commas' },
+              { 'Instructions': '6. Pain Points: Separate multiple pain points with periods' },
+        { 'Instructions': '7. Opportunities: Separate multiple opportunities with periods' },
       { 'Instructions': '' },
       { 'Instructions': 'Notes:' },
       { 'Instructions': '- You can have multiple steps for the same task' },
@@ -154,11 +154,11 @@ const SpreadsheetImportExport = ({ stages, onImportData }) => {
       );
       const personaId = persona ? persona.id : PERSONAS[0].id; // Default to first persona
 
-      // Parse pain points and opportunities (comma-separated)
-      const painPoints = painPointsText ? 
-        painPointsText.split(',').map(p => p.trim()).filter(p => p) : [];
-      const opportunities = opportunitiesText ? 
-        opportunitiesText.split(',').map(o => o.trim()).filter(o => o) : [];
+              // Parse pain points and opportunities (period-separated)
+                  const painPoints = painPointsText ? 
+              painPointsText.split('.').map(p => p.trim()).filter(p => p) : [];
+            const opportunities = opportunitiesText ? 
+              opportunitiesText.split('.').map(o => o.trim()).filter(o => o) : [];
 
       // Get or create stage
       if (!stagesMap.has(stageName)) {

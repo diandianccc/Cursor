@@ -97,9 +97,21 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
     return `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
   };
 
-  // Function to handle pain point or opportunity click
+  // Function to handle item clicks (pain points, opportunities, or steps)
   const handleItemClick = (clickedItem, itemType, itemIndex) => {
     if (!containerRef.current) return;
+    
+    // Check if this item is already highlighted - if so, clear highlighting
+    const isAlreadyHighlighted = 
+      highlightedItems.stepId === clickedItem.stepId && 
+      ((itemType === 'painpoint' && highlightedItems.painPointIndex === itemIndex) ||
+       (itemType === 'opportunity' && highlightedItems.opportunityIndex === itemIndex) ||
+       (itemType === 'step'));
+    
+    if (isAlreadyHighlighted) {
+      clearHighlighting();
+      return;
+    }
     
     const containerRect = containerRef.current.getBoundingClientRect();
     const lines = [];
@@ -111,49 +123,70 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
     
     if (relatedStep) {
       const stepRefKey = `step-${clickedItem.taskId}-${clickedItem.stepId}`;
-      const clickedRefKey = `${itemType}-${clickedItem.taskId}-${clickedItem.stepId}-${itemIndex}`;
-      
       const stepRect = cardRefs.current[stepRefKey]?.getBoundingClientRect();
-      const clickedRect = cardRefs.current[clickedRefKey]?.getBoundingClientRect();
       
-      if (stepRect && clickedRect) {
-        // Draw line from clicked item to its step
-        const pathToStep = calculateElbowConnector(clickedRect, stepRect, containerRect);
-        lines.push({ path: pathToStep, color: '#6366f1' });
-        
-        // Find all pain points and opportunities from the same step
-        const sameStepPainPoints = allTasks
-          .flatMap(task => task.painPoints)
-          .filter(pp => pp.stepId === clickedItem.stepId);
-        
-        const sameStepOpportunities = allTasks
-          .flatMap(task => task.opportunities)
-          .filter(opp => opp.stepId === clickedItem.stepId);
-        
-        // Draw connectors to all related pain points and opportunities
+      // Find all pain points and opportunities from the same step
+      const sameStepPainPoints = allTasks
+        .flatMap(task => task.painPoints)
+        .filter(pp => pp.stepId === clickedItem.stepId);
+      
+      const sameStepOpportunities = allTasks
+        .flatMap(task => task.opportunities)
+        .filter(opp => opp.stepId === clickedItem.stepId);
+      
+      if (itemType === 'step') {
+        // Step clicked - draw lines to all its pain points and opportunities
         [...sameStepPainPoints, ...sameStepOpportunities].forEach((relatedItem, index) => {
-          const isCurrentClicked = (itemType === 'painpoint' && sameStepPainPoints.includes(relatedItem) && 
-                                  sameStepPainPoints.indexOf(relatedItem) === itemIndex) ||
-                                  (itemType === 'opportunity' && sameStepOpportunities.includes(relatedItem) && 
-                                  sameStepOpportunities.indexOf(relatedItem) === itemIndex);
+          const relatedType = sameStepPainPoints.includes(relatedItem) ? 'painpoint' : 'opportunity';
+          const relatedIndex = relatedType === 'painpoint' ? 
+            sameStepPainPoints.indexOf(relatedItem) : 
+            sameStepOpportunities.indexOf(relatedItem);
+          const relatedRefKey = `${relatedType}-${relatedItem.taskId}-${relatedItem.stepId}-${relatedIndex}`;
+          const relatedRect = cardRefs.current[relatedRefKey]?.getBoundingClientRect();
           
-          if (!isCurrentClicked) {
-            const relatedType = sameStepPainPoints.includes(relatedItem) ? 'painpoint' : 'opportunity';
-            const relatedIndex = relatedType === 'painpoint' ? 
-              sameStepPainPoints.indexOf(relatedItem) : 
-              sameStepOpportunities.indexOf(relatedItem);
-            const relatedRefKey = `${relatedType}-${relatedItem.taskId}-${relatedItem.stepId}-${relatedIndex}`;
-            const relatedRect = cardRefs.current[relatedRefKey]?.getBoundingClientRect();
-            
-            if (relatedRect) {
-              const pathToRelated = calculateElbowConnector(clickedRect, relatedRect, containerRect);
-              lines.push({ 
-                path: pathToRelated, 
-                color: relatedType === 'painpoint' ? '#dc2626' : '#16a34a' 
-              });
-            }
+          if (relatedRect && stepRect) {
+            const pathToRelated = calculateElbowConnector(stepRect, relatedRect, containerRect);
+            lines.push({ 
+              path: pathToRelated, 
+              color: relatedType === 'painpoint' ? '#dc2626' : '#16a34a' 
+            });
           }
         });
+      } else {
+        // Pain point or opportunity clicked
+        const clickedRefKey = `${itemType}-${clickedItem.taskId}-${clickedItem.stepId}-${itemIndex}`;
+        const clickedRect = cardRefs.current[clickedRefKey]?.getBoundingClientRect();
+        
+        if (stepRect && clickedRect) {
+          // Draw line from clicked item to its step
+          const pathToStep = calculateElbowConnector(clickedRect, stepRect, containerRect);
+          lines.push({ path: pathToStep, color: '#6366f1' });
+          
+          // Draw connectors to all related pain points and opportunities
+          [...sameStepPainPoints, ...sameStepOpportunities].forEach((relatedItem, index) => {
+            const isCurrentClicked = (itemType === 'painpoint' && sameStepPainPoints.includes(relatedItem) && 
+                                    sameStepPainPoints.indexOf(relatedItem) === itemIndex) ||
+                                    (itemType === 'opportunity' && sameStepOpportunities.includes(relatedItem) && 
+                                    sameStepOpportunities.indexOf(relatedItem) === itemIndex);
+            
+            if (!isCurrentClicked) {
+              const relatedType = sameStepPainPoints.includes(relatedItem) ? 'painpoint' : 'opportunity';
+              const relatedIndex = relatedType === 'painpoint' ? 
+                sameStepPainPoints.indexOf(relatedItem) : 
+                sameStepOpportunities.indexOf(relatedItem);
+              const relatedRefKey = `${relatedType}-${relatedItem.taskId}-${relatedItem.stepId}-${relatedIndex}`;
+              const relatedRect = cardRefs.current[relatedRefKey]?.getBoundingClientRect();
+              
+              if (relatedRect) {
+                const pathToRelated = calculateElbowConnector(clickedRect, relatedRect, containerRect);
+                lines.push({ 
+                  path: pathToRelated, 
+                  color: relatedType === 'painpoint' ? '#dc2626' : '#16a34a' 
+                });
+              }
+            }
+          });
+        }
       }
       
       // Set highlighting
@@ -300,9 +333,14 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                       <div 
                         key={step.id}
                         ref={el => cardRefs.current[stepRefKey] = el}
-                        className={`bg-indigo-100 rounded-lg p-2 transition-all duration-200 ${
-                          isHighlighted ? 'ring-4 ring-indigo-400 ring-opacity-50 scale-105 shadow-lg' : ''
+                        className={`bg-indigo-100 rounded-lg p-2 cursor-pointer hover:bg-indigo-200 transition-all duration-200 ${
+                          isHighlighted ? 'ring-4 ring-indigo-400 ring-opacity-50 scale-105 shadow-lg bg-indigo-200' : ''
                         }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleItemClick(step, 'step', null);
+                        }}
+                        title="Click to show connections to related pain points and opportunities (click again to dismiss)"
                       >
                         <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
                         {step.persona && (
@@ -354,7 +392,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                           e.stopPropagation();
                           handleItemClick(item, 'painpoint', index);
                         }}
-                        title="Click to show connections to related step and opportunities"
+                        title="Click to show connections to related step and opportunities (click again to dismiss)"
                       >
                         <p className="text-red-800 font-medium text-sm">{item.text}</p>
                         {item.persona && (
@@ -406,7 +444,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                           e.stopPropagation();
                           handleItemClick(item, 'opportunity', index);
                         }}
-                        title="Click to show connections to related step and pain points"
+                        title="Click to show connections to related step and pain points (click again to dismiss)"
                       >
                         <p className="text-green-800 font-medium text-sm">{item.text}</p>
                         {item.persona && (

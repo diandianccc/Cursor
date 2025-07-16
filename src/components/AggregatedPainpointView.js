@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { getPersonaById } from '../constants/personas';
 
 const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
+  const [highlightedItems, setHighlightedItems] = useState({ stepId: null, painPointIndex: null, opportunityIndex: null });
+  const [connectorLines, setConnectorLines] = useState([]);
+  const containerRef = useRef(null);
+  const cardRefs = useRef({});
   // Collect all tasks and organize by stage, maintaining order
   const allTasks = [];
   const stageSpans = []; // Track which columns belong to which stage
@@ -80,15 +84,148 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
     }
   });
 
-  const handleItemClick = (item) => {
-    if (onSwitchToStepView) {
-      onSwitchToStepView();
-      // Add highlight logic here if needed
-    }
+  // Function to calculate elbow connector between two points
+  const calculateElbowConnector = (startRect, endRect, containerRect) => {
+    const startX = startRect.left - containerRect.left + startRect.width / 2;
+    const startY = startRect.top - containerRect.top + startRect.height / 2;
+    const endX = endRect.left - containerRect.left + endRect.width / 2;
+    const endY = endRect.top - containerRect.top + endRect.height / 2;
+    
+    // Create elbow connector (L-shaped)
+    const midX = startX + (endX - startX) / 2;
+    
+    return `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
   };
 
+  // Function to handle pain point or opportunity click
+  const handleItemClick = (clickedItem, itemType, itemIndex) => {
+    if (!containerRef.current) return;
+    
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const lines = [];
+    
+    // Find related step and all pain points/opportunities from the same step
+    const relatedStep = allTasks
+      .flatMap(task => task.steps)
+      .find(step => step.stepId === clickedItem.stepId);
+    
+    if (relatedStep) {
+      const stepRefKey = `step-${clickedItem.taskId}-${clickedItem.stepId}`;
+      const clickedRefKey = `${itemType}-${clickedItem.taskId}-${clickedItem.stepId}-${itemIndex}`;
+      
+      const stepRect = cardRefs.current[stepRefKey]?.getBoundingClientRect();
+      const clickedRect = cardRefs.current[clickedRefKey]?.getBoundingClientRect();
+      
+      if (stepRect && clickedRect) {
+        // Draw line from clicked item to its step
+        const pathToStep = calculateElbowConnector(clickedRect, stepRect, containerRect);
+        lines.push({ path: pathToStep, color: '#6366f1' });
+        
+        // Find all pain points and opportunities from the same step
+        const sameStepPainPoints = allTasks
+          .flatMap(task => task.painPoints)
+          .filter(pp => pp.stepId === clickedItem.stepId);
+        
+        const sameStepOpportunities = allTasks
+          .flatMap(task => task.opportunities)
+          .filter(opp => opp.stepId === clickedItem.stepId);
+        
+        // Draw connectors to all related pain points and opportunities
+        [...sameStepPainPoints, ...sameStepOpportunities].forEach((relatedItem, index) => {
+          const isCurrentClicked = (itemType === 'painpoint' && sameStepPainPoints.includes(relatedItem) && 
+                                  sameStepPainPoints.indexOf(relatedItem) === itemIndex) ||
+                                  (itemType === 'opportunity' && sameStepOpportunities.includes(relatedItem) && 
+                                  sameStepOpportunities.indexOf(relatedItem) === itemIndex);
+          
+          if (!isCurrentClicked) {
+            const relatedType = sameStepPainPoints.includes(relatedItem) ? 'painpoint' : 'opportunity';
+            const relatedIndex = relatedType === 'painpoint' ? 
+              sameStepPainPoints.indexOf(relatedItem) : 
+              sameStepOpportunities.indexOf(relatedItem);
+            const relatedRefKey = `${relatedType}-${relatedItem.taskId}-${relatedItem.stepId}-${relatedIndex}`;
+            const relatedRect = cardRefs.current[relatedRefKey]?.getBoundingClientRect();
+            
+            if (relatedRect) {
+              const pathToRelated = calculateElbowConnector(clickedRect, relatedRect, containerRect);
+              lines.push({ 
+                path: pathToRelated, 
+                color: relatedType === 'painpoint' ? '#dc2626' : '#16a34a' 
+              });
+            }
+          }
+        });
+      }
+      
+      // Set highlighting
+      setHighlightedItems({
+        stepId: clickedItem.stepId,
+        painPointIndex: itemType === 'painpoint' ? itemIndex : null,
+        opportunityIndex: itemType === 'opportunity' ? itemIndex : null
+      });
+    }
+    
+    setConnectorLines(lines);
+  };
+
+  // Function to clear highlighting
+  const clearHighlighting = () => {
+    setHighlightedItems({ stepId: null, painPointIndex: null, opportunityIndex: null });
+    setConnectorLines([]);
+  };
+
+  // Handle escape key and outside clicks
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        clearHighlighting();
+      }
+    };
+
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        clearHighlighting();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('click', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="overflow-x-auto bg-white p-4">
+    <div 
+      ref={containerRef}
+      className="overflow-x-auto bg-white p-4 relative"
+      onClick={(e) => {
+        // Clear highlighting if clicking on background
+        if (e.target === e.currentTarget) {
+          clearHighlighting();
+        }
+      }}
+    >
+      {/* SVG Overlay for connector lines */}
+      {connectorLines.length > 0 && (
+        <svg 
+          className="absolute inset-0 pointer-events-none" 
+          style={{ zIndex: 10 }}
+        >
+          {connectorLines.map((line, index) => (
+            <path
+              key={index}
+              d={line.path}
+              stroke={line.color}
+              strokeWidth="2"
+              fill="none"
+              strokeDasharray="5,5"
+              opacity="0.8"
+            />
+          ))}
+        </svg>
+      )}
       <table className="min-w-full border-separate border-spacing-4">
         <tbody>
           {/* Stages Row */}
@@ -159,20 +296,28 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 }`}
               >
                 <div className="space-y-2">
-                  {task.steps.map((step) => (
-                    <div 
-                      key={step.id} 
-                      className="bg-indigo-100 rounded-lg p-2"
-                    >
-                      <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
-                      {step.persona && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <div className={`${step.persona.color} w-2 h-2 rounded-full`}></div>
-                          <span className="text-xs text-indigo-600">{step.persona.name}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  {task.steps.map((step) => {
+                    const isHighlighted = highlightedItems.stepId === step.stepId;
+                    const stepRefKey = `step-${step.taskId}-${step.stepId}`;
+                    
+                    return (
+                      <div 
+                        key={step.id}
+                        ref={el => cardRefs.current[stepRefKey] = el}
+                        className={`bg-indigo-100 rounded-lg p-2 transition-all duration-200 ${
+                          isHighlighted ? 'ring-4 ring-indigo-400 ring-opacity-50 scale-105 shadow-lg' : ''
+                        }`}
+                      >
+                        <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
+                        {step.persona && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <div className={`${step.persona.color} w-2 h-2 rounded-full`}></div>
+                            <span className="text-xs text-indigo-600">{step.persona.name}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                   {task.steps.length === 0 && (
                     <div className="text-indigo-400 text-sm italic py-4 text-center">No steps</div>
                   )}
@@ -199,22 +344,34 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 }`}
               >
                 <div className="space-y-2">
-                  {task.painPoints.map((item, index) => (
-                    <div 
-                      key={`${item.stepId}-${index}`} 
-                      className="bg-red-100 rounded-lg p-2 cursor-pointer hover:bg-red-200 transition-colors"
-                      onClick={() => handleItemClick(item)}
-                      title="Click to navigate to related task"
-                    >
-                      <p className="text-red-800 font-medium text-sm">{item.text}</p>
-                      {item.persona && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <div className={`${item.persona.color} w-2 h-2 rounded-full`}></div>
-                          <span className="text-xs text-red-600">{item.persona.name}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  {task.painPoints.map((item, index) => {
+                    const isHighlighted = highlightedItems.stepId === item.stepId && 
+                                         highlightedItems.painPointIndex === index;
+                    const painPointRefKey = `painpoint-${item.taskId}-${item.stepId}-${index}`;
+                    
+                    return (
+                      <div 
+                        key={`${item.stepId}-${index}`}
+                        ref={el => cardRefs.current[painPointRefKey] = el}
+                        className={`bg-red-100 rounded-lg p-2 cursor-pointer hover:bg-red-200 transition-all duration-200 ${
+                          isHighlighted ? 'ring-4 ring-red-400 ring-opacity-50 scale-105 shadow-lg bg-red-200' : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleItemClick(item, 'painpoint', index);
+                        }}
+                        title="Click to show connections to related step and opportunities"
+                      >
+                        <p className="text-red-800 font-medium text-sm">{item.text}</p>
+                        {item.persona && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <div className={`${item.persona.color} w-2 h-2 rounded-full`}></div>
+                            <span className="text-xs text-red-600">{item.persona.name}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                   {task.painPoints.length === 0 && (
                     <div className="text-red-400 text-sm italic py-4 text-center">No pain points</div>
                   )}
@@ -241,22 +398,34 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
                 }`}
               >
                 <div className="space-y-2">
-                  {task.opportunities.map((item, index) => (
-                    <div 
-                      key={`${item.stepId}-${index}`} 
-                      className="bg-green-100 rounded-lg p-2 cursor-pointer hover:bg-green-200 transition-colors"
-                      onClick={() => handleItemClick(item)}
-                      title="Click to navigate to related task"
-                    >
-                      <p className="text-green-800 font-medium text-sm">{item.text}</p>
-                      {item.persona && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <div className={`${item.persona.color} w-2 h-2 rounded-full`}></div>
-                          <span className="text-xs text-green-600">{item.persona.name}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  {task.opportunities.map((item, index) => {
+                    const isHighlighted = highlightedItems.stepId === item.stepId && 
+                                         highlightedItems.opportunityIndex === index;
+                    const opportunityRefKey = `opportunity-${item.taskId}-${item.stepId}-${index}`;
+                    
+                    return (
+                      <div 
+                        key={`${item.stepId}-${index}`}
+                        ref={el => cardRefs.current[opportunityRefKey] = el}
+                        className={`bg-green-100 rounded-lg p-2 cursor-pointer hover:bg-green-200 transition-all duration-200 ${
+                          isHighlighted ? 'ring-4 ring-green-400 ring-opacity-50 scale-105 shadow-lg bg-green-200' : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleItemClick(item, 'opportunity', index);
+                        }}
+                        title="Click to show connections to related step and pain points"
+                      >
+                        <p className="text-green-800 font-medium text-sm">{item.text}</p>
+                        {item.persona && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <div className={`${item.persona.color} w-2 h-2 rounded-full`}></div>
+                            <span className="text-xs text-green-600">{item.persona.name}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                   {task.opportunities.length === 0 && (
                     <div className="text-green-400 text-sm italic py-4 text-center">No opportunities</div>
                   )}

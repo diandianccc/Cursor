@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getPersonaById } from '../constants/personas';
+import usePanScroll from '../hooks/usePanScroll';
 
 const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
   const [highlightedItems, setHighlightedItems] = useState({ stepId: null, painPointIndex: null, opportunityIndex: null });
   const [connectorLines, setConnectorLines] = useState([]);
   const containerRef = useRef(null);
   const cardRefs = useRef({});
+  const panScroll = usePanScroll();
   // Collect all tasks and organize by stage, maintaining order
   const allTasks = [];
   const stageSpans = []; // Track which columns belong to which stage
@@ -231,8 +233,12 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView }) => {
 
   return (
     <div 
-      ref={containerRef}
-      className="overflow-x-auto bg-white p-4 relative"
+      ref={(el) => {
+        containerRef.current = el;
+        panScroll.ref.current = el;
+      }}
+      className={`overflow-x-auto bg-white p-4 relative pan-scroll-container ${panScroll.isDragging ? 'dragging' : ''}`}
+      title="Click and drag to pan horizontally"
       onClick={(e) => {
         // Clear highlighting if clicking on background
         if (e.target === e.currentTarget) {

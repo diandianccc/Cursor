@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Task from './Task';
 import AddTaskModal from './AddTaskModal';
 import EditStageModal from './EditStageModal';
+import usePanScroll from '../hooks/usePanScroll';
 
 const Stage = ({ 
   stage,
@@ -9,7 +10,7 @@ const Stage = ({
   onUpdateStage,
   onDeleteStage,
   onAddTask,
-  onUpdateTask,
+  onUpdateTask, 
   onDeleteTask,
   onAddStep, 
   onUpdateStep, 
@@ -18,6 +19,7 @@ const Stage = ({
 }) => {
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
   const [isEditStageModalOpen, setIsEditStageModalOpen] = useState(false);
+  const panScroll = usePanScroll();
 
   const handleDeleteStage = () => {
     if (window.confirm(`Are you sure you want to delete the "${stage.name}" stage? This will also delete all associated tasks and steps.`)) {
@@ -62,7 +64,11 @@ const Stage = ({
         </div>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div 
+        ref={panScroll.ref}
+        className={`flex gap-4 overflow-x-auto pb-4 pan-scroll-container ${panScroll.isDragging ? 'dragging' : ''}`}
+        title="Click and drag to pan horizontally"
+      >
         {stage.tasks.map((task) => (
           <Task
             key={task.id}

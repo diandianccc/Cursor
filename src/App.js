@@ -4,6 +4,7 @@ import JourneyMap from './components/JourneyMap';
 import ViewToggle from './components/ViewToggle';
 import SpreadsheetImportExport from './components/SpreadsheetImportExport';
 import { PERSONAS } from './constants/personas';
+import './styles/panScroll.css';
 
 function App() {
   // Load data from localStorage or use default stages

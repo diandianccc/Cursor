@@ -1,0 +1,28 @@
+.pan-scroll-container {
+  /* Hide scrollbar for IE, Edge and Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.pan-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Ensure smooth scrolling */
+.pan-scroll-container {
+  scroll-behavior: smooth;
+}
+
+/* Prevent text selection during pan */
+.pan-scroll-container.dragging {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Optional: Add some visual feedback when hovering over pannable areas */
+.pan-scroll-container:hover {
+  transition: all 0.2s ease;
+} 

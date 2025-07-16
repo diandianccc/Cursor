@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import JourneyMap from './components/JourneyMap';
 import ViewToggle from './components/ViewToggle';
+import SpreadsheetImportExport from './components/SpreadsheetImportExport';
 import { PERSONAS } from './constants/personas';
 
 function App() {
@@ -162,6 +163,12 @@ function App() {
     setCurrentView('step');
   };
 
+  const handleImportData = (importedStages) => {
+    if (window.confirm('This will replace all current data. Are you sure you want to continue?')) {
+      setStages(importedStages);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -177,6 +184,11 @@ function App() {
       </header>
       
       <main className="max-w-full mx-auto px-4 pt-0 pb-8">
+        <SpreadsheetImportExport
+          stages={stages}
+          onImportData={handleImportData}
+        />
+        
         <JourneyMap 
           stages={stages}
           currentView={currentView}

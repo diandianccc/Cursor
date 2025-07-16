@@ -4,7 +4,7 @@ import AddStageModal from './AddStageModal';
 import PersonaLegend from './PersonaLegend';
 import AggregatedPainpointView from './AggregatedPainpointView';
 import StepDetailPanel from './StepDetailPanel';
-import SpreadsheetImportExport from './SpreadsheetImportExport';
+import SpreadsheetImportExportModal from './SpreadsheetImportExportModal';
 import { PERSONAS } from '../constants/personas';
 
 const JourneyMap = ({ 
@@ -23,7 +23,7 @@ const JourneyMap = ({
   onImportData
 }) => {
   const [isAddStageModalOpen, setIsAddStageModalOpen] = useState(false);
-  const [isSpreadsheetPanelOpen, setIsSpreadsheetPanelOpen] = useState(false);
+  const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
   const [stepDetailPanel, setStepDetailPanel] = useState({
     isOpen: false,
     step: null,
@@ -65,7 +65,7 @@ const JourneyMap = ({
         <div className="flex items-center gap-3">
           {currentView === 'painpoint' && (
             <button
-              onClick={() => setIsSpreadsheetPanelOpen(!isSpreadsheetPanelOpen)}
+              onClick={() => setIsImportExportModalOpen(true)}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,16 +85,6 @@ const JourneyMap = ({
           </button>
         </div>
       </div>
-
-      {/* Spreadsheet Import/Export Panel - Only show in painpoint view */}
-      {currentView === 'painpoint' && isSpreadsheetPanelOpen && (
-        <div className="mb-6">
-          <SpreadsheetImportExport
-            stages={stages}
-            onImportData={onImportData}
-          />
-        </div>
-      )}
 
       {currentView === 'step' ? (
         <div 
@@ -143,6 +133,13 @@ const JourneyMap = ({
         isOpen={isAddStageModalOpen}
         onClose={() => setIsAddStageModalOpen(false)}
         onAdd={onAddStage}
+      />
+
+      <SpreadsheetImportExportModal
+        isOpen={isImportExportModalOpen}
+        onClose={() => setIsImportExportModalOpen(false)}
+        stages={stages}
+        onImportData={onImportData}
       />
 
       <StepDetailPanel

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const EditPanel = ({
   editPanel,
@@ -16,30 +16,16 @@ const EditPanel = ({
   onRemoveInsight,
   onUpdateInsight,
   onSaveEditChanges,
-  onDeleteStep,
-  onDeleteTask,
-  onDeleteStage
+  onDeleteStep
 }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   if (!editPanel.isOpen) return null;
 
   const handleDeleteStep = () => {
     const stepDescription = editPanel.editData?.step?.description || 'this step';
     if (window.confirm(`Are you sure you want to delete "${stepDescription}"?`)) {
       onDeleteStep(editPanel.stageId, editPanel.taskId, editPanel.stepId);
-      onCloseEditPanel();
-    }
-  };
-
-  const handleDeleteTask = () => {
-    if (window.confirm(`Are you sure you want to delete the task "${editPanel.taskName}" and all its steps?`)) {
-      onDeleteTask(editPanel.stageId, editPanel.taskId);
-      onCloseEditPanel();
-    }
-  };
-
-  const handleDeleteStage = () => {
-    if (window.confirm(`Are you sure you want to delete the stage "${editPanel.stageName}" and all its tasks and steps?`)) {
-      onDeleteStage(editPanel.stageId);
       onCloseEditPanel();
     }
   };
@@ -63,14 +49,61 @@ const EditPanel = ({
                 {editPanel.editData?.stage?.name} → {editPanel.editData?.task?.name}
               </p>
             </div>
-            <button
-              onClick={onCloseEditPanel}
-              className="text-white hover:text-gray-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Three-dot dropdown menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="text-white hover:text-gray-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20 transition-colors"
+                  title="More options"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                  </svg>
+                </button>
+                
+                {/* Dropdown Menu */}
+                {dropdownOpen && (
+                  <>
+                    {/* Backdrop to close dropdown */}
+                    <div 
+                      className="fixed inset-0 z-10"
+                      onClick={() => setDropdownOpen(false)}
+                    ></div>
+                    
+                    {/* Dropdown Content */}
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-20">
+                      <div className="py-1">
+                        {onDeleteStep && (
+                          <button
+                            onClick={() => {
+                              setDropdownOpen(false);
+                              handleDeleteStep();
+                            }}
+                            className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete Step
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              {/* Close button */}
+              <button
+                onClick={onCloseEditPanel}
+                className="text-white hover:text-gray-200 p-2 rounded-full hover:bg-white hover:bg-opacity-20 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -270,49 +303,9 @@ const EditPanel = ({
         </div>
 
         {/* Sticky Footer with Save/Cancel */}
-        <div className="border-t bg-gray-50 p-6 space-y-4">
-          {/* Delete Options */}
-          <div className="flex justify-center gap-2">
-            {onDeleteStep && (
-              <button
-                onClick={handleDeleteStep}
-                className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm rounded-lg transition-colors flex items-center gap-2"
-                title="Delete this step"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Delete Step
-              </button>
-            )}
-            {onDeleteTask && (
-              <button
-                onClick={handleDeleteTask}
-                className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm rounded-lg transition-colors flex items-center gap-2"
-                title="Delete this task and all its steps"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Delete Task
-              </button>
-            )}
-            {onDeleteStage && (
-              <button
-                onClick={handleDeleteStage}
-                className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm rounded-lg transition-colors flex items-center gap-2"
-                title="Delete this stage and all its tasks and steps"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Delete Stage
-              </button>
-            )}
-          </div>
-          
+        <div className="border-t bg-gray-50 p-6">
           {/* Save/Cancel Actions */}
-          <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+          <div className="flex justify-between items-center">
             <button
               onClick={onCloseEditPanel}
               className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"

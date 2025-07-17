@@ -395,7 +395,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail,
     <>
       <div 
         ref={containerRef}
-        className="bg-white p-4 relative w-full"
+        className="bg-white p-4 relative w-full min-h-full"
         onClick={(e) => {
           // Clear highlighting if clicking on background
           if (e.target === e.currentTarget) {

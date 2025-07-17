@@ -109,10 +109,10 @@ const JourneyMap = ({
       </div>
 
       {/* Zoomable and Pannable Content Area */}
-      <div className="relative bg-gray-50 rounded-lg border border-gray-200 min-h-96" style={{ height: 'calc(100vh - 300px)', overflow: 'hidden' }}>
-        <div {...containerProps}>
+      <div className="relative bg-white rounded-lg border border-gray-200 min-h-96" style={{ height: 'calc(100vh - 300px)', overflow: 'hidden' }}>
+        <div {...containerProps} className="bg-white" style={{ ...containerProps.style, minWidth: '100vw', minHeight: '100vh' }}>
           {currentView === 'step' ? (
-            <div className="flex gap-6 p-6 min-w-max">
+            <div className="flex gap-6 p-6 min-w-max bg-white min-h-full">
               {stages.map((stage) => (
                 <Stage
                   key={stage.id}
@@ -133,7 +133,7 @@ const JourneyMap = ({
               ))}
               
               {stages.length === 0 && (
-                <div className="w-full text-center py-12 text-gray-500">
+                <div className="w-full text-center py-12 text-gray-500 bg-white min-h-full flex flex-col justify-center">
                   <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
@@ -143,7 +143,7 @@ const JourneyMap = ({
               )}
             </div>
           ) : (
-            <div className="p-6">
+            <div className="p-6 bg-white w-full h-full min-h-full">
               <AggregatedPainpointView 
                 stages={stages}
                 journeyMapType={journeyMapType}

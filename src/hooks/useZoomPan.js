@@ -145,6 +145,8 @@ export const useZoomPan = (initialZoom = 1, minZoom = 0.5, maxZoom = 3) => {
       transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
       transformOrigin: '0 0',
       transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+      minWidth: '100%',
+      minHeight: '100%',
     }
   };
 

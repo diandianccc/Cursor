@@ -4,6 +4,7 @@ const EditPanel = ({
   editPanel,
   editablePainPoints,
   editableOpportunities,
+  editableInsights,
   onCloseEditPanel,
   onAddPainPoint,
   onRemovePainPoint,
@@ -11,6 +12,9 @@ const EditPanel = ({
   onAddOpportunity,
   onRemoveOpportunity,
   onUpdateOpportunity,
+  onAddInsight,
+  onRemoveInsight,
+  onUpdateInsight,
   onSaveEditChanges,
   onDeleteStep,
   onDeleteTask,
@@ -74,7 +78,7 @@ const EditPanel = ({
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
           {editPanel.editData && (
             <>
-              {/* Stage Section */}
+              {/* Stage Section - Read Only */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
                   <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,13 +88,14 @@ const EditPanel = ({
                 </h3>
                 <input
                   type="text"
-                  defaultValue={editPanel.editData.stage.name}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={editPanel.editData.stage.name}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-100 text-gray-700 cursor-not-allowed"
                   placeholder="Stage name"
+                  readOnly
                 />
               </div>
 
-              {/* Task Section */}
+              {/* Task Section - Read Only */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
                   <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,15 +105,10 @@ const EditPanel = ({
                 </h3>
                 <input
                   type="text"
-                  defaultValue={editPanel.editData.task.name}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={editPanel.editData.task.name}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-100 text-gray-700 cursor-not-allowed"
                   placeholder="Task name"
-                />
-                <textarea
-                  defaultValue={editPanel.editData.task.description || ''}
-                  className="w-full px-3 py-2 mt-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Task description"
-                  rows="3"
+                  readOnly
                 />
               </div>
 
@@ -125,12 +125,6 @@ const EditPanel = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Step description"
                   rows="3"
-                />
-                <textarea
-                  defaultValue={editPanel.editData.step.insights || ''}
-                  className="w-full px-3 py-2 mt-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Customer insights for this step..."
-                  rows="4"
                 />
               </div>
 
@@ -222,6 +216,52 @@ const EditPanel = ({
                     className="w-full py-2 px-4 border-2 border-dashed border-green-300 text-green-600 rounded-md hover:bg-green-50 transition-colors"
                   >
                     + Add Opportunity
+                  </button>
+                </div>
+              </div>
+
+              {/* Customer Insights Section */}
+              <div className="bg-yellow-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    Customer Insights ({editableInsights?.length || 0})
+                  </div>
+                </h3>
+                <div className="space-y-2">
+                  {editableInsights && editableInsights.length > 0 ? (
+                    editableInsights.map((insight, index) => (
+                      <div key={index} className="flex gap-2">
+                        <textarea
+                          value={insight}
+                          onChange={(e) => onUpdateInsight(index, e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none"
+                          placeholder={`Customer insight ${index + 1}`}
+                          rows="2"
+                        />
+                        <button
+                          onClick={() => onRemoveInsight(index)}
+                          className="px-3 py-2 text-yellow-600 hover:bg-yellow-100 rounded-md transition-colors self-start"
+                          title="Remove insight"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-gray-500 italic">
+                      No customer insights yet. Click the button below to add the first one.
+                    </div>
+                  )}
+                  <button 
+                    onClick={onAddInsight}
+                    className="w-full py-2 px-4 border-2 border-dashed border-yellow-300 text-yellow-600 rounded-md hover:bg-yellow-50 transition-colors"
+                  >
+                    + Add Customer Insight
                   </button>
                 </div>
               </div>

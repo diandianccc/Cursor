@@ -67,6 +67,7 @@ function App() {
   });
   const [editablePainPoints, setEditablePainPoints] = useState([]);
   const [editableOpportunities, setEditableOpportunities] = useState([]);
+  const [editableInsights, setEditableInsights] = useState([]);
 
   // Side panel functions
   const openStepDetailPanel = (step, stageId, taskId, stageName, taskName) => {
@@ -105,6 +106,7 @@ function App() {
       // Initialize editable arrays
       setEditablePainPoints(step.painPoints || []);
       setEditableOpportunities(step.opportunities || []);
+      setEditableInsights(step.insights ? [step.insights] : []);
       
       setEditPanel({
         isOpen: true,
@@ -168,19 +170,36 @@ function App() {
     setEditableOpportunities(updated);
   };
 
+  // Customer Insights management functions
+  const addInsight = () => {
+    setEditableInsights([...editableInsights, '']);
+  };
+
+  const removeInsight = (index) => {
+    setEditableInsights(editableInsights.filter((_, i) => i !== index));
+  };
+
+  const updateInsight = (index, value) => {
+    const updated = [...editableInsights];
+    updated[index] = value;
+    setEditableInsights(updated);
+  };
+
   // Save function for edit panel
   const saveEditChanges = () => {
     if (!editPanel.editData) return;
 
-    // Filter out empty pain points and opportunities
+    // Filter out empty pain points, opportunities, and insights
     const filteredPainPoints = editablePainPoints.filter(point => point.trim() !== '');
     const filteredOpportunities = editableOpportunities.filter(opp => opp.trim() !== '');
+    const filteredInsights = editableInsights.filter(insight => insight.trim() !== '');
 
     // Create updated step data
     const stepData = {
       ...editPanel.editData.step,
       painPoints: filteredPainPoints,
-      opportunities: filteredOpportunities
+      opportunities: filteredOpportunities,
+      insights: filteredInsights.length > 0 ? filteredInsights.join('\n\n') : ''
     };
 
     // Call the update function
@@ -654,6 +673,7 @@ function App() {
         editPanel={editPanel}
         editablePainPoints={editablePainPoints}
         editableOpportunities={editableOpportunities}
+        editableInsights={editableInsights}
         onCloseEditPanel={closeEditPanel}
         onAddPainPoint={addPainPoint}
         onRemovePainPoint={removePainPoint}
@@ -661,6 +681,9 @@ function App() {
         onAddOpportunity={addOpportunity}
         onRemoveOpportunity={removeOpportunity}
         onUpdateOpportunity={updateOpportunity}
+        onAddInsight={addInsight}
+        onRemoveInsight={removeInsight}
+        onUpdateInsight={updateInsight}
         onSaveEditChanges={saveEditChanges}
         onDeleteStep={deleteStep}
         onDeleteTask={deleteTask}

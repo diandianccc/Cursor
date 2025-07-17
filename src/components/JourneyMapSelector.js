@@ -84,17 +84,6 @@ const JourneyMapSelector = ({ onSelectJourneyMap, onBack, user }) => {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              {onBack && (
-                <button
-                  onClick={onBack}
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                  title="Back to current journey map"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-              )}
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">All Maps</h1>
                 <p className="text-gray-600 mt-2">Create and manage different types of mapping for your projects</p>

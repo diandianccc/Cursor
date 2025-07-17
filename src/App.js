@@ -567,15 +567,15 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-full mx-auto px-4 py-6">
+        <div className="max-w-full mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <button
                 onClick={handleShowSelector}
-                className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-2"
+                className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-1"
                 title="Back to all journey maps"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
                 <span className="text-sm">Back</span>
@@ -585,13 +585,13 @@ function App() {
                   <EditableTitle
                     title={journeyMapName}
                     onSave={handleNameChange}
-                    className="text-3xl font-bold text-gray-900"
+                    className="text-xl font-bold text-gray-900"
                   />
+                  <span className="text-gray-500 text-sm">• {terminology.description}</span>
                 </div>
-                <p className="text-gray-600 mt-2">{terminology.description}</p>
                 {user && (
-                  <div className="flex items-center mt-3 text-sm text-green-600">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                  <div className="flex items-center mt-1 text-xs text-green-600">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></div>
                     <span>Connected as {getUserDisplayName(user)} • Real-time collaboration enabled</span>
                   </div>
                 )}

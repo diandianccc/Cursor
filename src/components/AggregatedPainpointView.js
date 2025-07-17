@@ -460,10 +460,10 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail,
             {allTasks.map((task) => (
               <td 
                 key={`task-${task.taskId}`} 
-                className="min-w-64 align-top"
+                className="w-64 align-top"
               >
                 <div className="bg-blue-100 rounded-lg p-3">
-                  <div className="font-semibold text-blue-800 mb-2">{task.taskName}</div>
+                  <div className="font-semibold text-blue-800 mb-2 break-words">{task.taskName}</div>
                   <div className="text-xs text-blue-600">
                     {task.steps.length} step{task.steps.length !== 1 ? 's' : ''}
                   </div>
@@ -485,7 +485,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail,
             {allTasks.map((task) => (
               <td 
                 key={`steps-${task.taskId}`} 
-                className="min-w-64 align-top"
+                className="w-64 align-top"
               >
                 <div className="space-y-2">
                   {task.steps.map((step) => {
@@ -545,7 +545,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail,
             {allTasks.map((task) => (
               <td 
                 key={`pain-${task.taskId}`} 
-                className="min-w-64 align-top"
+                className="w-64 align-top"
               >
                 <div className="space-y-2">
                   {task.painPoints.map((item, index) => {
@@ -603,7 +603,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail,
             {allTasks.map((task) => (
               <td 
                 key={`opp-${task.taskId}`} 
-                className="min-w-64 align-top"
+                className="w-64 align-top"
               >
                 <div className="space-y-2">
                   {task.opportunities.map((item, index) => {

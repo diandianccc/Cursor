@@ -6,6 +6,8 @@ const EditableTitle = ({ title, onSave, className = '', disabled = false }) => {
   const [isSaving, setIsSaving] = useState(false);
   const inputRef = useRef(null);
 
+  console.log('EditableTitle rendering:', { title, className, isEditing });
+
   useEffect(() => {
     setValue(title);
   }, [title]);

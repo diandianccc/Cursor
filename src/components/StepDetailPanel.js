@@ -99,7 +99,7 @@ const StepDetailPanel = ({
   if (!isOpen || !step) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex">
+    <div className="fixed inset-0 z-[60] flex">
       {/* Backdrop - only covers left side */}
       <div 
         className="flex-1 bg-black bg-opacity-50 transition-opacity duration-300"
@@ -109,7 +109,7 @@ const StepDetailPanel = ({
       {/* Panel Container */}
       <div className={`w-96 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
-      } flex flex-col h-full relative z-50`}>
+      } flex flex-col h-full relative z-[60]`}>
         
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50 flex-shrink-0">

@@ -11,7 +11,7 @@ const ZoomPanControls = ({
   isDragging 
 }) => {
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40 flex items-center gap-3">
+    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex items-center gap-3">
       {/* Zoom Level Indicator */}
       <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700">
         {Math.round(zoom * 100)}%

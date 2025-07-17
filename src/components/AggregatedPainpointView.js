@@ -653,7 +653,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail,
 
     {/* Comprehensive Edit Panel */}
     {editPanel.isOpen && (
-      <div className="fixed inset-0 z-50 flex">
+      <div className="fixed inset-0 z-[60] flex">
         {/* Backdrop - only covers left side */}
         <div 
           className="flex-1 bg-black bg-opacity-50"
@@ -661,7 +661,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail,
         ></div>
         
         {/* Side Panel */}
-        <div className="w-1/2 max-w-2xl bg-white shadow-2xl h-full overflow-hidden flex flex-col relative z-50">
+        <div className="w-1/2 max-w-2xl bg-white shadow-2xl h-full overflow-hidden flex flex-col relative z-[60]">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
             <div className="flex items-center justify-between">

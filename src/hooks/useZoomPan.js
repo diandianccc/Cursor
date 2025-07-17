@@ -7,6 +7,35 @@ export const useZoomPan = (initialZoom = 1, minZoom = 0.5, maxZoom = 3) => {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const containerRef = useRef(null);
 
+  // Fit to view function
+  const fitToView = useCallback(() => {
+    if (!containerRef.current) return;
+    
+    const container = containerRef.current;
+    const parent = container.parentElement;
+    if (!parent) return;
+
+    // Get content dimensions
+    const contentRect = container.getBoundingClientRect();
+    const parentRect = parent.getBoundingClientRect();
+    
+    // Calculate zoom to fit with some padding
+    const paddingFactor = 0.9; // 90% to leave some margin
+    const scaleX = (parentRect.width * paddingFactor) / contentRect.width;
+    const scaleY = (parentRect.height * paddingFactor) / contentRect.height;
+    const optimalZoom = Math.min(scaleX, scaleY, 1); // Don't zoom in beyond 100%
+    
+    // Clamp to zoom limits
+    const newZoom = Math.min(Math.max(optimalZoom, minZoom), maxZoom);
+    
+    // Center the content
+    const centerX = (parentRect.width - contentRect.width * newZoom) / 2;
+    const centerY = (parentRect.height - contentRect.height * newZoom) / 2;
+    
+    setZoom(newZoom);
+    setPan({ x: Math.max(centerX, 0), y: Math.max(centerY, 0) });
+  }, [minZoom, maxZoom]);
+
   // Zoom functions
   const zoomIn = useCallback(() => {
     setZoom(prevZoom => Math.min(prevZoom * 1.2, maxZoom));
@@ -126,6 +155,7 @@ export const useZoomPan = (initialZoom = 1, minZoom = 0.5, maxZoom = 3) => {
     zoomIn,
     zoomOut,
     resetZoom,
+    fitToView,
     setZoomLevel,
     containerProps,
     canZoomIn: zoom < maxZoom,

@@ -395,7 +395,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail,
     <>
       <div 
         ref={containerRef}
-        className="overflow-x-auto bg-white p-4 relative"
+        className="bg-white p-4 relative w-full"
         onClick={(e) => {
           // Clear highlighting if clicking on background
           if (e.target === e.currentTarget) {
@@ -422,7 +422,7 @@ const AggregatedPainpointView = ({ stages, onSwitchToStepView, onOpenStepDetail,
           ))}
         </svg>
       )}
-      <table className="min-w-full border-separate" style={{borderSpacing: '12px 16px'}}>
+      <table className="w-max border-separate" style={{borderSpacing: '12px 16px'}}>
         <tbody>
           {/* Stages Row */}
           <tr>

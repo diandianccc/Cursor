@@ -16,14 +16,7 @@ const EditPanel = ({
   onDeleteTask,
   onDeleteStage
 }) => {
-  console.log('EditPanel render - isOpen:', editPanel.isOpen, 'editPanel:', editPanel);
-  
-  if (!editPanel.isOpen) {
-    console.log('EditPanel not rendering - isOpen is false');
-    return null;
-  }
-
-  console.log('EditPanel rendering - panel is open!');
+  if (!editPanel.isOpen) return null;
 
   const handleDeleteStep = () => {
     const stepDescription = editPanel.editData?.step?.description || 'this step';

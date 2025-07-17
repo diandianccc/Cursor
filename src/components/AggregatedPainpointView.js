@@ -252,7 +252,6 @@ const AggregatedPainpointView = ({
           isHighlighted ? highlightClasses[highlightColor] : ''
         }`}
         onClick={(e) => {
-          console.log('CardWithEdit clicked - type:', type);
           e.stopPropagation();
           onEdit();
         }}
@@ -292,10 +291,8 @@ const AggregatedPainpointView = ({
         ref={containerRef}
         className="bg-white p-4 relative w-full min-h-full"
         onClick={(e) => {
-          console.log('Container click event:', e.target, e.currentTarget, e.target === e.currentTarget);
           // Clear highlighting if clicking on background
           if (e.target === e.currentTarget) {
-            console.log('Clearing highlighting from container click');
             clearHighlighting();
           }
         }}
@@ -394,13 +391,10 @@ const AggregatedPainpointView = ({
                         <CardWithEdit
                           className="bg-indigo-100 rounded-lg p-2 hover:bg-indigo-200"
                           onEdit={() => {
-                            console.log('Step onEdit called:', step);
                             // Find stage and task for this step
                             const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
                             const taskData = stageData?.tasks.find(t => t.id === step.taskId);
-                            console.log('Found stage/task:', { stageData: !!stageData, taskData: !!taskData });
                             if (stageData && taskData) {
-                              console.log('Calling openEditPanel for step');
                               openEditPanel(step, 'step', stageData.id, stageData.name, taskData.id, taskData.name);
                             }
                           }}
@@ -457,12 +451,10 @@ const AggregatedPainpointView = ({
                         <CardWithEdit
                           className="bg-red-100 rounded-lg p-2 hover:bg-red-200"
                           onEdit={() => {
-                            console.log('Pain point onEdit called:', item);
                             // Find stage and task for this pain point
                             const stageData = stages.find(s => s.tasks.some(t => t.id === item.taskId));
                             const taskData = stageData?.tasks.find(t => t.id === item.taskId);
                             if (stageData && taskData) {
-                              console.log('Calling openEditPanel for pain point');
                               openEditPanel(item, 'painpoint', stageData.id, stageData.name, taskData.id, taskData.name);
                             }
                           }}

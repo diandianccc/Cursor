@@ -61,7 +61,12 @@ export const useZoomPan = (initialZoom = 1, minZoom = 0.5, maxZoom = 3) => {
     const interactiveElements = ['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT', 'A'];
     const hasInteractiveParent = target.closest('button, input, textarea, select, a, [role="button"]');
     
-    if (interactiveElements.includes(target.tagName) || hasInteractiveParent) {
+    // Also check for elements with cursor-pointer (our cards) or onclick handlers
+    const hasCursorPointer = target.classList.contains('cursor-pointer') || 
+                            getComputedStyle(target).cursor === 'pointer';
+    const hasClickHandler = target.onclick || target.closest('[onclick], .cursor-pointer');
+    
+    if (interactiveElements.includes(target.tagName) || hasInteractiveParent || hasCursorPointer || hasClickHandler) {
       return;
     }
 

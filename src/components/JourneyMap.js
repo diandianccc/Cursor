@@ -5,6 +5,8 @@ import PersonaLegend from './PersonaLegend';
 import AggregatedPainpointView from './AggregatedPainpointView';
 import StepDetailPanel from './StepDetailPanel';
 import SpreadsheetImportExportModal from './SpreadsheetImportExportModal';
+import ZoomPanControls from './ZoomPanControls';
+import useZoomPan from '../hooks/useZoomPan';
 import { PERSONAS } from '../constants/personas';
 import { getTerminology } from '../constants/mapTypes';
 
@@ -36,6 +38,19 @@ const JourneyMap = ({
     taskName: ''
   });
 
+  // Initialize zoom and pan functionality
+  const {
+    zoom,
+    pan,
+    isDragging,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    containerProps,
+    canZoomIn,
+    canZoomOut,
+  } = useZoomPan();
+
   const openStepDetailPanel = (step, stageId, taskId, stageName, taskName) => {
     setStepDetailPanel({
       isOpen: true,
@@ -62,7 +77,7 @@ const JourneyMap = ({
   const terminology = getTerminology(journeyMapType);
 
   return (
-    <div className="bg-white rounded-lg p-6">
+    <div className="bg-white rounded-lg p-6 relative">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-6">
           <h2 className="text-xl font-semibold text-gray-800">{terminology.stages}</h2>
@@ -92,53 +107,67 @@ const JourneyMap = ({
         </div>
       </div>
 
-      {currentView === 'step' ? (
-        <div 
-          className="flex gap-6 overflow-x-auto pb-4"
-        >
-          {stages.map((stage) => (
-            <Stage
-              key={stage.id}
-              stage={stage}
-              journeyMapType={journeyMapType}
-              currentView={currentView}
-              onUpdateStage={onUpdateStage}
-              onDeleteStage={onDeleteStage}
-              onAddTask={onAddTask}
-              onUpdateTask={onUpdateTask}
-              onDeleteTask={onDeleteTask}
-              onAddStep={onAddStep}
-              onUpdateStep={onUpdateStep}
-              onDeleteStep={onDeleteStep}
-              onSwitchToStepView={onSwitchToStepView}
-              onOpenStepDetail={openStepDetailPanel}
-            />
-          ))}
-          
-          {stages.length === 0 && (
-            <div className="flex-1 text-center py-12 text-gray-500">
-              <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              <p className="text-lg font-medium">No {terminology.stages.toLowerCase()} yet</p>
-              <p className="text-sm">Add your first {terminology.stage.toLowerCase()} to get started</p>
+      {/* Zoomable and Pannable Content Area */}
+      <div className="relative overflow-hidden bg-gray-50 rounded-lg border border-gray-200" style={{ height: '70vh' }}>
+        <div {...containerProps}>
+          {currentView === 'step' ? (
+            <div className="flex gap-6 p-6 min-w-max">
+              {stages.map((stage) => (
+                <Stage
+                  key={stage.id}
+                  stage={stage}
+                  journeyMapType={journeyMapType}
+                  currentView={currentView}
+                  onUpdateStage={onUpdateStage}
+                  onDeleteStage={onDeleteStage}
+                  onAddTask={onAddTask}
+                  onUpdateTask={onUpdateTask}
+                  onDeleteTask={onDeleteTask}
+                  onAddStep={onAddStep}
+                  onUpdateStep={onUpdateStep}
+                  onDeleteStep={onDeleteStep}
+                  onSwitchToStepView={onSwitchToStepView}
+                  onOpenStepDetail={openStepDetailPanel}
+                />
+              ))}
+              
+              {stages.length === 0 && (
+                <div className="flex-1 text-center py-12 text-gray-500">
+                  <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  <p className="text-lg font-medium">No {terminology.stages.toLowerCase()} yet</p>
+                  <p className="text-sm">Add your first {terminology.stage.toLowerCase()} to get started</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-6">
+              <AggregatedPainpointView 
+                stages={stages}
+                journeyMapType={journeyMapType}
+                onSwitchToStepView={onSwitchToStepView}
+                onOpenStepDetail={openStepDetailPanel}
+                onUpdateStep={onUpdateStep}
+                onDeleteStep={onDeleteStep}
+                onDeleteTask={onDeleteTask}
+                onDeleteStage={onDeleteStage}
+              />
             </div>
           )}
         </div>
-      ) : (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-          <AggregatedPainpointView 
-            stages={stages}
-            journeyMapType={journeyMapType}
-            onSwitchToStepView={onSwitchToStepView}
-            onOpenStepDetail={openStepDetailPanel}
-            onUpdateStep={onUpdateStep}
-            onDeleteStep={onDeleteStep}
-            onDeleteTask={onDeleteTask}
-            onDeleteStage={onDeleteStage}
-          />
-        </div>
-      )}
+      </div>
+
+      {/* Zoom and Pan Controls */}
+      <ZoomPanControls
+        zoom={zoom}
+        zoomIn={zoomIn}
+        zoomOut={zoomOut}
+        resetZoom={resetZoom}
+        canZoomIn={canZoomIn}
+        canZoomOut={canZoomOut}
+        isDragging={isDragging}
+      />
 
       <AddStageModal
         isOpen={isAddStageModalOpen}

@@ -96,7 +96,10 @@ function App() {
     // Find the complete step data and all related information
     const stage = stages.find(s => s.id === stageId);
     const task = stage?.tasks.find(t => t.id === taskId);
-    const step = task?.steps.find(s => s.id === item.stepId);
+    
+    // Handle different item types - step objects have 'id', while pain/opportunity objects have 'stepId'
+    const stepId = item.stepId || item.id;
+    const step = task?.steps.find(s => s.id === stepId);
     
     if (step && task && stage) {
       // Initialize editable arrays

@@ -60,6 +60,9 @@ const JourneyMap = ({
 
   // Get terminology based on map type
   const terminology = getTerminology(journeyMapType);
+  
+  // Debug log to verify deployment
+  console.log('🎯 Drag and Drop JourneyMap loaded - Build 60defe0');
 
   // Handle drag end for step reordering
   const handleDragEnd = (result) => {
@@ -109,7 +112,7 @@ const JourneyMap = ({
     <div className="bg-white rounded-lg p-2 relative">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
-          <h2 className="text-lg font-medium text-gray-800">{terminology.stages}</h2>
+          <h2 className="text-lg font-medium text-gray-800">{terminology.stages} <span className="text-xs text-green-600">🎯 DnD</span></h2>
           <PersonaLegend personas={PERSONAS} />
         </div>
         <div className="flex items-center gap-2">

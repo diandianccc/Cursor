@@ -587,7 +587,6 @@ function App() {
                     onSave={handleNameChange}
                     className="text-xl font-bold text-gray-900"
                   />
-                  <span className="text-gray-500 text-sm">• {terminology.description}</span>
                 </div>
                 {user && (
                   <div className="flex items-center mt-1 text-xs text-green-600">

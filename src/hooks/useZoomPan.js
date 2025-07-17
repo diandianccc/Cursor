@@ -58,6 +58,8 @@ export const useZoomPan = (initialZoom = 1, minZoom = 0.5, maxZoom = 3) => {
   const handleMouseDown = useCallback((e) => {
     // Don't start panning if clicking on interactive elements
     const target = e.target;
+    console.log('useZoomPan handleMouseDown - target:', target, 'tagName:', target.tagName, 'classList:', Array.from(target.classList));
+    
     const interactiveElements = ['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT', 'A'];
     const hasInteractiveParent = target.closest('button, input, textarea, select, a, [role="button"]');
     
@@ -66,9 +68,25 @@ export const useZoomPan = (initialZoom = 1, minZoom = 0.5, maxZoom = 3) => {
                             getComputedStyle(target).cursor === 'pointer';
     const hasClickHandler = target.onclick || target.closest('[onclick], .cursor-pointer');
     
-    if (interactiveElements.includes(target.tagName) || hasInteractiveParent || hasCursorPointer || hasClickHandler) {
+    // Check for EditableTitle and other interactive components
+    const isEditableTitle = target.closest('.group') && target.closest('.group').querySelector('button');
+    const hasInteractiveClass = target.closest('.group, [role="button"], .editable');
+    
+    console.log('Detection results:', {
+      isInteractiveElement: interactiveElements.includes(target.tagName),
+      hasInteractiveParent: !!hasInteractiveParent,
+      hasCursorPointer,
+      hasClickHandler: !!hasClickHandler,
+      isEditableTitle: !!isEditableTitle,
+      hasInteractiveClass: !!hasInteractiveClass
+    });
+    
+    if (interactiveElements.includes(target.tagName) || hasInteractiveParent || hasCursorPointer || hasClickHandler || isEditableTitle || hasInteractiveClass) {
+      console.log('Skipping pan - interactive element detected');
       return;
     }
+
+    console.log('Starting pan - no interactive elements detected');
 
     if (e.button === 0) { // Left mouse button
       setIsDragging(true);

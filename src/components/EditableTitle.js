@@ -71,10 +71,14 @@ const EditableTitle = ({ title, onSave, className = '', disabled = false }) => {
   }
 
   return (
-    <div className="flex items-center gap-2 group">
-      <span className={className}>{title}</span>
+    <div className="flex items-center gap-2 group" onClick={(e) => console.log('EditableTitle group clicked', e.target)}>
+      <span className={className} onClick={(e) => console.log('EditableTitle span clicked', e.target)}>{title}</span>
       <button
-        onClick={() => setIsEditing(true)}
+        onClick={(e) => {
+          console.log('EditableTitle button clicked');
+          e.stopPropagation();
+          setIsEditing(true);
+        }}
         className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-opacity"
         title="Edit name"
       >

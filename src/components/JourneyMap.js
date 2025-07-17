@@ -91,7 +91,7 @@ const JourneyMap = ({
       </div>
 
       {/* Zoomable and Pannable Content Area */}
-      <div className="relative bg-white rounded-lg border border-gray-200 min-h-96" style={{ height: 'calc(100vh - 300px)', overflow: 'hidden' }}>
+      <div className="relative bg-white rounded-lg border border-gray-200 min-h-96" style={{ height: 'calc(100vh - 120px)', overflow: 'hidden' }}>
         <div {...containerProps} className="bg-white" style={{ ...containerProps.style, minWidth: '100vw', minHeight: '100vh' }}>
           {currentView === 'step' ? (
             <div className="flex gap-6 p-6 min-w-max bg-white min-h-full">

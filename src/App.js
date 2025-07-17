@@ -601,7 +601,7 @@ function App() {
         </div>
       </header>
       
-      <main className="max-w-full mx-auto px-4 pt-6 pb-8">        
+      <main className="max-w-full mx-auto px-4 pt-2 pb-4">        
         <JourneyMap 
           stages={stages}
           journeyMapName={journeyMapName}

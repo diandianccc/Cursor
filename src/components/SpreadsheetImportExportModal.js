@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import Modal from './Modal';
 
 const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData, journeyMapName }) => {
@@ -99,42 +100,13 @@ const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData, j
     reader.onload = (e) => {
       try {
         const content = e.target.result;
-        const importedData = JSON.parse(content);
+        const fileExtension = file.name.toLowerCase().split('.').pop();
         
-        // Validate the imported data structure
-        if (!importedData.journeyMap || !importedData.journeyMap.stages) {
-          throw new Error('Invalid file format. Expected a journey map export file.');
+        if (fileExtension === 'csv') {
+          handleCSVImport(content);
+        } else {
+          handleJSONImport(content);
         }
-
-        const stages = importedData.journeyMap.stages;
-        
-        // Basic validation of stages structure
-        if (!Array.isArray(stages)) {
-          throw new Error('Invalid stages data format.');
-        }
-
-        // Validate each stage has required properties
-        for (const stage of stages) {
-          if (!stage.id || !stage.name || !Array.isArray(stage.tasks)) {
-            throw new Error('Invalid stage structure found in file.');
-          }
-          
-          // Validate tasks
-          for (const task of stage.tasks) {
-            if (!task.id || !task.name || !Array.isArray(task.steps)) {
-              throw new Error('Invalid task structure found in file.');
-            }
-          }
-        }
-
-        const importedMapName = importedData.journeyMapName || 'Imported Journey Map';
-        setImportSuccess(`Successfully loaded "${importedMapName}" with ${stages.length} stages and ${stages.reduce((total, stage) => total + stage.tasks.length, 0)} tasks.`);
-        
-        // Call the import handler after a short delay to show success message
-        setTimeout(() => {
-          onImportData(stages);
-          onClose();
-        }, 1000);
 
       } catch (error) {
         setImportError(`Import failed: ${error.message}`);
@@ -146,6 +118,139 @@ const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData, j
     };
 
     reader.readAsText(file);
+  };
+
+  const handleJSONImport = (content) => {
+    const importedData = JSON.parse(content);
+    
+    // Validate the imported data structure
+    if (!importedData.journeyMap || !importedData.journeyMap.stages) {
+      throw new Error('Invalid file format. Expected a journey map export file.');
+    }
+
+    const stages = importedData.journeyMap.stages;
+    
+    // Basic validation of stages structure
+    if (!Array.isArray(stages)) {
+      throw new Error('Invalid stages data format.');
+    }
+
+    // Validate each stage has required properties
+    for (const stage of stages) {
+      if (!stage.id || !stage.name || !Array.isArray(stage.tasks)) {
+        throw new Error('Invalid stage structure found in file.');
+      }
+      
+      // Validate tasks
+      for (const task of stage.tasks) {
+        if (!task.id || !task.name || !Array.isArray(task.steps)) {
+          throw new Error('Invalid task structure found in file.');
+        }
+      }
+    }
+
+    const importedMapName = importedData.journeyMapName || 'Imported Journey Map';
+    setImportSuccess(`Successfully loaded "${importedMapName}" with ${stages.length} stages and ${stages.reduce((total, stage) => total + stage.tasks.length, 0)} tasks.`);
+    
+    // Call the import handler after a short delay to show success message
+    setTimeout(() => {
+      onImportData(stages);
+      onClose();
+    }, 1000);
+  };
+
+  const handleCSVImport = (content) => {
+    const lines = content.split('\n').filter(line => line.trim());
+    if (lines.length < 2) {
+      throw new Error('CSV file appears to be empty or has no data rows.');
+    }
+
+    // Parse CSV header
+    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    
+    // Find required columns
+    const stageIndex = headers.findIndex(h => h.toLowerCase().includes('stage'));
+    const taskIndex = headers.findIndex(h => h.toLowerCase().includes('task'));
+    const stepIndex = headers.findIndex(h => h.toLowerCase().includes('step') || h.toLowerCase().includes('description'));
+    const personaIndex = headers.findIndex(h => h.toLowerCase().includes('persona'));
+    const painPointIndex = headers.findIndex(h => h.toLowerCase().includes('pain'));
+    const opportunityIndex = headers.findIndex(h => h.toLowerCase().includes('opportunity'));
+
+    if (stageIndex === -1 || taskIndex === -1 || stepIndex === -1) {
+      throw new Error('CSV must contain columns for Stage, Task, and Step/Description. Current headers: ' + headers.join(', '));
+    }
+
+    // Parse data rows
+    const stagesMap = new Map();
+
+    for (let i = 1; i < lines.length; i++) {
+      const row = lines[i].split(',').map(cell => cell.trim().replace(/"/g, ''));
+      
+      if (row.length < Math.max(stageIndex, taskIndex, stepIndex) + 1) {
+        continue; // Skip incomplete rows
+      }
+
+      const stageName = row[stageIndex];
+      const taskName = row[taskIndex];
+      const stepDescription = row[stepIndex];
+      const persona = personaIndex >= 0 ? row[personaIndex] : '';
+      const painPoints = painPointIndex >= 0 ? row[painPointIndex] : '';
+      const opportunities = opportunityIndex >= 0 ? row[opportunityIndex] : '';
+
+      if (!stageName || !taskName || !stepDescription) {
+        continue; // Skip rows with missing required data
+      }
+
+      // Get or create stage
+      if (!stagesMap.has(stageName)) {
+        stagesMap.set(stageName, {
+          id: uuidv4(),
+          name: stageName,
+          tasks: []
+        });
+      }
+      const stage = stagesMap.get(stageName);
+
+      // Get or create task
+      let task = stage.tasks.find(t => t.name === taskName);
+      if (!task) {
+        task = {
+          id: uuidv4(),
+          name: taskName,
+          steps: []
+        };
+        stage.tasks.push(task);
+      }
+
+      // Create step
+      const step = {
+        id: uuidv4(),
+        description: stepDescription,
+        personas: persona ? [persona] : [],
+        painPoints: painPoints ? painPoints.split(';').filter(p => p.trim()) : [],
+        opportunities: opportunities ? opportunities.split(';').filter(o => o.trim()) : []
+      };
+
+      task.steps.push(step);
+    }
+
+    const stages = Array.from(stagesMap.values());
+    
+    if (stages.length === 0) {
+      throw new Error('No valid data found in CSV file.');
+    }
+
+    const totalTasks = stages.reduce((total, stage) => total + stage.tasks.length, 0);
+    const totalSteps = stages.reduce((total, stage) => 
+      total + stage.tasks.reduce((taskTotal, task) => taskTotal + task.steps.length, 0), 0);
+
+    setImportSuccess(`Successfully imported ${stages.length} stages, ${totalTasks} tasks, and ${totalSteps} steps from CSV.`);
+    
+    // Call the import handler after a short delay to show success message
+    setTimeout(() => {
+      onImportData(stages);
+      onClose();
+    }, 1500);
   };
 
   const resetImportState = () => {
@@ -272,13 +377,25 @@ const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData, j
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".json"
+                  accept=".json,.csv"
                   onChange={handleFileUpload}
                   className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Only JSON files exported from this application are supported
+                  Only JSON and CSV files are supported
                 </p>
+              </div>
+
+              {/* CSV Format Instructions */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium text-blue-900 mb-2">CSV Format Requirements</h4>
+                <div className="text-sm text-blue-700 space-y-2">
+                  <p><strong>Required columns:</strong> Stage, Task, Step (or Description)</p>
+                  <p><strong>Optional columns:</strong> Persona, Pain Points, Opportunities</p>
+                  <p><strong>Example header:</strong> Stage,Task,Step,Persona,Pain Points,Opportunities</p>
+                  <p className="text-xs">• Use semicolons (;) to separate multiple pain points or opportunities</p>
+                  <p className="text-xs">• Column names are case-insensitive and can contain partial matches</p>
+                </div>
               </div>
 
               {importError && (

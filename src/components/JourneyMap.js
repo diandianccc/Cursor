@@ -9,6 +9,7 @@ import { PERSONAS } from '../constants/personas';
 
 const JourneyMap = ({ 
   stages,
+  journeyMapName,
   currentView,
   onAddStage, 
   onUpdateStage,
@@ -139,6 +140,7 @@ const JourneyMap = ({
         isOpen={isImportExportModalOpen}
         onClose={() => setIsImportExportModalOpen(false)}
         stages={stages}
+        journeyMapName={journeyMapName}
         onImportData={onImportData}
       />
 

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Modal from './Modal';
 
-const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData }) => {
+const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData, journeyMapName }) => {
   const [activeTab, setActiveTab] = useState('export');
   const [importError, setImportError] = useState('');
   const [importSuccess, setImportSuccess] = useState('');
@@ -11,6 +11,7 @@ const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData })
     const exportData = {
       version: "1.0",
       exportDate: new Date().toISOString(),
+      journeyMapName: journeyMapName || 'My Journey Map',
       journeyMap: {
         stages: stages
       }
@@ -22,7 +23,14 @@ const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData })
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `journey-map-${new Date().toISOString().split('T')[0]}.json`;
+    
+    // Create safe filename from journey map name
+    const safeFileName = (journeyMapName || 'journey-map')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    
+    link.download = `${safeFileName}-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -66,7 +74,14 @@ const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData })
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `journey-map-${new Date().toISOString().split('T')[0]}.csv`;
+    
+    // Create safe filename from journey map name
+    const safeFileName = (journeyMapName || 'journey-map')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    
+    link.download = `${safeFileName}-${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -112,7 +127,8 @@ const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData })
           }
         }
 
-        setImportSuccess(`Successfully loaded ${stages.length} stages with ${stages.reduce((total, stage) => total + stage.tasks.length, 0)} tasks.`);
+        const importedMapName = importedData.journeyMapName || 'Imported Journey Map';
+        setImportSuccess(`Successfully loaded "${importedMapName}" with ${stages.length} stages and ${stages.reduce((total, stage) => total + stage.tasks.length, 0)} tasks.`);
         
         // Call the import handler after a short delay to show success message
         setTimeout(() => {
@@ -190,7 +206,7 @@ const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData })
         {activeTab === 'export' && (
           <div className="space-y-4">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">Current Journey Map</h4>
+              <h4 className="font-medium text-blue-900 mb-2">{journeyMapName || 'Current Journey Map'}</h4>
               <div className="text-sm text-blue-700 space-y-1">
                 <p>• {stages.length} stages</p>
                 <p>• {stages.reduce((total, stage) => total + stage.tasks.length, 0)} tasks</p>

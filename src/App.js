@@ -9,6 +9,7 @@ import { PERSONAS } from './constants/personas';
 // Supabase imports
 import { 
   subscribeToJourneyMap, 
+  subscribeToJourneyMaps,
   updateJourneyMapStages, 
   createJourneyMap 
 } from './firebase/journeyService';
@@ -31,14 +32,14 @@ function App() {
       return 'painpoint';
     }
   });
-  const [showSelector, setShowSelector] = useState(true);
+  const [showSelector, setShowSelector] = useState(false);
 
-  // Initialize authentication
+  // Initialize authentication and default journey map
   useEffect(() => {
     const unsubscribe = onAuthChange(async (authUser) => {
       if (authUser) {
         setUser(authUser);
-        setLoading(false);
+        await initializeDefaultJourneyMap();
       } else {
         // Sign in anonymously
         try {
@@ -52,6 +53,62 @@ function App() {
 
     return unsubscribe;
   }, []);
+
+  // Initialize with default journey map or load existing one
+  const initializeDefaultJourneyMap = async () => {
+    try {
+      // Check if we have a saved journey map ID
+      let mapId = localStorage.getItem('currentJourneyMapId');
+      let mapName = localStorage.getItem('currentJourneyMapName');
+      
+      if (mapId) {
+        // Use existing saved journey map
+        setJourneyMapId(mapId);
+        setJourneyMapName(mapName || 'My Journey Map');
+        setLoading(false);
+        return;
+      }
+
+      // No saved journey map, check if any journey maps exist
+      const unsubscribeFromMaps = subscribeToJourneyMaps((maps) => {
+        unsubscribeFromMaps(); // Unsubscribe immediately after getting the data
+        
+        if (maps.length > 0) {
+          // Use the most recent journey map
+          const mostRecent = maps[0]; // Already sorted by last_modified desc
+          setJourneyMapId(mostRecent.id);
+          setJourneyMapName(mostRecent.name);
+          
+          // Save to localStorage
+          localStorage.setItem('currentJourneyMapId', mostRecent.id);
+          localStorage.setItem('currentJourneyMapName', mostRecent.name);
+        } else {
+          // No journey maps exist, create a default one
+          createDefaultJourneyMap();
+        }
+        setLoading(false);
+      });
+      
+    } catch (error) {
+      console.error('Failed to initialize journey map:', error);
+      setLoading(false);
+    }
+  };
+
+  // Create the default journey map
+  const createDefaultJourneyMap = async () => {
+    try {
+      const mapId = await createJourneyMap('My Journey Map');
+      setJourneyMapId(mapId);
+      setJourneyMapName('My Journey Map');
+      
+      // Save to localStorage
+      localStorage.setItem('currentJourneyMapId', mapId);
+      localStorage.setItem('currentJourneyMapName', 'My Journey Map');
+    } catch (error) {
+      console.error('Failed to create default journey map:', error);
+    }
+  };
 
   // Subscribe to journey map changes
   useEffect(() => {
@@ -102,16 +159,14 @@ function App() {
     localStorage.setItem('currentJourneyMapName', mapName);
   };
 
-  // Handle returning to selector
-  const handleBackToSelector = () => {
+  // Handle showing selector
+  const handleShowSelector = () => {
     setShowSelector(true);
-    setJourneyMapId(null);
-    setJourneyMapName('');
-    setStages([]);
-    
-    // Clear localStorage
-    localStorage.removeItem('currentJourneyMapId');
-    localStorage.removeItem('currentJourneyMapName');
+  };
+
+  // Handle returning from selector
+  const handleBackFromSelector = () => {
+    setShowSelector(false);
   };
 
   // Helper function to update stages in Firebase
@@ -263,6 +318,7 @@ function App() {
     return (
       <JourneyMapSelector 
         onSelectJourneyMap={handleSelectJourneyMap}
+        onBack={handleBackFromSelector}
         user={user}
       />
     );
@@ -276,13 +332,14 @@ function App() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
-                onClick={handleBackToSelector}
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-                title="Back to journey maps"
+                onClick={handleShowSelector}
+                className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-2"
+                title="View all journey maps"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
+                <span className="text-sm">All Maps</span>
               </button>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{journeyMapName}</h1>
@@ -303,6 +360,7 @@ function App() {
       <main className="max-w-full mx-auto px-4 pt-6 pb-8">        
         <JourneyMap 
           stages={stages}
+          journeyMapName={journeyMapName}
           currentView={currentView}
           onAddStage={addStage}
           onUpdateStage={updateStage}

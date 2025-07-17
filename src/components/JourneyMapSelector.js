@@ -3,7 +3,7 @@ import { subscribeToJourneyMaps, createJourneyMap, deleteJourneyMap } from '../f
 import AddJourneyMapModal from './AddJourneyMapModal';
 import LoadingSpinner from './LoadingSpinner';
 
-const JourneyMapSelector = ({ onSelectJourneyMap, user }) => {
+const JourneyMapSelector = ({ onSelectJourneyMap, onBack, user }) => {
   const [journeyMaps, setJourneyMaps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -82,15 +82,28 @@ const JourneyMapSelector = ({ onSelectJourneyMap, user }) => {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">User Journey Maps</h1>
-              <p className="text-gray-600 mt-2">Create and manage journey maps for different products</p>
-              {user && (
-                <div className="flex items-center mt-3 text-sm text-green-600">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  <span>Connected • Real-time collaboration enabled</span>
-                </div>
+            <div className="flex items-center gap-4">
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                  title="Back to current journey map"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
               )}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">User Journey Maps</h1>
+                <p className="text-gray-600 mt-2">Create and manage journey maps for different products</p>
+                {user && (
+                  <div className="flex items-center mt-3 text-sm text-green-600">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    <span>Connected • Real-time collaboration enabled</span>
+                  </div>
+                )}
+              </div>
             </div>
             <button
               onClick={() => setIsAddModalOpen(true)}

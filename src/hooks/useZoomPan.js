@@ -70,7 +70,13 @@ export const useZoomPan = (initialZoom = 1, minZoom = 0.5, maxZoom = 3) => {
     const isEditableTitle = target.closest('.group') && target.closest('.group').querySelector('button');
     const hasInteractiveClass = target.closest('.group, [role="button"], .editable');
     
-    if (interactiveElements.includes(target.tagName) || hasInteractiveParent || hasCursorPointer || hasClickHandler || isEditableTitle || hasInteractiveClass) {
+    // Check for drag handles from react-beautiful-dnd
+    const isDragHandle = target.closest('[data-rbd-drag-handle-draggable-id]') || 
+                        target.closest('.cursor-grab') || 
+                        target.closest('.cursor-grabbing') ||
+                        target.dataset.isDragHandle === 'true';
+    
+    if (interactiveElements.includes(target.tagName) || hasInteractiveParent || hasCursorPointer || hasClickHandler || isEditableTitle || hasInteractiveClass || isDragHandle) {
       return;
     }
 

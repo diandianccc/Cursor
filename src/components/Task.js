@@ -29,50 +29,84 @@ const Task = ({
   };
 
   const renderTaskContent = () => {
-    // Create unique droppable ID for this task
-    const droppableId = `task-${stageId}-${task.id}`;
-    
-    return (
-      <Droppable droppableId={droppableId}>
-        {(provided, snapshot) => (
-          <div 
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            className={`space-y-3 min-h-24 transition-colors ${
-              snapshot.isDraggingOver ? 'bg-blue-50 border-blue-200 border-2 border-dashed rounded-lg p-2' : ''
-            }`}
-          >
-            {task.steps.map((step, index) => (
-              <StepCard
-                key={step.id}
-                step={step}
-                index={index}
-                stageId={stageId}
-                taskId={task.id}
-                stageName={stageName}
-                taskName={task.name}
-                currentView={currentView}
-                onUpdateStep={onUpdateStep}
-                onDeleteStep={onDeleteStep}
-                onOpenStepDetail={onOpenStepDetail}
-                isHighlighted={highlightedStepId === step.id}
-              />
-            ))}
-            
-            {provided.placeholder}
-            
-            {task.steps.length === 0 && !snapshot.isDraggingOver && (
-              <div className="text-center py-6 text-gray-400">
-                <svg className="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <p className="text-xs">No steps yet</p>
-              </div>
-            )}
-          </div>
-        )}
-      </Droppable>
-    );
+    // Only enable drag and drop in step view
+    if (currentView === 'step') {
+      // Create unique droppable ID for this task
+      const droppableId = `task-${stageId}-${task.id}`;
+      
+      return (
+        <Droppable droppableId={droppableId}>
+          {(provided, snapshot) => (
+            <div 
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className={`space-y-3 min-h-24 transition-colors ${
+                snapshot.isDraggingOver ? 'bg-blue-50 border-blue-200 border-2 border-dashed rounded-lg p-2' : ''
+              }`}
+            >
+              {task.steps.map((step, index) => (
+                <StepCard
+                  key={step.id}
+                  step={step}
+                  index={index}
+                  stageId={stageId}
+                  taskId={task.id}
+                  stageName={stageName}
+                  taskName={task.name}
+                  currentView={currentView}
+                  onUpdateStep={onUpdateStep}
+                  onDeleteStep={onDeleteStep}
+                  onOpenStepDetail={onOpenStepDetail}
+                  isHighlighted={highlightedStepId === step.id}
+                />
+              ))}
+              
+              {provided.placeholder}
+              
+              {task.steps.length === 0 && !snapshot.isDraggingOver && (
+                <div className="text-center py-6 text-gray-400">
+                  <svg className="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  <p className="text-xs">No steps yet</p>
+                </div>
+              )}
+            </div>
+          )}
+        </Droppable>
+      );
+    } else {
+      // Painpoint view - no drag and drop
+      return (
+        <div className="space-y-3 min-h-24">
+          {task.steps.map((step, index) => (
+            <StepCard
+              key={step.id}
+              step={step}
+              index={index}
+              stageId={stageId}
+              taskId={task.id}
+              stageName={stageName}
+              taskName={task.name}
+              currentView={currentView}
+              onUpdateStep={onUpdateStep}
+              onDeleteStep={onDeleteStep}
+              onOpenStepDetail={onOpenStepDetail}
+              isHighlighted={highlightedStepId === step.id}
+            />
+          ))}
+          
+          {task.steps.length === 0 && (
+            <div className="text-center py-6 text-gray-400">
+              <svg className="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <p className="text-xs">No steps yet</p>
+            </div>
+          )}
+        </div>
+      );
+    }
   };
 
   return (

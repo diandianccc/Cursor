@@ -65,6 +65,11 @@ const JourneyMap = ({
   const handleDragEnd = (result) => {
     const { destination, source, draggableId } = result;
 
+    // Only allow drag and drop in step view
+    if (currentView !== 'step') {
+      return;
+    }
+
     // If dropped outside a droppable area
     if (!destination) {
       return;
@@ -132,9 +137,9 @@ const JourneyMap = ({
       </div>
 
       {/* Zoomable and Pannable Content Area */}
-      <div className="relative bg-white rounded-lg border border-gray-200 min-h-96" style={{ height: 'calc(100vh - 120px)', overflow: 'hidden' }}>
-        <div {...containerProps} className="bg-white" style={{ ...containerProps.style, minWidth: '100vw', minHeight: '100vh' }}>
-          <DragDropContext onDragEnd={handleDragEnd}>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="relative bg-white rounded-lg border border-gray-200 min-h-96" style={{ height: 'calc(100vh - 120px)', overflow: 'hidden' }}>
+          <div {...containerProps} className="bg-white" style={{ ...containerProps.style, minWidth: '100vw', minHeight: '100vh' }}>
             {currentView === 'step' ? (
               <div className="flex gap-6 p-2 min-w-max bg-white min-h-full">
                 {stages.map((stage) => (
@@ -194,9 +199,9 @@ const JourneyMap = ({
                 />
               </div>
             )}
-          </DragDropContext>
+          </div>
         </div>
-      </div>
+      </DragDropContext>
 
       {/* Zoom and Pan Controls */}
       <ZoomPanControls

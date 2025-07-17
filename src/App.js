@@ -93,6 +93,8 @@ function App() {
 
   // Edit panel functions for painpoint view
   const openEditPanel = (item, itemType, stageId, stageName, taskId, taskName) => {
+    console.log('openEditPanel called with:', { item, itemType, stageId, stageName, taskId, taskName });
+    
     // Find the complete step data and all related information
     const stage = stages.find(s => s.id === stageId);
     const task = stage?.tasks.find(t => t.id === taskId);
@@ -101,7 +103,10 @@ function App() {
     const stepId = item.stepId || item.id;
     const step = task?.steps.find(s => s.id === stepId);
     
+    console.log('Found data:', { stage: !!stage, task: !!task, step: !!step, stepId, itemType });
+    
     if (step && task && stage) {
+      console.log('Setting edit panel state to open');
       // Initialize editable arrays
       setEditablePainPoints(step.painPoints || []);
       setEditableOpportunities(step.opportunities || []);
@@ -121,6 +126,8 @@ function App() {
         taskName: taskName,
         stepId: step.id
       });
+    } else {
+      console.log('Failed to find required data - not opening panel');
     }
   };
 

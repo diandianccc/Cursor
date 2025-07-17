@@ -391,10 +391,13 @@ const AggregatedPainpointView = ({
                         <CardWithEdit
                           className="bg-indigo-100 rounded-lg p-2 hover:bg-indigo-200"
                           onEdit={() => {
+                            console.log('Step card clicked:', step);
                             // Find stage and task for this step
                             const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
                             const taskData = stageData?.tasks.find(t => t.id === step.taskId);
+                            console.log('Found stage/task:', { stageData: !!stageData, taskData: !!taskData });
                             if (stageData && taskData) {
+                              console.log('Calling openEditPanel for step');
                               openEditPanel(step, 'step', stageData.id, stageData.name, taskData.id, taskData.name);
                             }
                           }}

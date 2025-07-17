@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import StepCard from './StepCard';
 import AddStepModal from './AddStepModal';
 import EditTaskModal from './EditTaskModal';
+import EditableTitle from './EditableTitle';
 
 const Task = ({ 
   task,
@@ -63,18 +64,11 @@ const Task = ({
   return (
     <div className="bg-white rounded-lg p-4 border-2 border-gray-100 shadow-sm">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <h4 className="text-md font-semibold text-gray-700">{task.name}</h4>
-          <button
-            onClick={() => setIsEditTaskModalOpen(true)}
-            className="text-gray-400 hover:text-blue-600 p-1 rounded transition-colors"
-            title="Edit task name"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
-        </div>
+        <EditableTitle
+          title={task.name}
+          onSave={(newName) => onUpdateTask(stageId, task.id, { name: newName })}
+          className="text-md font-semibold text-gray-700"
+        />
         <div className="flex items-center gap-2">
           {currentView === 'step' && (
             <button

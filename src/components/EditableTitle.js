@@ -59,12 +59,12 @@ const EditableTitle = ({ title, onSave, className = '', disabled = false }) => {
           onChange={(e) => setValue(e.target.value)}
           onBlur={handleSave}
           onKeyDown={handleKeyDown}
-          className="text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-500 focus:outline-none min-w-0 flex-1"
+          className={`${className} bg-transparent border-b-2 border-blue-500 focus:outline-none min-w-0 flex-1`}
           maxLength={100}
           disabled={isSaving}
         />
         {isSaving && (
-          <div className="w-5 h-5 animate-spin border-2 border-blue-600 border-t-transparent rounded-full"></div>
+          <div className="w-4 h-4 animate-spin border-2 border-blue-600 border-t-transparent rounded-full"></div>
         )}
       </div>
     );
@@ -78,7 +78,7 @@ const EditableTitle = ({ title, onSave, className = '', disabled = false }) => {
         className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-opacity"
         title="Edit name"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
       </button>

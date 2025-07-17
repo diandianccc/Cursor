@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Task from './Task';
 import AddTaskModal from './AddTaskModal';
 import EditStageModal from './EditStageModal';
+import EditableTitle from './EditableTitle';
 
 const Stage = ({ 
   stage,
@@ -29,18 +30,11 @@ const Stage = ({
   return (
     <div className="bg-gray-50 rounded-lg p-6 border-2 border-gray-200">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold text-gray-800">{stage.name}</h3>
-          <button
-            onClick={() => setIsEditStageModalOpen(true)}
-            className="text-gray-400 hover:text-blue-600 p-1 rounded transition-colors"
-            title="Edit stage name"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
-        </div>
+        <EditableTitle
+          title={stage.name}
+          onSave={(newName) => onUpdateStage(stage.id, { name: newName })}
+          className="text-lg font-semibold text-gray-800"
+        />
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsAddTaskModalOpen(true)}

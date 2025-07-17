@@ -6,10 +6,12 @@ import AggregatedPainpointView from './AggregatedPainpointView';
 import StepDetailPanel from './StepDetailPanel';
 import SpreadsheetImportExportModal from './SpreadsheetImportExportModal';
 import { PERSONAS } from '../constants/personas';
+import { getTerminology } from '../constants/mapTypes';
 
 const JourneyMap = ({ 
   stages,
   journeyMapName,
+  journeyMapType,
   currentView,
   onAddStage, 
   onUpdateStage,
@@ -56,11 +58,14 @@ const JourneyMap = ({
     });
   };
 
+  // Get terminology based on map type
+  const terminology = getTerminology(journeyMapType);
+
   return (
     <div className="bg-white rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-6">
-          <h2 className="text-xl font-semibold text-gray-800">Journey Stages</h2>
+          <h2 className="text-xl font-semibold text-gray-800">{terminology.stages}</h2>
           <PersonaLegend personas={PERSONAS} />
         </div>
         <div className="flex items-center gap-3">
@@ -82,7 +87,7 @@ const JourneyMap = ({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Add Stage
+            Add {terminology.stage}
           </button>
         </div>
       </div>
@@ -95,6 +100,7 @@ const JourneyMap = ({
             <Stage
               key={stage.id}
               stage={stage}
+              journeyMapType={journeyMapType}
               currentView={currentView}
               onUpdateStage={onUpdateStage}
               onDeleteStage={onDeleteStage}
@@ -114,8 +120,8 @@ const JourneyMap = ({
               <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
-              <p className="text-lg font-medium">No stages yet</p>
-              <p className="text-sm">Add your first stage to get started</p>
+              <p className="text-lg font-medium">No {terminology.stages.toLowerCase()} yet</p>
+              <p className="text-sm">Add your first {terminology.stage.toLowerCase()} to get started</p>
             </div>
           )}
         </div>
@@ -123,6 +129,7 @@ const JourneyMap = ({
         <div className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
           <AggregatedPainpointView 
             stages={stages}
+            journeyMapType={journeyMapType}
             onSwitchToStepView={onSwitchToStepView}
             onOpenStepDetail={openStepDetailPanel}
             onUpdateStep={onUpdateStep}
@@ -134,6 +141,7 @@ const JourneyMap = ({
         isOpen={isAddStageModalOpen}
         onClose={() => setIsAddStageModalOpen(false)}
         onAdd={onAddStage}
+        journeyMapType={journeyMapType}
       />
 
       <SpreadsheetImportExportModal
@@ -141,6 +149,7 @@ const JourneyMap = ({
         onClose={() => setIsImportExportModalOpen(false)}
         stages={stages}
         journeyMapName={journeyMapName}
+        journeyMapType={journeyMapType}
         onImportData={onImportData}
       />
 
@@ -153,6 +162,7 @@ const JourneyMap = ({
         taskId={stepDetailPanel.taskId}
         stageName={stepDetailPanel.stageName}
         taskName={stepDetailPanel.taskName}
+        journeyMapType={journeyMapType}
       />
     </div>
   );

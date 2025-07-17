@@ -4,14 +4,21 @@ import JourneyMap from './components/JourneyMap';
 import JourneyMapSelector from './components/JourneyMapSelector';
 import ViewToggle from './components/ViewToggle';
 import LoadingSpinner from './components/LoadingSpinner';
+import EditableTitle from './components/EditableTitle';
 import { PERSONAS } from './constants/personas';
+import { getTerminology, MAP_TYPES } from './constants/mapTypes';
 
 // Supabase imports
 import { 
   subscribeToJourneyMap, 
   subscribeToJourneyMaps,
   updateJourneyMapStages, 
-  createJourneyMap 
+  updateJourneyMapName,
+  createJourneyMap,
+  resetAllData,
+  trackStageChange,
+  trackTaskChange,
+  trackStepChange
 } from './firebase/journeyService';
 import { 
   signInAnonymous, 
@@ -23,8 +30,10 @@ function App() {
   const [user, setUser] = useState(null);
   const [journeyMapId, setJourneyMapId] = useState(null);
   const [journeyMapName, setJourneyMapName] = useState('');
+  const [journeyMapType, setJourneyMapType] = useState(MAP_TYPES.USER_JOURNEY);
   const [stages, setStages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasReset, setHasReset] = useState(false);
   const [currentView, setCurrentView] = useState(() => {
     try {
       return localStorage.getItem('journeyMapView') || 'painpoint';
@@ -34,11 +43,24 @@ function App() {
   });
   const [showSelector, setShowSelector] = useState(false);
 
-  // Initialize authentication and default journey map
+  // Initialize authentication and handle reset
   useEffect(() => {
     const unsubscribe = onAuthChange(async (authUser) => {
       if (authUser) {
         setUser(authUser);
+        
+        // Check if we need to reset (first time setup)
+        const hasResetBefore = localStorage.getItem('hasResetData');
+        if (!hasResetBefore) {
+          try {
+            await resetAllData();
+            localStorage.setItem('hasResetData', 'true');
+            setHasReset(true);
+          } catch (error) {
+            console.error('Failed to reset data:', error);
+          }
+        }
+        
         await initializeDefaultJourneyMap();
       } else {
         // Sign in anonymously
@@ -60,11 +82,13 @@ function App() {
       // Check if we have a saved journey map ID
       let mapId = localStorage.getItem('currentJourneyMapId');
       let mapName = localStorage.getItem('currentJourneyMapName');
+      let mapType = localStorage.getItem('currentJourneyMapType') || MAP_TYPES.USER_JOURNEY;
       
       if (mapId) {
         // Use existing saved journey map
         setJourneyMapId(mapId);
         setJourneyMapName(mapName || 'My Journey Map');
+        setJourneyMapType(mapType);
         setLoading(false);
         return;
       }
@@ -78,10 +102,12 @@ function App() {
           const mostRecent = maps[0]; // Already sorted by last_modified desc
           setJourneyMapId(mostRecent.id);
           setJourneyMapName(mostRecent.name);
+          setJourneyMapType(mostRecent.map_type || MAP_TYPES.USER_JOURNEY);
           
           // Save to localStorage
           localStorage.setItem('currentJourneyMapId', mostRecent.id);
           localStorage.setItem('currentJourneyMapName', mostRecent.name);
+          localStorage.setItem('currentJourneyMapType', mostRecent.map_type || MAP_TYPES.USER_JOURNEY);
         } else {
           // No journey maps exist, create a default one
           createDefaultJourneyMap();
@@ -98,13 +124,15 @@ function App() {
   // Create the default journey map
   const createDefaultJourneyMap = async () => {
     try {
-      const mapId = await createJourneyMap('My Journey Map');
+      const mapId = await createJourneyMap('My Journey Map', MAP_TYPES.USER_JOURNEY);
       setJourneyMapId(mapId);
       setJourneyMapName('My Journey Map');
+      setJourneyMapType(MAP_TYPES.USER_JOURNEY);
       
       // Save to localStorage
       localStorage.setItem('currentJourneyMapId', mapId);
       localStorage.setItem('currentJourneyMapName', 'My Journey Map');
+      localStorage.setItem('currentJourneyMapType', MAP_TYPES.USER_JOURNEY);
     } catch (error) {
       console.error('Failed to create default journey map:', error);
     }
@@ -117,27 +145,29 @@ function App() {
     const unsubscribe = subscribeToJourneyMap(journeyMapId, (journeyMap) => {
       if (journeyMap && journeyMap.stages) {
         setStages(journeyMap.stages);
+        setJourneyMapType(journeyMap.map_type || MAP_TYPES.USER_JOURNEY);
       } else {
         // Initialize with default stages if empty
+        const terminology = getTerminology(journeyMapType);
         const defaultStages = [
           {
             id: uuidv4(),
-            name: 'Awareness',
+            name: `${terminology.stage} 1`,
             tasks: []
           },
           {
             id: uuidv4(),
-            name: 'Consideration', 
+            name: `${terminology.stage} 2`, 
             tasks: []
           }
         ];
         setStages(defaultStages);
-        updateJourneyMapStages(journeyMapId, defaultStages);
+        updateJourneyMapStages(journeyMapId, defaultStages, 'Created default stages');
       }
     });
 
     return unsubscribe;
-  }, [journeyMapId]);
+  }, [journeyMapId, journeyMapType]);
 
   // Save current view to localStorage whenever it changes
   useEffect(() => {
@@ -149,14 +179,16 @@ function App() {
   }, [currentView]);
 
   // Handle journey map selection
-  const handleSelectJourneyMap = (mapId, mapName) => {
+  const handleSelectJourneyMap = (mapId, mapName, mapType) => {
     setJourneyMapId(mapId);
     setJourneyMapName(mapName);
+    setJourneyMapType(mapType || MAP_TYPES.USER_JOURNEY);
     setShowSelector(false);
     
     // Save to localStorage for direct access
     localStorage.setItem('currentJourneyMapId', mapId);
     localStorage.setItem('currentJourneyMapName', mapName);
+    localStorage.setItem('currentJourneyMapType', mapType || MAP_TYPES.USER_JOURNEY);
   };
 
   // Handle showing selector
@@ -169,11 +201,23 @@ function App() {
     setShowSelector(false);
   };
 
-  // Helper function to update stages in Firebase
-  const updateStagesInFirebase = async (newStages) => {
+  // Handle journey map name change
+  const handleNameChange = async (newName) => {
+    try {
+      await updateJourneyMapName(journeyMapId, newName);
+      setJourneyMapName(newName);
+      localStorage.setItem('currentJourneyMapName', newName);
+    } catch (error) {
+      console.error('Failed to update journey map name:', error);
+      throw error;
+    }
+  };
+
+  // Helper function to update stages in Firebase with detailed tracking
+  const updateStagesInFirebase = async (newStages, changeDetails) => {
     if (journeyMapId) {
       try {
-        await updateJourneyMapStages(journeyMapId, newStages);
+        await updateJourneyMapStages(journeyMapId, newStages, changeDetails);
       } catch (error) {
         console.error('Failed to update stages:', error);
       }
@@ -181,6 +225,7 @@ function App() {
   };
 
   const addStage = async (stageName) => {
+    const terminology = getTerminology(journeyMapType);
     const newStage = {
       id: uuidv4(),
       name: stageName,
@@ -188,36 +233,55 @@ function App() {
     };
     const newStages = [...stages, newStage];
     setStages(newStages);
-    await updateStagesInFirebase(newStages);
+    
+    // Track the change
+    await trackStageChange(journeyMapId, 'added', newStage, `Added ${terminology.stage.toLowerCase()}: "${stageName}"`);
+    await updateStagesInFirebase(newStages, `Added ${terminology.stage.toLowerCase()}: "${stageName}"`);
   };
 
   const updateStage = async (stageId, stageName) => {
+    const terminology = getTerminology(journeyMapType);
+    const oldStage = stages.find(s => s.id === stageId);
     const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { ...stage, name: stageName }
         : stage
     );
     setStages(newStages);
-    await updateStagesInFirebase(newStages);
+    
+    // Track the change
+    await trackStageChange(journeyMapId, 'updated', { id: stageId, name: stageName }, `Updated ${terminology.stage.toLowerCase()}: "${oldStage?.name}" → "${stageName}"`);
+    await updateStagesInFirebase(newStages, `Updated ${terminology.stage.toLowerCase()}: "${oldStage?.name}" → "${stageName}"`);
   };
 
   const deleteStage = async (stageId) => {
+    const terminology = getTerminology(journeyMapType);
+    const deletedStage = stages.find(s => s.id === stageId);
     const newStages = stages.filter(stage => stage.id !== stageId);
     setStages(newStages);
-    await updateStagesInFirebase(newStages);
+    
+    // Track the change
+    await trackStageChange(journeyMapId, 'deleted', deletedStage, `Deleted ${terminology.stage.toLowerCase()}: "${deletedStage?.name}"`);
+    await updateStagesInFirebase(newStages, `Deleted ${terminology.stage.toLowerCase()}: "${deletedStage?.name}"`);
   };
 
   const addTask = async (stageId, taskData) => {
+    const terminology = getTerminology(journeyMapType);
+    const newTask = { ...taskData, id: uuidv4(), steps: [] };
     const newStages = stages.map(stage => 
       stage.id === stageId 
-        ? { ...stage, tasks: [...stage.tasks, { ...taskData, id: uuidv4(), steps: [] }] }
+        ? { ...stage, tasks: [...stage.tasks, newTask] }
         : stage
     );
     setStages(newStages);
-    await updateStagesInFirebase(newStages);
+    
+    // Track the change
+    await trackTaskChange(journeyMapId, 'added', newTask, `Added ${terminology.task.toLowerCase()}: "${taskData.name}"`);
+    await updateStagesInFirebase(newStages, `Added ${terminology.task.toLowerCase()}: "${taskData.name}"`);
   };
 
   const updateTask = async (stageId, taskId, taskData) => {
+    const terminology = getTerminology(journeyMapType);
     const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { 
@@ -229,37 +293,52 @@ function App() {
         : stage
     );
     setStages(newStages);
-    await updateStagesInFirebase(newStages);
+    
+    // Track the change
+    await trackTaskChange(journeyMapId, 'updated', { ...taskData, id: taskId }, `Updated ${terminology.task.toLowerCase()}: "${taskData.name}"`);
+    await updateStagesInFirebase(newStages, `Updated ${terminology.task.toLowerCase()}: "${taskData.name}"`);
   };
 
   const deleteTask = async (stageId, taskId) => {
+    const terminology = getTerminology(journeyMapType);
+    const stage = stages.find(s => s.id === stageId);
+    const deletedTask = stage?.tasks.find(t => t.id === taskId);
     const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { ...stage, tasks: stage.tasks.filter(task => task.id !== taskId) }
         : stage
     );
     setStages(newStages);
-    await updateStagesInFirebase(newStages);
+    
+    // Track the change
+    await trackTaskChange(journeyMapId, 'deleted', deletedTask, `Deleted ${terminology.task.toLowerCase()}: "${deletedTask?.name}"`);
+    await updateStagesInFirebase(newStages, `Deleted ${terminology.task.toLowerCase()}: "${deletedTask?.name}"`);
   };
 
   const addStep = async (stageId, taskId, stepData) => {
+    const terminology = getTerminology(journeyMapType);
+    const newStep = { ...stepData, id: uuidv4() };
     const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { 
             ...stage, 
             tasks: stage.tasks.map(task => 
               task.id === taskId 
-                ? { ...task, steps: [...task.steps, { ...stepData, id: uuidv4() }] }
+                ? { ...task, steps: [...task.steps, newStep] }
                 : task
             ) 
           }
         : stage
     );
     setStages(newStages);
-    await updateStagesInFirebase(newStages);
+    
+    // Track the change
+    await trackStepChange(journeyMapId, 'added', newStep, `Added ${terminology.step.toLowerCase()}: "${stepData.description || 'New step'}"`);
+    await updateStagesInFirebase(newStages, `Added ${terminology.step.toLowerCase()}: "${stepData.description || 'New step'}"`);
   };
 
   const updateStep = async (stageId, taskId, stepId, stepData) => {
+    const terminology = getTerminology(journeyMapType);
     const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { 
@@ -278,10 +357,17 @@ function App() {
         : stage
     );
     setStages(newStages);
-    await updateStagesInFirebase(newStages);
+    
+    // Track the change
+    await trackStepChange(journeyMapId, 'updated', { ...stepData, id: stepId }, `Updated ${terminology.step.toLowerCase()}: "${stepData.description || 'Step'}"`);
+    await updateStagesInFirebase(newStages, `Updated ${terminology.step.toLowerCase()}: "${stepData.description || 'Step'}"`);
   };
 
   const deleteStep = async (stageId, taskId, stepId) => {
+    const terminology = getTerminology(journeyMapType);
+    const stage = stages.find(s => s.id === stageId);
+    const task = stage?.tasks.find(t => t.id === taskId);
+    const deletedStep = task?.steps.find(s => s.id === stepId);
     const newStages = stages.map(stage => 
       stage.id === stageId 
         ? { 
@@ -295,7 +381,10 @@ function App() {
         : stage
     );
     setStages(newStages);
-    await updateStagesInFirebase(newStages);
+    
+    // Track the change
+    await trackStepChange(journeyMapId, 'deleted', deletedStep, `Deleted ${terminology.step.toLowerCase()}: "${deletedStep?.description || 'Step'}"`);
+    await updateStagesInFirebase(newStages, `Deleted ${terminology.step.toLowerCase()}: "${deletedStep?.description || 'Step'}"`);
   };
 
   const switchToStepView = () => {
@@ -305,7 +394,7 @@ function App() {
   const handleImportData = async (importedStages) => {
     if (window.confirm('This will replace all current data. Are you sure you want to continue?')) {
       setStages(importedStages);
-      await updateStagesInFirebase(importedStages);
+      await updateStagesInFirebase(importedStages, 'Data imported from file');
     }
   };
 
@@ -323,6 +412,9 @@ function App() {
       />
     );
   }
+
+  // Get current terminology
+  const terminology = getTerminology(journeyMapType);
 
   // Show individual journey map
   return (
@@ -342,8 +434,15 @@ function App() {
                 <span className="text-sm">All Maps</span>
               </button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{journeyMapName}</h1>
-                <p className="text-gray-600 mt-2">Create and visualize customer journey stages, tasks, and touchpoints</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{terminology.icon}</span>
+                  <EditableTitle
+                    title={journeyMapName}
+                    onSave={handleNameChange}
+                    className="text-3xl font-bold text-gray-900"
+                  />
+                </div>
+                <p className="text-gray-600 mt-2">{terminology.description}</p>
                 {user && (
                   <div className="flex items-center mt-3 text-sm text-green-600">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
@@ -361,6 +460,7 @@ function App() {
         <JourneyMap 
           stages={stages}
           journeyMapName={journeyMapName}
+          journeyMapType={journeyMapType}
           currentView={currentView}
           onAddStage={addStage}
           onUpdateStage={updateStage}

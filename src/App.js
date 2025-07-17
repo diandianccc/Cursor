@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import JourneyMap from './components/JourneyMap';
+import JourneyMapSelector from './components/JourneyMapSelector';
 import ViewToggle from './components/ViewToggle';
 import LoadingSpinner from './components/LoadingSpinner';
 import { PERSONAS } from './constants/personas';
@@ -20,6 +21,7 @@ import {
 function App() {
   const [user, setUser] = useState(null);
   const [journeyMapId, setJourneyMapId] = useState(null);
+  const [journeyMapName, setJourneyMapName] = useState('');
   const [stages, setStages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState(() => {
@@ -29,14 +31,14 @@ function App() {
       return 'painpoint';
     }
   });
+  const [showSelector, setShowSelector] = useState(true);
 
   // Initialize authentication
   useEffect(() => {
     const unsubscribe = onAuthChange(async (authUser) => {
       if (authUser) {
         setUser(authUser);
-        // Load or create default journey map
-        await initializeJourneyMap();
+        setLoading(false);
       } else {
         // Sign in anonymously
         try {
@@ -50,26 +52,6 @@ function App() {
 
     return unsubscribe;
   }, []);
-
-  // Initialize journey map
-  const initializeJourneyMap = async () => {
-    try {
-      // For now, we'll use a default journey map ID
-      // In the future, you could have multiple journey maps per user
-      let mapId = localStorage.getItem('currentJourneyMapId');
-      
-      if (!mapId) {
-        // Create a new journey map
-        mapId = await createJourneyMap('My Journey Map');
-        localStorage.setItem('currentJourneyMapId', mapId);
-      }
-      
-      setJourneyMapId(mapId);
-    } catch (error) {
-      console.error('Failed to initialize journey map:', error);
-      setLoading(false);
-    }
-  };
 
   // Subscribe to journey map changes
   useEffect(() => {
@@ -95,7 +77,6 @@ function App() {
         setStages(defaultStages);
         updateJourneyMapStages(journeyMapId, defaultStages);
       }
-      setLoading(false);
     });
 
     return unsubscribe;
@@ -109,6 +90,29 @@ function App() {
       console.error('Error saving view to localStorage:', error);
     }
   }, [currentView]);
+
+  // Handle journey map selection
+  const handleSelectJourneyMap = (mapId, mapName) => {
+    setJourneyMapId(mapId);
+    setJourneyMapName(mapName);
+    setShowSelector(false);
+    
+    // Save to localStorage for direct access
+    localStorage.setItem('currentJourneyMapId', mapId);
+    localStorage.setItem('currentJourneyMapName', mapName);
+  };
+
+  // Handle returning to selector
+  const handleBackToSelector = () => {
+    setShowSelector(true);
+    setJourneyMapId(null);
+    setJourneyMapName('');
+    setStages([]);
+    
+    // Clear localStorage
+    localStorage.removeItem('currentJourneyMapId');
+    localStorage.removeItem('currentJourneyMapName');
+  };
 
   // Helper function to update stages in Firebase
   const updateStagesInFirebase = async (newStages) => {
@@ -254,20 +258,42 @@ function App() {
     return <LoadingSpinner />;
   }
 
+  // Show journey map selector
+  if (showSelector) {
+    return (
+      <JourneyMapSelector 
+        onSelectJourneyMap={handleSelectJourneyMap}
+        user={user}
+      />
+    );
+  }
+
+  // Show individual journey map
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-full mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">User Journey Map</h1>
-              <p className="text-gray-600 mt-2">Create and visualize customer journey stages, tasks, and touchpoints</p>
-              {user && (
-                <div className="flex items-center mt-3 text-sm text-green-600">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  <span>Connected as {getUserDisplayName(user)} • Real-time collaboration enabled</span>
-                </div>
-              )}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleBackToSelector}
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+                title="Back to journey maps"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">{journeyMapName}</h1>
+                <p className="text-gray-600 mt-2">Create and visualize customer journey stages, tasks, and touchpoints</p>
+                {user && (
+                  <div className="flex items-center mt-3 text-sm text-green-600">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    <span>Connected as {getUserDisplayName(user)} • Real-time collaboration enabled</span>
+                  </div>
+                )}
+              </div>
             </div>
             <ViewToggle currentView={currentView} onViewChange={setCurrentView} />
           </div>

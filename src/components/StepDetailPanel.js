@@ -9,7 +9,10 @@ const StepDetailPanel = ({
   stageId, 
   taskId,
   stageName,
-  taskName 
+  taskName,
+  onDeleteStep,
+  onDeleteTask,
+  onDeleteStage 
 }) => {
   const [description, setDescription] = useState('');
   const [personaId, setPersonaId] = useState(PERSONAS[0].id);
@@ -68,6 +71,27 @@ const StepDetailPanel = ({
       return;
     }
     onClose();
+  };
+
+  const handleDeleteStep = () => {
+    if (window.confirm(`Are you sure you want to delete this step: "${step.description}"?`)) {
+      onDeleteStep && onDeleteStep(stageId, taskId, step.id);
+      onClose();
+    }
+  };
+
+  const handleDeleteTask = () => {
+    if (window.confirm(`Are you sure you want to delete the task "${taskName}" and all its steps?`)) {
+      onDeleteTask && onDeleteTask(stageId, taskId);
+      onClose();
+    }
+  };
+
+  const handleDeleteStage = () => {
+    if (window.confirm(`Are you sure you want to delete the stage "${stageName}" and all its tasks and steps?`)) {
+      onDeleteStage && onDeleteStage(stageId);
+      onClose();
+    }
   };
 
   const persona = getPersonaById(personaId);
@@ -194,16 +218,59 @@ const StepDetailPanel = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
-          <div className="text-sm text-gray-500">
-            {hasChanges && (
-              <span className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                Unsaved changes
-              </span>
-            )}
+        <div className="p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0 space-y-4">
+          {/* Delete Options */}
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-500">
+              {hasChanges && (
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                  Unsaved changes
+                </span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {onDeleteStep && (
+                <button
+                  onClick={handleDeleteStep}
+                  className="px-3 py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm rounded transition-colors flex items-center gap-1"
+                  title="Delete this step"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete Step
+                </button>
+              )}
+              {onDeleteTask && (
+                <button
+                  onClick={handleDeleteTask}
+                  className="px-3 py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm rounded transition-colors flex items-center gap-1"
+                  title="Delete this task and all its steps"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete Task
+                </button>
+              )}
+              {onDeleteStage && (
+                <button
+                  onClick={handleDeleteStage}
+                  className="px-3 py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm rounded transition-colors flex items-center gap-1"
+                  title="Delete this stage and all its tasks and steps"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete Stage
+                </button>
+              )}
+            </div>
           </div>
-          <div className="flex gap-3">
+          
+          {/* Save/Cancel Actions */}
+          <div className="flex justify-end gap-3 pt-2 border-t border-gray-200">
             <button
               onClick={handleCancel}
               className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"

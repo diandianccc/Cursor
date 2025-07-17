@@ -133,6 +133,9 @@ const JourneyMap = ({
             onSwitchToStepView={onSwitchToStepView}
             onOpenStepDetail={openStepDetailPanel}
             onUpdateStep={onUpdateStep}
+            onDeleteStep={onDeleteStep}
+            onDeleteTask={onDeleteTask}
+            onDeleteStage={onDeleteStage}
           />
         </div>
       )}
@@ -163,6 +166,9 @@ const JourneyMap = ({
         stageName={stepDetailPanel.stageName}
         taskName={stepDetailPanel.taskName}
         journeyMapType={journeyMapType}
+        onDeleteStep={onDeleteStep}
+        onDeleteTask={onDeleteTask}
+        onDeleteStage={onDeleteStage}
       />
     </div>
   );

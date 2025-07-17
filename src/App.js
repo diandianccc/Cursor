@@ -553,6 +553,71 @@ function App() {
     await updateStagesInFirebase(newStages, `Deleted ${terminology.step.toLowerCase()}: "${deletedStep?.description || 'Step'}"`);
   };
 
+  const moveStep = async ({ stepId, sourceStageId, sourceTaskId, sourceIndex, destStageId, destTaskId, destIndex }) => {
+    const terminology = getTerminology(journeyMapType);
+    
+    // Find the step being moved
+    const sourceStage = stages.find(s => s.id === sourceStageId);
+    const sourceTask = sourceStage?.tasks.find(t => t.id === sourceTaskId);
+    const stepToMove = sourceTask?.steps.find(s => s.id === stepId);
+    
+    if (!stepToMove) return;
+
+    // Create new stages array with the step moved
+    const newStages = stages.map(stage => {
+      if (stage.id === sourceStageId) {
+        return {
+          ...stage,
+          tasks: stage.tasks.map(task => {
+            if (task.id === sourceTaskId) {
+              // Remove step from source task
+              return {
+                ...task,
+                steps: task.steps.filter(step => step.id !== stepId)
+              };
+            }
+            return task;
+          })
+        };
+      }
+      return stage;
+    }).map(stage => {
+      if (stage.id === destStageId) {
+        return {
+          ...stage,
+          tasks: stage.tasks.map(task => {
+            if (task.id === destTaskId) {
+              // Add step to destination task at the specified index
+              const newSteps = [...task.steps];
+              newSteps.splice(destIndex, 0, stepToMove);
+              return {
+                ...task,
+                steps: newSteps
+              };
+            }
+            return task;
+          })
+        };
+      }
+      return stage;
+    });
+
+    setStages(newStages);
+    
+    // Track the change
+    const sourceTaskName = sourceTask?.name || 'Unknown Task';
+    const destStage = stages.find(s => s.id === destStageId);
+    const destTask = destStage?.tasks.find(t => t.id === destTaskId);
+    const destTaskName = destTask?.name || 'Unknown Task';
+    
+    const changeMessage = sourceStageId === destStageId && sourceTaskId === destTaskId
+      ? `Reordered ${terminology.step.toLowerCase()}: "${stepToMove.description || 'Step'}" within ${sourceTaskName}`
+      : `Moved ${terminology.step.toLowerCase()}: "${stepToMove.description || 'Step'}" from ${sourceTaskName} to ${destTaskName}`;
+    
+    await trackStepChange(journeyMapId, 'moved', stepToMove, changeMessage);
+    await updateStagesInFirebase(newStages, changeMessage);
+  };
+
   const switchToStepView = () => {
     setCurrentView('step');
   };
@@ -635,6 +700,7 @@ function App() {
           onAddStep={addStep}
           onUpdateStep={updateStep}
           onDeleteStep={deleteStep}
+          onMoveStep={moveStep}
           onSwitchToStepView={switchToStepView}
           onImportData={handleImportData}
           onOpenStepDetail={openStepDetailPanel}

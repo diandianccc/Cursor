@@ -60,7 +60,7 @@ const JourneyMap = ({
   const terminology = getTerminology(journeyMapType);
 
   return (
-    <div className="bg-white rounded-lg p-4 relative">
+    <div className="bg-white rounded-lg p-2 relative">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-medium text-gray-800">{terminology.stages}</h2>
@@ -94,7 +94,7 @@ const JourneyMap = ({
       <div className="relative bg-white rounded-lg border border-gray-200 min-h-96" style={{ height: 'calc(100vh - 120px)', overflow: 'hidden' }}>
         <div {...containerProps} className="bg-white" style={{ ...containerProps.style, minWidth: '100vw', minHeight: '100vh' }}>
           {currentView === 'step' ? (
-            <div className="flex gap-6 p-6 min-w-max bg-white min-h-full">
+            <div className="flex gap-6 p-2 min-w-max bg-white min-h-full">
               {stages.map((stage) => (
                 <Stage
                   key={stage.id}
@@ -125,7 +125,7 @@ const JourneyMap = ({
               )}
             </div>
           ) : (
-            <div className="p-6 bg-white w-full h-full min-h-full">
+            <div className="p-2 bg-white w-full h-full min-h-full">
               <AggregatedPainpointView 
                 stages={stages}
                 journeyMapType={journeyMapType}

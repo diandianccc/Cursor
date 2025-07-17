@@ -60,19 +60,19 @@ const JourneyMap = ({
   const terminology = getTerminology(journeyMapType);
 
   return (
-    <div className="bg-white rounded-lg p-6 relative">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-6">
-          <h2 className="text-xl font-semibold text-gray-800">{terminology.stages}</h2>
+    <div className="bg-white rounded-lg p-4 relative">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-medium text-gray-800">{terminology.stages}</h2>
           <PersonaLegend personas={PERSONAS} />
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {currentView === 'painpoint' && (
             <button
               onClick={() => setIsImportExportModalOpen(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm transition-colors flex items-center gap-1.5"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               Import/Export
@@ -80,9 +80,9 @@ const JourneyMap = ({
           )}
           <button
             onClick={() => setIsAddStageModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm transition-colors flex items-center gap-1.5"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Add {terminology.stage}

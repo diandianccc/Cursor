@@ -5,6 +5,7 @@ import JourneyMapSelector from './components/JourneyMapSelector';
 import ViewToggle from './components/ViewToggle';
 import LoadingSpinner from './components/LoadingSpinner';
 import EditableTitle from './components/EditableTitle';
+import StepDetailPanel from './components/StepDetailPanel';
 import { PERSONAS } from './constants/personas';
 import { getTerminology, MAP_TYPES } from './constants/mapTypes';
 
@@ -42,6 +43,39 @@ function App() {
     }
   });
   const [showSelector, setShowSelector] = useState(false);
+  
+  // Side panel state management
+  const [stepDetailPanel, setStepDetailPanel] = useState({
+    isOpen: false,
+    step: null,
+    stageId: null,
+    taskId: null,
+    stageName: '',
+    taskName: ''
+  });
+
+  // Side panel functions
+  const openStepDetailPanel = (step, stageId, taskId, stageName, taskName) => {
+    setStepDetailPanel({
+      isOpen: true,
+      step,
+      stageId,
+      taskId,
+      stageName,
+      taskName
+    });
+  };
+
+  const closeStepDetailPanel = () => {
+    setStepDetailPanel({
+      isOpen: false,
+      step: null,
+      stageId: null,
+      taskId: null,
+      stageName: '',
+      taskName: ''
+    });
+  };
 
   // Initialize authentication and handle reset
   useEffect(() => {
@@ -472,8 +506,25 @@ function App() {
           onDeleteStep={deleteStep}
           onSwitchToStepView={switchToStepView}
           onImportData={handleImportData}
+          onOpenStepDetail={openStepDetailPanel}
         />
       </main>
+      
+      {/* Side panels at top level to ensure overlay positioning */}
+      <StepDetailPanel
+        isOpen={stepDetailPanel.isOpen}
+        onClose={closeStepDetailPanel}
+        step={stepDetailPanel.step}
+        onSave={updateStep}
+        stageId={stepDetailPanel.stageId}
+        taskId={stepDetailPanel.taskId}
+        stageName={stepDetailPanel.stageName}
+        taskName={stepDetailPanel.taskName}
+        journeyMapType={journeyMapType}
+        onDeleteStep={deleteStep}
+        onDeleteTask={deleteTask}
+        onDeleteStage={deleteStage}
+      />
     </div>
   );
 }

@@ -3,7 +3,6 @@ import Stage from './Stage';
 import AddStageModal from './AddStageModal';
 import PersonaLegend from './PersonaLegend';
 import AggregatedPainpointView from './AggregatedPainpointView';
-import StepDetailPanel from './StepDetailPanel';
 import SpreadsheetImportExportModal from './SpreadsheetImportExportModal';
 import ZoomPanControls from './ZoomPanControls';
 import useZoomPan from '../hooks/useZoomPan';
@@ -25,18 +24,11 @@ const JourneyMap = ({
   onUpdateStep, 
   onDeleteStep,
   onSwitchToStepView,
-  onImportData
+  onImportData,
+  onOpenStepDetail
 }) => {
   const [isAddStageModalOpen, setIsAddStageModalOpen] = useState(false);
   const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
-  const [stepDetailPanel, setStepDetailPanel] = useState({
-    isOpen: false,
-    step: null,
-    stageId: null,
-    taskId: null,
-    stageName: '',
-    taskName: ''
-  });
 
   // Initialize zoom and pan functionality
   const {
@@ -51,28 +43,6 @@ const JourneyMap = ({
     canZoomIn,
     canZoomOut,
   } = useZoomPan();
-
-  const openStepDetailPanel = (step, stageId, taskId, stageName, taskName) => {
-    setStepDetailPanel({
-      isOpen: true,
-      step,
-      stageId,
-      taskId,
-      stageName,
-      taskName
-    });
-  };
-
-  const closeStepDetailPanel = () => {
-    setStepDetailPanel({
-      isOpen: false,
-      step: null,
-      stageId: null,
-      taskId: null,
-      stageName: '',
-      taskName: ''
-    });
-  };
 
   // Get terminology based on map type
   const terminology = getTerminology(journeyMapType);
@@ -128,7 +98,7 @@ const JourneyMap = ({
                   onUpdateStep={onUpdateStep}
                   onDeleteStep={onDeleteStep}
                   onSwitchToStepView={onSwitchToStepView}
-                  onOpenStepDetail={openStepDetailPanel}
+                  onOpenStepDetail={onOpenStepDetail}
                 />
               ))}
               
@@ -148,7 +118,7 @@ const JourneyMap = ({
                 stages={stages}
                 journeyMapType={journeyMapType}
                 onSwitchToStepView={onSwitchToStepView}
-                onOpenStepDetail={openStepDetailPanel}
+                onOpenStepDetail={onOpenStepDetail}
                 onUpdateStep={onUpdateStep}
                 onDeleteStep={onDeleteStep}
                 onDeleteTask={onDeleteTask}
@@ -185,21 +155,6 @@ const JourneyMap = ({
         journeyMapName={journeyMapName}
         journeyMapType={journeyMapType}
         onImportData={onImportData}
-      />
-
-      <StepDetailPanel
-        isOpen={stepDetailPanel.isOpen}
-        onClose={closeStepDetailPanel}
-        step={stepDetailPanel.step}
-        onSave={onUpdateStep}
-        stageId={stepDetailPanel.stageId}
-        taskId={stepDetailPanel.taskId}
-        stageName={stepDetailPanel.stageName}
-        taskName={stepDetailPanel.taskName}
-        journeyMapType={journeyMapType}
-        onDeleteStep={onDeleteStep}
-        onDeleteTask={onDeleteTask}
-        onDeleteStage={onDeleteStage}
       />
     </div>
   );

@@ -6,6 +6,7 @@ import ViewToggle from './components/ViewToggle';
 import LoadingSpinner from './components/LoadingSpinner';
 import EditableTitle from './components/EditableTitle';
 import StepDetailPanel from './components/StepDetailPanel';
+import EditPanel from './components/EditPanel';
 import { PERSONAS } from './constants/personas';
 import { getTerminology, MAP_TYPES } from './constants/mapTypes';
 
@@ -54,6 +55,19 @@ function App() {
     taskName: ''
   });
 
+  // Edit panel state management for painpoint view
+  const [editPanel, setEditPanel] = useState({
+    isOpen: false,
+    editData: null,
+    stageId: null,
+    stageName: '',
+    taskId: null,
+    taskName: '',
+    stepId: null
+  });
+  const [editablePainPoints, setEditablePainPoints] = useState([]);
+  const [editableOpportunities, setEditableOpportunities] = useState([]);
+
   // Side panel functions
   const openStepDetailPanel = (step, stageId, taskId, stageName, taskName) => {
     setStepDetailPanel({
@@ -75,6 +89,102 @@ function App() {
       stageName: '',
       taskName: ''
     });
+  };
+
+  // Edit panel functions for painpoint view
+  const openEditPanel = (item, itemType, stageId, stageName, taskId, taskName) => {
+    // Find the complete step data and all related information
+    const stage = stages.find(s => s.id === stageId);
+    const task = stage?.tasks.find(t => t.id === taskId);
+    const step = task?.steps.find(s => s.id === item.stepId);
+    
+    if (step && task && stage) {
+      // Initialize editable arrays
+      setEditablePainPoints(step.painPoints || []);
+      setEditableOpportunities(step.opportunities || []);
+      
+      setEditPanel({
+        isOpen: true,
+        editData: {
+          stage: stage,
+          task: task,
+          step: step,
+          allPainPoints: step.painPoints || [],
+          allOpportunities: step.opportunities || []
+        },
+        stageId: stageId,
+        stageName: stageName,
+        taskId: taskId,
+        taskName: taskName,
+        stepId: step.id
+      });
+    }
+  };
+
+  const closeEditPanel = () => {
+    setEditPanel({
+      isOpen: false,
+      editData: null,
+      stageId: null,
+      stageName: '',
+      taskId: null,
+      taskName: '',
+      stepId: null
+    });
+    setEditablePainPoints([]);
+    setEditableOpportunities([]);
+  };
+
+  // Pain Points management functions
+  const addPainPoint = () => {
+    setEditablePainPoints([...editablePainPoints, '']);
+  };
+
+  const removePainPoint = (index) => {
+    setEditablePainPoints(editablePainPoints.filter((_, i) => i !== index));
+  };
+
+  const updatePainPoint = (index, value) => {
+    const updated = [...editablePainPoints];
+    updated[index] = value;
+    setEditablePainPoints(updated);
+  };
+
+  // Opportunities management functions
+  const addOpportunity = () => {
+    setEditableOpportunities([...editableOpportunities, '']);
+  };
+
+  const removeOpportunity = (index) => {
+    setEditableOpportunities(editableOpportunities.filter((_, i) => i !== index));
+  };
+
+  const updateOpportunity = (index, value) => {
+    const updated = [...editableOpportunities];
+    updated[index] = value;
+    setEditableOpportunities(updated);
+  };
+
+  // Save function for edit panel
+  const saveEditChanges = () => {
+    if (!editPanel.editData) return;
+
+    // Filter out empty pain points and opportunities
+    const filteredPainPoints = editablePainPoints.filter(point => point.trim() !== '');
+    const filteredOpportunities = editableOpportunities.filter(opp => opp.trim() !== '');
+
+    // Create updated step data
+    const stepData = {
+      ...editPanel.editData.step,
+      painPoints: filteredPainPoints,
+      opportunities: filteredOpportunities
+    };
+
+    // Call the update function
+    updateStep(editPanel.stageId, editPanel.taskId, editPanel.stepId, stepData);
+    
+    // Close the panel
+    closeEditPanel();
   };
 
   // Initialize authentication and handle reset
@@ -507,6 +617,18 @@ function App() {
           onSwitchToStepView={switchToStepView}
           onImportData={handleImportData}
           onOpenStepDetail={openStepDetailPanel}
+          onOpenEditPanel={openEditPanel}
+          editPanel={editPanel}
+          editablePainPoints={editablePainPoints}
+          editableOpportunities={editableOpportunities}
+          onCloseEditPanel={closeEditPanel}
+          onAddPainPoint={addPainPoint}
+          onRemovePainPoint={removePainPoint}
+          onUpdatePainPoint={updatePainPoint}
+          onAddOpportunity={addOpportunity}
+          onRemoveOpportunity={removeOpportunity}
+          onUpdateOpportunity={updateOpportunity}
+          onSaveEditChanges={saveEditChanges}
         />
       </main>
       
@@ -521,6 +643,23 @@ function App() {
         stageName={stepDetailPanel.stageName}
         taskName={stepDetailPanel.taskName}
         journeyMapType={journeyMapType}
+        onDeleteStep={deleteStep}
+        onDeleteTask={deleteTask}
+        onDeleteStage={deleteStage}
+      />
+      
+      <EditPanel
+        editPanel={editPanel}
+        editablePainPoints={editablePainPoints}
+        editableOpportunities={editableOpportunities}
+        onCloseEditPanel={closeEditPanel}
+        onAddPainPoint={addPainPoint}
+        onRemovePainPoint={removePainPoint}
+        onUpdatePainPoint={updatePainPoint}
+        onAddOpportunity={addOpportunity}
+        onRemoveOpportunity={removeOpportunity}
+        onUpdateOpportunity={updateOpportunity}
+        onSaveEditChanges={saveEditChanges}
         onDeleteStep={deleteStep}
         onDeleteTask={deleteTask}
         onDeleteStage={deleteStage}

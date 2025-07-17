@@ -25,7 +25,19 @@ const JourneyMap = ({
   onDeleteStep,
   onSwitchToStepView,
   onImportData,
-  onOpenStepDetail
+  onOpenStepDetail,
+  onOpenEditPanel,
+  editPanel,
+  editablePainPoints,
+  editableOpportunities,
+  onCloseEditPanel,
+  onAddPainPoint,
+  onRemovePainPoint,
+  onUpdatePainPoint,
+  onAddOpportunity,
+  onRemoveOpportunity,
+  onUpdateOpportunity,
+  onSaveEditChanges
 }) => {
   const [isAddStageModalOpen, setIsAddStageModalOpen] = useState(false);
   const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
@@ -123,6 +135,18 @@ const JourneyMap = ({
                 onDeleteStep={onDeleteStep}
                 onDeleteTask={onDeleteTask}
                 onDeleteStage={onDeleteStage}
+                onOpenEditPanel={onOpenEditPanel}
+                editPanel={editPanel}
+                editablePainPoints={editablePainPoints}
+                editableOpportunities={editableOpportunities}
+                onCloseEditPanel={onCloseEditPanel}
+                onAddPainPoint={onAddPainPoint}
+                onRemovePainPoint={onRemovePainPoint}
+                onUpdatePainPoint={onUpdatePainPoint}
+                onAddOpportunity={onAddOpportunity}
+                onRemoveOpportunity={onRemoveOpportunity}
+                onUpdateOpportunity={onUpdateOpportunity}
+                onSaveEditChanges={onSaveEditChanges}
               />
             </div>
           )}

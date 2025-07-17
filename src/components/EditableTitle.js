@@ -6,7 +6,7 @@ const EditableTitle = ({ title, onSave, className = '', disabled = false }) => {
   const [isSaving, setIsSaving] = useState(false);
   const inputRef = useRef(null);
 
-  console.log('EditableTitle rendering:', { title, className, isEditing });
+
 
   useEffect(() => {
     setValue(title);
@@ -73,11 +73,10 @@ const EditableTitle = ({ title, onSave, className = '', disabled = false }) => {
   }
 
   return (
-    <div className="flex items-center gap-2 group" onClick={(e) => console.log('EditableTitle group clicked', e.target)}>
-      <span className={className} onClick={(e) => console.log('EditableTitle span clicked', e.target)}>{title}</span>
+    <div className="flex items-center gap-2 group">
+      <span className={className}>{title}</span>
       <button
         onClick={(e) => {
-          console.log('EditableTitle button clicked');
           e.stopPropagation();
           setIsEditing(true);
         }}

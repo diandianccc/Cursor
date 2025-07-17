@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getPersonaById } from '../constants/personas';
+import EditableTitle from './EditableTitle';
 
 const AggregatedPainpointView = ({ 
   stages, 
@@ -9,6 +10,8 @@ const AggregatedPainpointView = ({
   onDeleteStep, 
   onDeleteTask, 
   onDeleteStage,
+  onUpdateStage,
+  onUpdateTask,
   onOpenEditPanel,
   editPanel,
   editablePainPoints,
@@ -334,8 +337,17 @@ const AggregatedPainpointView = ({
                 colSpan={stageSpan.span}
                 className="bg-purple-100 text-center rounded-lg"
               >
-                <div className="font-semibold text-purple-800 py-4 px-4">
-                  {stageSpan.stageName}
+                <div className="py-4 px-4">
+                  <EditableTitle
+                    title={stageSpan.stageName}
+                    onSave={(newName) => {
+                      const stage = stages.find(s => s.name === stageSpan.stageName);
+                      if (stage && onUpdateStage) {
+                        onUpdateStage(stage.id, { name: newName });
+                      }
+                    }}
+                    className="font-semibold text-purple-800"
+                  />
                 </div>
               </td>
             ))}
@@ -357,7 +369,18 @@ const AggregatedPainpointView = ({
                 className="w-64 align-top"
               >
                 <div className="bg-blue-100 rounded-lg p-3">
-                  <div className="font-semibold text-blue-800 mb-2 break-words">{task.taskName}</div>
+                  <div className="mb-2">
+                    <EditableTitle
+                      title={task.taskName}
+                      onSave={(newName) => {
+                        const stage = stages.find(s => s.tasks.some(t => t.id === task.taskId));
+                        if (stage && onUpdateTask) {
+                          onUpdateTask(stage.id, task.taskId, { name: newName });
+                        }
+                      }}
+                      className="font-semibold text-blue-800 break-words"
+                    />
+                  </div>
                   <div className="text-xs text-blue-600">
                     {task.steps.length} step{task.steps.length !== 1 ? 's' : ''}
                   </div>

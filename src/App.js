@@ -207,8 +207,6 @@ function App() {
   const saveEditChanges = (stepDescription = '', stepPersonaId = '') => {
     if (!editPanel.editData) return;
 
-
-
     // Filter out empty pain points, opportunities, current experiences, and insights
     const filteredPainPoints = editablePainPoints.filter(point => point.trim() !== '');
     const filteredOpportunities = editableOpportunities.filter(opp => opp.trim() !== '');

@@ -68,11 +68,6 @@ const JourneyMap = ({
   const handleDragEnd = (result) => {
     const { destination, source, draggableId } = result;
 
-    // Only allow drag and drop in step view
-    if (currentView !== 'step') {
-      return;
-    }
-
     // If dropped outside a droppable area
     if (!destination) {
       return;

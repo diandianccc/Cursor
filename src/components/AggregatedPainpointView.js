@@ -35,80 +35,72 @@ const AggregatedPainpointView = ({
   const [connectorLines, setConnectorLines] = useState([]);
   const cardRefs = useRef({});
   const containerRef = useRef(null);
-  // Collect all tasks and organize by stage, maintaining order
-  const allTasks = [];
-  const stageSpans = []; // Track which columns belong to which stage
+  // Collect all steps as individual columns, organize by stage and task
+  const allSteps = [];
+  const taskSpans = []; // Track which columns each task spans
+  const stageSpans = []; // Track which columns each stage spans
 
   stages.forEach((stage, stageIndex) => {
     if (stage.tasks.length > 0) {
-      const stageStartIndex = allTasks.length;
+      const stageStartIndex = allSteps.length;
+      let stageTotalSteps = 0;
       
       stage.tasks.forEach((task, taskIndex) => {
-        const taskSteps = [];
-        const taskPainPoints = [];
-        const taskOpportunities = [];
-
-        task.steps.forEach(step => {
-          // Collect steps for this task
-          taskSteps.push({
-            ...step,
-            persona: getPersonaById(step.personaId),
-            stepId: step.id,
+        const taskStartIndex = allSteps.length;
+        
+        // Handle tasks with no steps
+        if (task.steps.length === 0) {
+          // Create a placeholder step for empty tasks
+          allSteps.push({
+            id: `empty-${task.id}`,
+            description: '',
+            painPoints: [],
+            opportunities: [],
+            persona: null,
+            stepId: `empty-${task.id}`,
             taskId: task.id,
             stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
-            taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'
+            taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task',
+            isEmpty: true
           });
-
-          // Collect pain points for this task
-          if (step.painPoints) {
-            step.painPoints.forEach(point => {
-              taskPainPoints.push({
-                text: point,
-                stepDescription: step.description,
-                persona: getPersonaById(step.personaId),
-                stepId: step.id,
-                taskId: task.id,
-                stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
-                taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'
-              });
-            });
-          }
+          stageTotalSteps += 1;
           
-          // Collect opportunities for this task
-          if (step.opportunities) {
-            step.opportunities.forEach(opportunity => {
-              taskOpportunities.push({
-                text: opportunity,
-                stepDescription: step.description,
-                persona: getPersonaById(step.personaId),
-                stepId: step.id,
-                taskId: task.id,
-                stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
-                taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'
-              });
+          taskSpans.push({
+            taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task',
+            taskId: task.id,
+            startIndex: taskStartIndex,
+            span: 1
+          });
+        } else {
+          // Add each step as its own column
+          task.steps.forEach((step, stepIndex) => {
+            allSteps.push({
+              ...step,
+              persona: getPersonaById(step.personaId),
+              stepId: step.id,
+              taskId: task.id,
+              stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
+              taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task',
+              isEmpty: false
             });
-          }
-        });
-
-        allTasks.push({
-          stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
-          taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task',
-          taskId: task.id,
-          steps: taskSteps,
-          painPoints: taskPainPoints,
-          opportunities: taskOpportunities,
-          stageIndex: stageIndex,
-          taskIndex: taskIndex,
-          isLastTaskInStage: taskIndex === stage.tasks.length - 1,
-          isFirstTaskInStage: taskIndex === 0
-        });
+          });
+          
+          stageTotalSteps += task.steps.length;
+          
+          taskSpans.push({
+            taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task',
+            taskId: task.id,
+            startIndex: taskStartIndex,
+            span: task.steps.length
+          });
+        }
       });
 
       // Record the span for this stage
       stageSpans.push({
         stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
         startIndex: stageStartIndex,
-        span: stage.tasks.length
+        span: stageTotalSteps
       });
     }
   });
@@ -342,7 +334,7 @@ const AggregatedPainpointView = ({
                   <EditableTitle
                     title={stageSpan.stageName}
                     onSave={(newName) => {
-                      const stage = stages.find(s => s.name === stageSpan.stageName);
+                      const stage = stages.find(s => (typeof s.name === 'string' ? s.name : s.name?.name) === stageSpan.stageName);
                       if (stage && onUpdateStage) {
                         onUpdateStage(stage.id, { name: newName });
                       }
@@ -364,33 +356,34 @@ const AggregatedPainpointView = ({
                 <span className="font-semibold text-blue-800">Tasks</span>
               </div>
             </td>
-            {allTasks.map((task) => (
+            {taskSpans.map((taskSpan) => (
               <td 
-                key={`task-${task.taskId}`} 
-                className="w-64 align-top"
+                key={`task-${taskSpan.taskId}`} 
+                colSpan={taskSpan.span}
+                className="w-64 text-center"
               >
                 <div className="bg-blue-100 rounded-lg p-3">
                   <div className="mb-2">
                     <EditableTitle
-                      title={task.taskName}
+                      title={taskSpan.taskName}
                       onSave={(newName) => {
-                        const stage = stages.find(s => s.tasks.some(t => t.id === task.taskId));
+                        const stage = stages.find(s => s.tasks.some(t => t.id === taskSpan.taskId));
                         if (stage && onUpdateTask) {
-                          onUpdateTask(stage.id, task.taskId, { name: newName });
+                          onUpdateTask(stage.id, taskSpan.taskId, { name: newName });
                         }
                       }}
                       className="font-semibold text-blue-800 break-words"
                     />
                   </div>
                   <div className="text-xs text-blue-600">
-                    {task.steps.length} step{task.steps.length !== 1 ? 's' : ''}
+                    {taskSpan.span} step{taskSpan.span !== 1 ? 's' : ''}
                   </div>
                 </div>
               </td>
             ))}
           </tr>
 
-          {/* Steps Row */}
+                    {/* Steps Row */}
           <tr>
             <td className="w-32 bg-indigo-50 py-4 px-4 rounded-lg">
               <div className="flex items-center gap-2">
@@ -400,54 +393,55 @@ const AggregatedPainpointView = ({
                 <span className="font-semibold text-indigo-800">Steps</span>
               </div>
             </td>
-            {allTasks.map((task) => (
+            {allSteps.map((step, index) => {
+              const isHighlighted = highlightedItems.stepId === step.stepId;
+              const stepRefKey = `step-${step.taskId}-${step.stepId}`;
+              
+              return (
                 <td 
-                  key={`steps-${task.taskId}`} 
+                  key={`step-${step.stepId || step.id}`} 
                   className="w-64 align-top"
                 >
-                                  <div className="space-y-2 min-h-24">
-                  {task.steps.map((step, index) => {
-                    const isHighlighted = highlightedItems.stepId === step.stepId;
-                    const stepRefKey = `step-${step.taskId}-${step.stepId}`;
-                    
-                    return (
-                      <div key={step.id} ref={el => cardRefs.current[stepRefKey] = el}>
-                        <CardWithEdit
-                          className="bg-indigo-100 rounded-lg p-2 hover:bg-indigo-200"
-                          onEdit={() => {
-                            // Find stage and task for this step
-                            const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
-                            const taskData = stageData?.tasks.find(t => t.id === step.taskId);
-                            if (stageData && taskData) {
-                              openEditPanel(step, 'step', stageData.id, stageData.name, taskData.id, taskData.name);
-                            }
-                          }}
-                          isHighlighted={isHighlighted}
-                          highlightColor="indigo"
-                          title="Click to edit step details"
-                          type="step"
-                        >
-                                                      <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
-                                {step.persona && (
-                                  <div className="flex items-center gap-1 mt-1">
-                                    <div className={`${step.persona.color} w-2 h-2 rounded-full`}></div>
-                                    <span className="text-xs text-indigo-600">{step.persona.name || 'Unknown Persona'}</span>
-                                  </div>
-                                )}
+                  {step.isEmpty ? (
+                    <div className="text-indigo-400 text-sm italic py-4 text-center min-h-24 flex items-center justify-center">
+                      No steps
+                    </div>
+                  ) : (
+                    <div ref={el => cardRefs.current[stepRefKey] = el}>
+                      <CardWithEdit
+                        className="bg-indigo-100 rounded-lg p-2 hover:bg-indigo-200"
+                        onEdit={() => {
+                          // Find stage and task for this step
+                          const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
+                          const taskData = stageData?.tasks.find(t => t.id === step.taskId);
+                          if (stageData && taskData) {
+                            const stageName = typeof stageData.name === 'string' ? stageData.name : stageData.name?.name || 'Unnamed Stage';
+                            const taskName = typeof taskData.name === 'string' ? taskData.name : taskData.name?.name || 'Unnamed Task';
+                            openEditPanel(step, 'step', stageData.id, stageName, taskData.id, taskName);
+                          }
+                        }}
+                        isHighlighted={isHighlighted}
+                        highlightColor="indigo"
+                        title="Click to edit step details"
+                        type="step"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
+                            {step.persona && (
+                              <div className="flex items-center gap-1 mt-1">
+                                <div className={`${step.persona.color} w-2 h-2 rounded-full`}></div>
+                                <span className="text-xs text-indigo-600">{step.persona.name || 'Unknown Persona'}</span>
                               </div>
-                            </div>
-                        </CardWithEdit>
-                      </div>
-                    );
-                  })}
-                  {task.steps.length === 0 && (
-                    <div className="text-indigo-400 text-sm italic py-4 text-center">No steps</div>
+                            )}
+                          </div>
+                        </div>
+                      </CardWithEdit>
+                    </div>
                   )}
-                </div>
-              </td>
-            ))}
+                </td>
+              );
+            })}
           </tr>
 
           {/* Pain Points Row */}
@@ -460,44 +454,60 @@ const AggregatedPainpointView = ({
                 <span className="font-semibold text-red-800">Pain Points</span>
               </div>
             </td>
-            {allTasks.map((task) => (
+            {allSteps.map((step, index) => (
               <td 
-                key={`pain-${task.taskId}`} 
+                key={`pain-${step.stepId || step.id}`} 
                 className="w-64 align-top"
               >
                 <div className="space-y-2">
-                  {task.painPoints.map((item, index) => {
-                    const isHighlighted = highlightedItems.stepId === item.stepId && 
-                                         (highlightedItems.painPointIndex === index || highlightedItems.highlightAllRelated);
-                    const painPointRefKey = `painpoint-${item.taskId}-${item.stepId}-${index}`;
-                    
-                    return (
-                      <div 
-                        key={`${item.stepId}-${index}`}
-                        ref={el => cardRefs.current[painPointRefKey] = el}
-                      >
-                        <CardWithEdit
-                          className="bg-red-100 rounded-lg p-2 hover:bg-red-200"
-                          onEdit={() => {
-                            // Find stage and task for this pain point
-                            const stageData = stages.find(s => s.tasks.some(t => t.id === item.taskId));
-                            const taskData = stageData?.tasks.find(t => t.id === item.taskId);
-                            if (stageData && taskData) {
-                              openEditPanel(item, 'painpoint', stageData.id, stageData.name, taskData.id, taskData.name);
-                            }
-                          }}
-                          isHighlighted={isHighlighted}
-                          highlightColor="red"
-                          title="Click to edit pain point details"
-                          type="pain point"
-                        >
-                          <p className="text-red-800 font-medium text-sm">{item.text}</p>
-                        </CardWithEdit>
-                      </div>
-                    );
-                  })}
-                  {task.painPoints.length === 0 && (
+                  {step.isEmpty ? (
                     <div className="text-red-400 text-sm italic py-4 text-center">No pain points</div>
+                  ) : (
+                    step.painPoints && step.painPoints.length > 0 ? (
+                      step.painPoints.map((painPoint, painPointIndex) => {
+                        const isHighlighted = highlightedItems.stepId === step.stepId && 
+                                             (highlightedItems.painPointIndex === painPointIndex || highlightedItems.highlightAllRelated);
+                        const painPointRefKey = `painpoint-${step.taskId}-${step.stepId}-${painPointIndex}`;
+                        
+                        return (
+                          <div 
+                            key={`${step.stepId}-${painPointIndex}`}
+                            ref={el => cardRefs.current[painPointRefKey] = el}
+                          >
+                            <CardWithEdit
+                              className="bg-red-100 rounded-lg p-2 hover:bg-red-200"
+                              onEdit={() => {
+                                // Find stage and task for this pain point
+                                const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
+                                const taskData = stageData?.tasks.find(t => t.id === step.taskId);
+                                if (stageData && taskData) {
+                                  const stageName = typeof stageData.name === 'string' ? stageData.name : stageData.name?.name || 'Unnamed Stage';
+                                  const taskName = typeof taskData.name === 'string' ? taskData.name : taskData.name?.name || 'Unnamed Task';
+                                  const painPointItem = {
+                                    text: painPoint,
+                                    stepDescription: step.description,
+                                    persona: step.persona,
+                                    stepId: step.stepId,
+                                    taskId: step.taskId,
+                                    stageName,
+                                    taskName
+                                  };
+                                  openEditPanel(painPointItem, 'painpoint', stageData.id, stageName, taskData.id, taskName);
+                                }
+                              }}
+                              isHighlighted={isHighlighted}
+                              highlightColor="red"
+                              title="Click to edit pain point details"
+                              type="pain point"
+                            >
+                              <p className="text-red-800 font-medium text-sm">{painPoint}</p>
+                            </CardWithEdit>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="text-red-400 text-sm italic py-4 text-center">No pain points</div>
+                    )
                   )}
                 </div>
               </td>
@@ -514,44 +524,60 @@ const AggregatedPainpointView = ({
                 <span className="font-semibold text-green-800">Opportunities</span>
               </div>
             </td>
-            {allTasks.map((task) => (
+            {allSteps.map((step, index) => (
               <td 
-                key={`opp-${task.taskId}`} 
+                key={`opp-${step.stepId || step.id}`} 
                 className="w-64 align-top"
               >
                 <div className="space-y-2">
-                  {task.opportunities.map((item, index) => {
-                    const isHighlighted = highlightedItems.stepId === item.stepId && 
-                                         (highlightedItems.opportunityIndex === index || highlightedItems.highlightAllRelated);
-                    const opportunityRefKey = `opportunity-${item.taskId}-${item.stepId}-${index}`;
-                    
-                    return (
-                      <div 
-                        key={`${item.stepId}-${index}`}
-                        ref={el => cardRefs.current[opportunityRefKey] = el}
-                      >
-                        <CardWithEdit
-                          className="bg-green-100 rounded-lg p-2 hover:bg-green-200"
-                          onEdit={() => {
-                            // Find stage and task for this opportunity
-                            const stageData = stages.find(s => s.tasks.some(t => t.id === item.taskId));
-                            const taskData = stageData?.tasks.find(t => t.id === item.taskId);
-                            if (stageData && taskData) {
-                              openEditPanel(item, 'opportunity', stageData.id, stageData.name, taskData.id, taskData.name);
-                            }
-                          }}
-                          isHighlighted={isHighlighted}
-                          highlightColor="green"
-                          title="Click to edit opportunity details"
-                          type="opportunity"
-                        >
-                          <p className="text-green-800 font-medium text-sm">{item.text}</p>
-                        </CardWithEdit>
-                      </div>
-                    );
-                  })}
-                  {task.opportunities.length === 0 && (
+                  {step.isEmpty ? (
                     <div className="text-green-400 text-sm italic py-4 text-center">No opportunities</div>
+                  ) : (
+                    step.opportunities && step.opportunities.length > 0 ? (
+                      step.opportunities.map((opportunity, opportunityIndex) => {
+                        const isHighlighted = highlightedItems.stepId === step.stepId && 
+                                             (highlightedItems.opportunityIndex === opportunityIndex || highlightedItems.highlightAllRelated);
+                        const opportunityRefKey = `opportunity-${step.taskId}-${step.stepId}-${opportunityIndex}`;
+                        
+                        return (
+                          <div 
+                            key={`${step.stepId}-${opportunityIndex}`}
+                            ref={el => cardRefs.current[opportunityRefKey] = el}
+                          >
+                            <CardWithEdit
+                              className="bg-green-100 rounded-lg p-2 hover:bg-green-200"
+                              onEdit={() => {
+                                // Find stage and task for this opportunity
+                                const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
+                                const taskData = stageData?.tasks.find(t => t.id === step.taskId);
+                                if (stageData && taskData) {
+                                  const stageName = typeof stageData.name === 'string' ? stageData.name : stageData.name?.name || 'Unnamed Stage';
+                                  const taskName = typeof taskData.name === 'string' ? taskData.name : taskData.name?.name || 'Unnamed Task';
+                                  const opportunityItem = {
+                                    text: opportunity,
+                                    stepDescription: step.description,
+                                    persona: step.persona,
+                                    stepId: step.stepId,
+                                    taskId: step.taskId,
+                                    stageName,
+                                    taskName
+                                  };
+                                  openEditPanel(opportunityItem, 'opportunity', stageData.id, stageName, taskData.id, taskName);
+                                }
+                              }}
+                              isHighlighted={isHighlighted}
+                              highlightColor="green"
+                              title="Click to edit opportunity details"
+                              type="opportunity"
+                            >
+                              <p className="text-green-800 font-medium text-sm">{opportunity}</p>
+                            </CardWithEdit>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="text-green-400 text-sm italic py-4 text-center">No opportunities</div>
+                    )
                   )}
                 </div>
               </td>

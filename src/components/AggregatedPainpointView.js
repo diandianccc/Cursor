@@ -243,7 +243,6 @@ const AggregatedPainpointView = ({
     highlightColor = 'blue',
     title,
     type = 'step',
-    dragHandleProps,
     isDraggable = false
   }) => {
     const highlightClasses = {
@@ -452,7 +451,6 @@ const AggregatedPainpointView = ({
                                     highlightColor="indigo"
                                     title="Click to edit step details"
                                     type="step"
-                                    dragHandleProps={dragProvided.dragHandleProps}
                                     isDraggable={true}
                                   >
                                     <div className="flex items-start justify-between">

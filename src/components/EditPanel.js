@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const EditPanel = ({
   editPanel,
   editablePainPoints,
   editableOpportunities,
+  editableCurrentExperiences,
   editableInsights,
   onCloseEditPanel,
   onAddPainPoint,
@@ -12,6 +14,9 @@ const EditPanel = ({
   onAddOpportunity,
   onRemoveOpportunity,
   onUpdateOpportunity,
+  onAddCurrentExperience,
+  onRemoveCurrentExperience,
+  onUpdateCurrentExperience,
   onAddInsight,
   onRemoveInsight,
   onUpdateInsight,
@@ -27,6 +32,47 @@ const EditPanel = ({
     if (window.confirm(`Are you sure you want to delete "${stepDescription}"?`)) {
       onDeleteStep(editPanel.stageId, editPanel.taskId, editPanel.stepId);
       onCloseEditPanel();
+    }
+  };
+
+  // Handle drag and drop reordering
+  const handleDragEnd = (result, listType) => {
+    const { destination, source, draggableId } = result;
+
+    // If dropped outside the list or in the same position
+    if (!destination || 
+        (destination.droppableId === source.droppableId && destination.index === source.index)) {
+      return;
+    }
+
+    // Reorder the appropriate list
+    if (listType === 'currentExperiences') {
+      const newList = [...editableCurrentExperiences];
+      const [reorderedItem] = newList.splice(source.index, 1);
+      newList.splice(destination.index, 0, reorderedItem);
+      
+      // Update all items to reflect new order
+      newList.forEach((item, index) => {
+        onUpdateCurrentExperience(index, item);
+      });
+    } else if (listType === 'painPoints') {
+      const newList = [...editablePainPoints];
+      const [reorderedItem] = newList.splice(source.index, 1);
+      newList.splice(destination.index, 0, reorderedItem);
+      
+      // Update all items to reflect new order
+      newList.forEach((item, index) => {
+        onUpdatePainPoint(index, item);
+      });
+    } else if (listType === 'opportunities') {
+      const newList = [...editableOpportunities];
+      const [reorderedItem] = newList.splice(source.index, 1);
+      newList.splice(destination.index, 0, reorderedItem);
+      
+      // Update all items to reflect new order
+      newList.forEach((item, index) => {
+        onUpdateOpportunity(index, item);
+      });
     }
   };
 
@@ -127,6 +173,80 @@ const EditPanel = ({
                 />
               </div>
 
+              {/* Current Experience Section */}
+              <div className="bg-orange-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Current Experiences ({editableCurrentExperiences?.length || 0})
+                  </div>
+                </h3>
+                <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'currentExperiences')}>
+                  <Droppable droppableId="currentExperiences">
+                    {(provided, snapshot) => (
+                      <div 
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={`space-y-2 ${snapshot.isDraggingOver ? 'bg-orange-100 rounded-md p-2' : ''}`}
+                      >
+                        {editableCurrentExperiences && editableCurrentExperiences.length > 0 ? (
+                          editableCurrentExperiences.map((experience, index) => (
+                            <Draggable key={`current-${index}`} draggableId={`current-${index}`} index={index}>
+                              {(dragProvided, dragSnapshot) => (
+                                <div
+                                  ref={dragProvided.innerRef}
+                                  {...dragProvided.draggableProps}
+                                  className={`flex gap-2 ${dragSnapshot.isDragging ? 'shadow-lg' : ''}`}
+                                >
+                                  <div 
+                                    {...dragProvided.dragHandleProps}
+                                    className="flex items-center px-2 py-2 text-orange-600 hover:text-orange-800 cursor-grab"
+                                    title="Drag to reorder"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                                    </svg>
+                                  </div>
+                                  <input
+                                    type="text"
+                                    value={experience}
+                                    onChange={(e) => onUpdateCurrentExperience(index, e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    placeholder={`Current experience ${index + 1}`}
+                                  />
+                                  <button
+                                    onClick={() => onRemoveCurrentExperience(index)}
+                                    className="px-3 py-2 text-orange-600 hover:bg-orange-100 rounded-md transition-colors"
+                                    title="Remove current experience"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              )}
+                            </Draggable>
+                          ))
+                        ) : (
+                          <div className="text-center py-4 text-gray-500 italic">
+                            No current experiences yet. Click the button below to add the first one.
+                          </div>
+                        )}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+                <button 
+                  onClick={onAddCurrentExperience}
+                  className="w-full py-2 px-4 border-2 border-dashed border-orange-300 text-orange-600 rounded-md hover:bg-orange-50 transition-colors mt-2"
+                >
+                  + Add Current Experience
+                </button>
+              </div>
+
               {/* Pain Points Section */}
               <div className="bg-red-50 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center justify-between">
@@ -137,40 +257,68 @@ const EditPanel = ({
                     Pain Points ({editablePainPoints.length})
                   </div>
                 </h3>
-                <div className="space-y-2">
-                  {editablePainPoints.length > 0 ? (
-                    editablePainPoints.map((painPoint, index) => (
-                      <div key={index} className="flex gap-2">
-                        <input
-                          type="text"
-                          value={painPoint}
-                          onChange={(e) => onUpdatePainPoint(index, e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                          placeholder={`Pain point ${index + 1}`}
-                        />
-                        <button
-                          onClick={() => onRemovePainPoint(index)}
-                          className="px-3 py-2 text-red-600 hover:bg-red-100 rounded-md transition-colors"
-                          title="Remove pain point"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'painPoints')}>
+                  <Droppable droppableId="painPoints">
+                    {(provided, snapshot) => (
+                      <div 
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={`space-y-2 ${snapshot.isDraggingOver ? 'bg-red-100 rounded-md p-2' : ''}`}
+                      >
+                        {editablePainPoints.length > 0 ? (
+                          editablePainPoints.map((painPoint, index) => (
+                            <Draggable key={`pain-${index}`} draggableId={`pain-${index}`} index={index}>
+                              {(dragProvided, dragSnapshot) => (
+                                <div
+                                  ref={dragProvided.innerRef}
+                                  {...dragProvided.draggableProps}
+                                  className={`flex gap-2 ${dragSnapshot.isDragging ? 'shadow-lg' : ''}`}
+                                >
+                                  <div 
+                                    {...dragProvided.dragHandleProps}
+                                    className="flex items-center px-2 py-2 text-red-600 hover:text-red-800 cursor-grab"
+                                    title="Drag to reorder"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                                    </svg>
+                                  </div>
+                                  <input
+                                    type="text"
+                                    value={painPoint}
+                                    onChange={(e) => onUpdatePainPoint(index, e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    placeholder={`Pain point ${index + 1}`}
+                                  />
+                                  <button
+                                    onClick={() => onRemovePainPoint(index)}
+                                    className="px-3 py-2 text-red-600 hover:bg-red-100 rounded-md transition-colors"
+                                    title="Remove pain point"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              )}
+                            </Draggable>
+                          ))
+                        ) : (
+                          <div className="text-center py-4 text-gray-500 italic">
+                            No pain points yet. Click the button below to add the first one.
+                          </div>
+                        )}
+                        {provided.placeholder}
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-4 text-gray-500 italic">
-                      No pain points yet. Click the button below to add the first one.
-                    </div>
-                  )}
-                  <button 
-                    onClick={onAddPainPoint}
-                    className="w-full py-2 px-4 border-2 border-dashed border-red-300 text-red-600 rounded-md hover:bg-red-50 transition-colors"
-                  >
-                    + Add Pain Point
-                  </button>
-                </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+                <button 
+                  onClick={onAddPainPoint}
+                  className="w-full py-2 px-4 border-2 border-dashed border-red-300 text-red-600 rounded-md hover:bg-red-50 transition-colors mt-2"
+                >
+                  + Add Pain Point
+                </button>
               </div>
 
               {/* Opportunities Section */}
@@ -183,40 +331,68 @@ const EditPanel = ({
                     Opportunities ({editableOpportunities.length})
                   </div>
                 </h3>
-                <div className="space-y-2">
-                  {editableOpportunities.length > 0 ? (
-                    editableOpportunities.map((opportunity, index) => (
-                      <div key={index} className="flex gap-2">
-                        <input
-                          type="text"
-                          value={opportunity}
-                          onChange={(e) => onUpdateOpportunity(index, e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                          placeholder={`Opportunity ${index + 1}`}
-                        />
-                        <button
-                          onClick={() => onRemoveOpportunity(index)}
-                          className="px-3 py-2 text-green-600 hover:bg-green-100 rounded-md transition-colors"
-                          title="Remove opportunity"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'opportunities')}>
+                  <Droppable droppableId="opportunities">
+                    {(provided, snapshot) => (
+                      <div 
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={`space-y-2 ${snapshot.isDraggingOver ? 'bg-green-100 rounded-md p-2' : ''}`}
+                      >
+                        {editableOpportunities.length > 0 ? (
+                          editableOpportunities.map((opportunity, index) => (
+                            <Draggable key={`opp-${index}`} draggableId={`opp-${index}`} index={index}>
+                              {(dragProvided, dragSnapshot) => (
+                                <div
+                                  ref={dragProvided.innerRef}
+                                  {...dragProvided.draggableProps}
+                                  className={`flex gap-2 ${dragSnapshot.isDragging ? 'shadow-lg' : ''}`}
+                                >
+                                  <div 
+                                    {...dragProvided.dragHandleProps}
+                                    className="flex items-center px-2 py-2 text-green-600 hover:text-green-800 cursor-grab"
+                                    title="Drag to reorder"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                                    </svg>
+                                  </div>
+                                  <input
+                                    type="text"
+                                    value={opportunity}
+                                    onChange={(e) => onUpdateOpportunity(index, e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    placeholder={`Opportunity ${index + 1}`}
+                                  />
+                                  <button
+                                    onClick={() => onRemoveOpportunity(index)}
+                                    className="px-3 py-2 text-green-600 hover:bg-green-100 rounded-md transition-colors"
+                                    title="Remove opportunity"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              )}
+                            </Draggable>
+                          ))
+                        ) : (
+                          <div className="text-center py-4 text-gray-500 italic">
+                            No opportunities yet. Click the button below to add the first one.
+                          </div>
+                        )}
+                        {provided.placeholder}
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-4 text-gray-500 italic">
-                      No opportunities yet. Click the button below to add the first one.
-                    </div>
-                  )}
-                  <button 
-                    onClick={onAddOpportunity}
-                    className="w-full py-2 px-4 border-2 border-dashed border-green-300 text-green-600 rounded-md hover:bg-green-50 transition-colors"
-                  >
-                    + Add Opportunity
-                  </button>
-                </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+                <button 
+                  onClick={onAddOpportunity}
+                  className="w-full py-2 px-4 border-2 border-dashed border-green-300 text-green-600 rounded-md hover:bg-green-50 transition-colors mt-2"
+                >
+                  + Add Opportunity
+                </button>
               </div>
 
               {/* Customer Insights Section */}

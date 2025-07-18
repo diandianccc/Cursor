@@ -32,6 +32,7 @@ const JourneyMap = ({
   editPanel,
   editablePainPoints,
   editableOpportunities,
+  editableCurrentExperiences,
   onCloseEditPanel,
   onAddPainPoint,
   onRemovePainPoint,
@@ -39,6 +40,9 @@ const JourneyMap = ({
   onAddOpportunity,
   onRemoveOpportunity,
   onUpdateOpportunity,
+  onAddCurrentExperience,
+  onRemoveCurrentExperience,
+  onUpdateCurrentExperience,
   onSaveEditChanges
 }) => {
   const [isAddStageModalOpen, setIsAddStageModalOpen] = useState(false);
@@ -187,6 +191,7 @@ const JourneyMap = ({
                   editPanel={editPanel}
                   editablePainPoints={editablePainPoints}
                   editableOpportunities={editableOpportunities}
+                  editableCurrentExperiences={editableCurrentExperiences}
                   onCloseEditPanel={onCloseEditPanel}
                   onAddPainPoint={onAddPainPoint}
                   onRemovePainPoint={onRemovePainPoint}
@@ -194,6 +199,9 @@ const JourneyMap = ({
                   onAddOpportunity={onAddOpportunity}
                   onRemoveOpportunity={onRemoveOpportunity}
                   onUpdateOpportunity={onUpdateOpportunity}
+                  onAddCurrentExperience={onAddCurrentExperience}
+                  onRemoveCurrentExperience={onRemoveCurrentExperience}
+                  onUpdateCurrentExperience={onUpdateCurrentExperience}
                   onSaveEditChanges={onSaveEditChanges}
                 />
               </div>

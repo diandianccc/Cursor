@@ -67,6 +67,7 @@ function App() {
   });
   const [editablePainPoints, setEditablePainPoints] = useState([]);
   const [editableOpportunities, setEditableOpportunities] = useState([]);
+  const [editableCurrentExperiences, setEditableCurrentExperiences] = useState([]);
   const [editableInsights, setEditableInsights] = useState([]);
 
   // Side panel functions
@@ -106,6 +107,7 @@ function App() {
       // Initialize editable arrays
       setEditablePainPoints(step.painPoints || []);
       setEditableOpportunities(step.opportunities || []);
+      setEditableCurrentExperiences(step.currentExperiences || []);
       setEditableInsights(step.insights ? [step.insights] : []);
       
       setEditPanel({
@@ -138,6 +140,7 @@ function App() {
     });
     setEditablePainPoints([]);
     setEditableOpportunities([]);
+    setEditableCurrentExperiences([]);
   };
 
   // Pain Points management functions
@@ -170,6 +173,21 @@ function App() {
     setEditableOpportunities(updated);
   };
 
+  // Current Experiences management functions
+  const addCurrentExperience = () => {
+    setEditableCurrentExperiences([...editableCurrentExperiences, '']);
+  };
+
+  const removeCurrentExperience = (index) => {
+    setEditableCurrentExperiences(editableCurrentExperiences.filter((_, i) => i !== index));
+  };
+
+  const updateCurrentExperience = (index, value) => {
+    const updated = [...editableCurrentExperiences];
+    updated[index] = value;
+    setEditableCurrentExperiences(updated);
+  };
+
   // Customer Insights management functions
   const addInsight = () => {
     setEditableInsights([...editableInsights, '']);
@@ -189,9 +207,10 @@ function App() {
   const saveEditChanges = () => {
     if (!editPanel.editData) return;
 
-    // Filter out empty pain points, opportunities, and insights
+    // Filter out empty pain points, opportunities, current experiences, and insights
     const filteredPainPoints = editablePainPoints.filter(point => point.trim() !== '');
     const filteredOpportunities = editableOpportunities.filter(opp => opp.trim() !== '');
+    const filteredCurrentExperiences = editableCurrentExperiences.filter(exp => exp.trim() !== '');
     const filteredInsights = editableInsights.filter(insight => insight.trim() !== '');
 
     // Create updated step data
@@ -199,6 +218,7 @@ function App() {
       ...editPanel.editData.step,
       painPoints: filteredPainPoints,
       opportunities: filteredOpportunities,
+      currentExperiences: filteredCurrentExperiences,
       insights: filteredInsights.length > 0 ? filteredInsights.join('\n\n') : ''
     };
 
@@ -708,6 +728,7 @@ function App() {
           editPanel={editPanel}
           editablePainPoints={editablePainPoints}
           editableOpportunities={editableOpportunities}
+          editableCurrentExperiences={editableCurrentExperiences}
           onCloseEditPanel={closeEditPanel}
           onAddPainPoint={addPainPoint}
           onRemovePainPoint={removePainPoint}
@@ -715,6 +736,9 @@ function App() {
           onAddOpportunity={addOpportunity}
           onRemoveOpportunity={removeOpportunity}
           onUpdateOpportunity={updateOpportunity}
+          onAddCurrentExperience={addCurrentExperience}
+          onRemoveCurrentExperience={removeCurrentExperience}
+          onUpdateCurrentExperience={updateCurrentExperience}
           onSaveEditChanges={saveEditChanges}
         />
       </main>
@@ -739,6 +763,7 @@ function App() {
         editPanel={editPanel}
         editablePainPoints={editablePainPoints}
         editableOpportunities={editableOpportunities}
+        editableCurrentExperiences={editableCurrentExperiences}
         editableInsights={editableInsights}
         onCloseEditPanel={closeEditPanel}
         onAddPainPoint={addPainPoint}
@@ -747,6 +772,9 @@ function App() {
         onAddOpportunity={addOpportunity}
         onRemoveOpportunity={removeOpportunity}
         onUpdateOpportunity={updateOpportunity}
+        onAddCurrentExperience={addCurrentExperience}
+        onRemoveCurrentExperience={removeCurrentExperience}
+        onUpdateCurrentExperience={updateCurrentExperience}
         onAddInsight={addInsight}
         onRemoveInsight={removeInsight}
         onUpdateInsight={updateInsight}

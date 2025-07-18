@@ -17,6 +17,7 @@ const AggregatedPainpointView = ({
   editPanel,
   editablePainPoints,
   editableOpportunities,
+  editableCurrentExperiences,
   onCloseEditPanel,
   onAddPainPoint,
   onRemovePainPoint,
@@ -24,12 +25,16 @@ const AggregatedPainpointView = ({
   onAddOpportunity,
   onRemoveOpportunity,
   onUpdateOpportunity,
+  onAddCurrentExperience,
+  onRemoveCurrentExperience,
+  onUpdateCurrentExperience,
   onSaveEditChanges
 }) => {
   const [highlightedItems, setHighlightedItems] = useState({ 
     stepId: null, 
     painPointIndex: null, 
     opportunityIndex: null,
+    currentExperienceIndex: null,
     highlightAllRelated: false  // New flag to highlight all related items when step is clicked
   });
   const [connectorLines, setConnectorLines] = useState([]);
@@ -194,7 +199,7 @@ const AggregatedPainpointView = ({
 
   // Function to clear highlighting
   const clearHighlighting = () => {
-    setHighlightedItems({ stepId: null, painPointIndex: null, opportunityIndex: null, highlightAllRelated: false });
+    setHighlightedItems({ stepId: null, painPointIndex: null, opportunityIndex: null, currentExperienceIndex: null, highlightAllRelated: false });
   };
 
   // Function to open the comprehensive edit panel
@@ -437,6 +442,76 @@ const AggregatedPainpointView = ({
                 </td>
               );
             })}
+          </tr>
+
+          {/* Current Experience Row */}
+          <tr>
+            <td className="w-32 bg-orange-50 py-4 px-4 rounded-lg">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="font-semibold text-orange-800">Current Experience</span>
+              </div>
+            </td>
+            {allSteps.map((step, index) => (
+              <td 
+                key={`current-${step.stepId || step.id}`} 
+                className="w-64 align-top"
+              >
+                <div className="space-y-2">
+                  {step.isEmpty ? (
+                    <div className="text-orange-400 text-sm italic py-4 text-center">No current experience</div>
+                  ) : (
+                    step.currentExperiences && step.currentExperiences.length > 0 ? (
+                      step.currentExperiences.map((experience, experienceIndex) => {
+                        const isHighlighted = highlightedItems.stepId === step.stepId && 
+                                             (highlightedItems.currentExperienceIndex === experienceIndex || highlightedItems.highlightAllRelated);
+                        const experienceRefKey = `currentexperience-${step.taskId}-${step.stepId}-${experienceIndex}`;
+                        
+                        return (
+                          <div 
+                            key={`${step.stepId}-${experienceIndex}`}
+                            ref={el => cardRefs.current[experienceRefKey] = el}
+                          >
+                            <CardWithEdit
+                              className="bg-orange-100 rounded-lg p-2 hover:bg-orange-200"
+                              onEdit={() => {
+                                // Find stage and task for this current experience
+                                const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
+                                const taskData = stageData?.tasks.find(t => t.id === step.taskId);
+                                if (stageData && taskData) {
+                                  const stageName = typeof stageData.name === 'string' ? stageData.name : stageData.name?.name || 'Unnamed Stage';
+                                  const taskName = typeof taskData.name === 'string' ? taskData.name : taskData.name?.name || 'Unnamed Task';
+                                  const experienceItem = {
+                                    text: experience,
+                                    stepDescription: step.description,
+                                    persona: step.persona,
+                                    stepId: step.stepId,
+                                    taskId: step.taskId,
+                                    stageName,
+                                    taskName
+                                  };
+                                  openEditPanel(experienceItem, 'currentexperience', stageData.id, stageName, taskData.id, taskName);
+                                }
+                              }}
+                              isHighlighted={isHighlighted}
+                              highlightColor="orange"
+                              title="Click to edit current experience details"
+                              type="current experience"
+                            >
+                              <p className="text-orange-800 font-medium text-sm">{experience}</p>
+                            </CardWithEdit>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="text-orange-400 text-sm italic py-4 text-center">No current experience</div>
+                    )
+                  )}
+                </div>
+              </td>
+            ))}
           </tr>
 
           {/* Pain Points Row */}

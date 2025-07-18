@@ -55,8 +55,8 @@ const AggregatedPainpointView = ({
             persona: getPersonaById(step.personaId),
             stepId: step.id,
             taskId: task.id,
-            stageName: stage.name,
-            taskName: task.name
+            stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
+            taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'
           });
 
           // Collect pain points for this task
@@ -68,8 +68,8 @@ const AggregatedPainpointView = ({
                 persona: getPersonaById(step.personaId),
                 stepId: step.id,
                 taskId: task.id,
-                stageName: stage.name,
-                taskName: task.name
+                stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
+                taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'
               });
             });
           }
@@ -83,16 +83,16 @@ const AggregatedPainpointView = ({
                 persona: getPersonaById(step.personaId),
                 stepId: step.id,
                 taskId: task.id,
-                stageName: stage.name,
-                taskName: task.name
+                stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
+                taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'
               });
             });
           }
         });
 
         allTasks.push({
-          stageName: stage.name,
-          taskName: task.name,
+          stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
+          taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task',
           taskId: task.id,
           steps: taskSteps,
           painPoints: taskPainPoints,
@@ -106,7 +106,7 @@ const AggregatedPainpointView = ({
 
       // Record the span for this stage
       stageSpans.push({
-        stageName: stage.name,
+        stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
         startIndex: stageStartIndex,
         span: stage.tasks.length
       });
@@ -427,17 +427,17 @@ const AggregatedPainpointView = ({
                           title="Click to edit step details"
                           type="step"
                         >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
-                              {step.persona && (
-                                <div className="flex items-center gap-1 mt-1">
-                                  <div className={`${step.persona.color} w-2 h-2 rounded-full`}></div>
-                                  <span className="text-xs text-indigo-600">{step.persona.name}</span>
-                                </div>
-                              )}
+                                                      <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
+                                {step.persona && (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <div className={`${step.persona.color} w-2 h-2 rounded-full`}></div>
+                                    <span className="text-xs text-indigo-600">{step.persona.name || 'Unknown Persona'}</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
                         </CardWithEdit>
                       </div>
                     );

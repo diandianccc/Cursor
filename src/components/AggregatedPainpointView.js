@@ -408,7 +408,11 @@ const AggregatedPainpointView = ({
             </td>
             {allTasks.map((task) => {
               const stageData = stages.find(s => s.tasks.some(t => t.id === task.taskId));
-              const droppableId = `task-${stageData?.id || 'unknown'}-${task.taskId}`;
+              if (!stageData) {
+                console.error('Could not find stage for task:', task.taskId);
+                return null;
+              }
+              const droppableId = `task-${stageData.id}-${task.taskId}`;
               
               return (
                 <td 
@@ -429,7 +433,7 @@ const AggregatedPainpointView = ({
                         const stepRefKey = `step-${step.taskId}-${step.stepId}`;
                         
                         return (
-                          <Draggable key={step.id} draggableId={step.id} index={index}>
+                          <Draggable key={`${task.taskId}-${step.id}`} draggableId={step.id} index={index}>
                             {(dragProvided, dragSnapshot) => (
                               <div
                                 ref={dragProvided.innerRef}

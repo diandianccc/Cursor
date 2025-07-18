@@ -242,7 +242,8 @@ const AggregatedPainpointView = ({
     isHighlighted, 
     highlightColor = 'blue',
     title,
-    type = 'step'
+    type = 'step',
+    dragHandleProps
   }) => {
     const highlightClasses = {
       blue: 'ring-4 ring-blue-400 ring-opacity-50 scale-105 shadow-lg bg-blue-200',
@@ -257,6 +258,10 @@ const AggregatedPainpointView = ({
           isHighlighted ? highlightClasses[highlightColor] : ''
         }`}
         onClick={(e) => {
+          // Don't interfere with drag events
+          if (e.target.closest('[data-is-drag-handle="true"]')) {
+            return;
+          }
           e.stopPropagation();
           onEdit();
         }}
@@ -401,13 +406,18 @@ const AggregatedPainpointView = ({
                 <span className="font-semibold text-indigo-800">Steps</span>
               </div>
             </td>
-            {allTasks.map((task) => (
-              <td 
-                key={`steps-${task.taskId}`} 
-                className="w-64 align-top"
-              >
-                <Droppable droppableId={`task-${stages.find(s => s.tasks.some(t => t.id === task.taskId))?.id || task.stageIndex}-${task.taskId}`}>
-                  {(provided, snapshot) => (
+            {allTasks.map((task) => {
+              const stageData = stages.find(s => s.tasks.some(t => t.id === task.taskId));
+              const droppableId = `task-${stageData?.id || 'unknown'}-${task.taskId}`;
+              console.log('🎯 Creating droppable with ID:', droppableId, 'for task:', task.taskName);
+              
+              return (
+                <td 
+                  key={`steps-${task.taskId}`} 
+                  className="w-64 align-top"
+                >
+                  <Droppable droppableId={droppableId}>
+                    {(provided, snapshot) => (
                     <div 
                       ref={provided.innerRef}
                       {...provided.droppableProps}
@@ -418,6 +428,8 @@ const AggregatedPainpointView = ({
                       {task.steps.map((step, index) => {
                         const isHighlighted = highlightedItems.stepId === step.stepId;
                         const stepRefKey = `step-${step.taskId}-${step.stepId}`;
+                        
+                        console.log('🎯 Creating draggable for step:', step.id, 'in task:', task.taskName, 'index:', index);
                         
                         return (
                           <Draggable key={step.id} draggableId={step.id} index={index}>
@@ -482,7 +494,8 @@ const AggregatedPainpointView = ({
                   )}
                 </Droppable>
               </td>
-            ))}
+              );
+            })}
           </tr>
 
           {/* Pain Points Row */}

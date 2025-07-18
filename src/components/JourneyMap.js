@@ -66,10 +66,12 @@ const JourneyMap = ({
 
   // Handle drag end for step reordering
   const handleDragEnd = (result) => {
+    console.log('🎯 handleDragEnd called with:', result);
     const { destination, source, draggableId } = result;
 
     // If dropped outside a droppable area
     if (!destination) {
+      console.log('🎯 No destination, drag cancelled');
       return;
     }
 
@@ -78,6 +80,7 @@ const JourneyMap = ({
       destination.droppableId === source.droppableId &&
       destination.index === source.index
     ) {
+      console.log('🎯 Dropped in same position, no action needed');
       return;
     }
 
@@ -85,10 +88,22 @@ const JourneyMap = ({
     const sourceIds = source.droppableId.split('-');
     const destIds = destination.droppableId.split('-');
     
+    console.log('🎯 Source IDs:', sourceIds, 'Dest IDs:', destIds);
+    
     const sourceStageId = sourceIds[1];
     const sourceTaskId = sourceIds[2];
     const destStageId = destIds[1];
     const destTaskId = destIds[2];
+
+    console.log('🎯 Move step:', {
+      stepId: draggableId,
+      sourceStageId,
+      sourceTaskId,
+      sourceIndex: source.index,
+      destStageId,
+      destTaskId,
+      destIndex: destination.index
+    });
 
     if (onMoveStep) {
       onMoveStep({

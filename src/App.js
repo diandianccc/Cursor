@@ -204,8 +204,10 @@ function App() {
   };
 
   // Save function for edit panel
-  const saveEditChanges = () => {
+  const saveEditChanges = (stepDescription = '', stepPersonaId = '') => {
     if (!editPanel.editData) return;
+
+
 
     // Filter out empty pain points, opportunities, current experiences, and insights
     const filteredPainPoints = editablePainPoints.filter(point => point.trim() !== '');
@@ -216,6 +218,8 @@ function App() {
     // Create updated step data
     const stepData = {
       ...editPanel.editData.step,
+      description: stepDescription,
+      personaId: stepPersonaId,
       painPoints: filteredPainPoints,
       opportunities: filteredOpportunities,
       currentExperiences: filteredCurrentExperiences,

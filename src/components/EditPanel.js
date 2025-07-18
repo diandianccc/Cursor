@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { PERSONAS, getPersonaById } from '../constants/personas';
 
 const EditPanel = ({
   editPanel,
@@ -24,6 +25,19 @@ const EditPanel = ({
   onDeleteStep
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [stepDescription, setStepDescription] = useState('');
+  const [stepPersonaId, setStepPersonaId] = useState(PERSONAS[0].id);
+
+  // Initialize step description and persona when panel opens or changes
+  React.useEffect(() => {
+    if (editPanel.isOpen && editPanel.editData?.step) {
+      setStepDescription(editPanel.editData.step.description || '');
+      setStepPersonaId(editPanel.editData.step.personaId || PERSONAS[0].id);
+    } else if (editPanel.isOpen) {
+      setStepDescription('');
+      setStepPersonaId(PERSONAS[0].id);
+    }
+  }, [editPanel.isOpen, editPanel.editData?.step]);
 
   if (!editPanel.isOpen) return null;
 
@@ -165,12 +179,43 @@ const EditPanel = ({
                   </svg>
                   Step Details
                 </h3>
-                <textarea
-                  defaultValue={editPanel.editData.step.description || ''}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Step description"
-                  rows="3"
-                />
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      value={stepDescription}
+                      onChange={(e) => setStepDescription(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Step description"
+                      rows="3"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Persona
+                    </label>
+                    <select
+                      value={stepPersonaId}
+                      onChange={(e) => setStepPersonaId(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      {PERSONAS.map((persona) => (
+                        <option key={persona.id} value={persona.id}>
+                          {persona.name}
+                        </option>
+                      ))}
+                    </select>
+                    {stepPersonaId && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className={`${getPersonaById(stepPersonaId)?.color} w-3 h-3 rounded-full`}></div>
+                        <span className="text-sm text-gray-600">{getPersonaById(stepPersonaId)?.name}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Current Experience Section */}
@@ -455,7 +500,7 @@ const EditPanel = ({
               Cancel
             </button>
             <button 
-              onClick={onSaveEditChanges}
+              onClick={() => onSaveEditChanges(stepDescription, stepPersonaId)}
               className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
               Save Changes

@@ -402,11 +402,7 @@ const AggregatedPainpointView = ({
                   key={`step-${step.stepId || step.id}`} 
                   className="w-64 align-top"
                 >
-                  {step.isEmpty ? (
-                    <div className="text-indigo-400 text-sm italic py-4 text-center min-h-24 flex items-center justify-center">
-                      No steps
-                    </div>
-                  ) : (
+                  {!step.isEmpty && (
                     <div ref={el => cardRefs.current[stepRefKey] = el}>
                       <CardWithEdit
                         className="bg-indigo-100 rounded-lg p-2 hover:bg-indigo-200"
@@ -460,9 +456,7 @@ const AggregatedPainpointView = ({
                 className="w-64 align-top"
               >
                 <div className="space-y-2">
-                  {step.isEmpty ? (
-                    <div className="text-orange-400 text-sm italic py-4 text-center">No current experience</div>
-                  ) : (
+                  {!step.isEmpty && (
                     step.currentExperiences && step.currentExperiences.length > 0 ? (
                       step.currentExperiences.map((experience, experienceIndex) => {
                         const isHighlighted = highlightedItems.stepId === step.stepId && 
@@ -505,9 +499,7 @@ const AggregatedPainpointView = ({
                           </div>
                         );
                       })
-                    ) : (
-                      <div className="text-orange-400 text-sm italic py-4 text-center">No current experience</div>
-                    )
+                    ) : null
                   )}
                 </div>
               </td>
@@ -530,9 +522,7 @@ const AggregatedPainpointView = ({
                 className="w-64 align-top"
               >
                 <div className="space-y-2">
-                  {step.isEmpty ? (
-                    <div className="text-red-400 text-sm italic py-4 text-center">No pain points</div>
-                  ) : (
+                  {!step.isEmpty && (
                     step.painPoints && step.painPoints.length > 0 ? (
                       step.painPoints.map((painPoint, painPointIndex) => {
                         const isHighlighted = highlightedItems.stepId === step.stepId && 
@@ -575,9 +565,7 @@ const AggregatedPainpointView = ({
                           </div>
                         );
                       })
-                    ) : (
-                      <div className="text-red-400 text-sm italic py-4 text-center">No pain points</div>
-                    )
+                    ) : null
                   )}
                 </div>
               </td>
@@ -600,9 +588,7 @@ const AggregatedPainpointView = ({
                 className="w-64 align-top"
               >
                 <div className="space-y-2">
-                  {step.isEmpty ? (
-                    <div className="text-green-400 text-sm italic py-4 text-center">No opportunities</div>
-                  ) : (
+                  {!step.isEmpty && (
                     step.opportunities && step.opportunities.length > 0 ? (
                       step.opportunities.map((opportunity, opportunityIndex) => {
                         const isHighlighted = highlightedItems.stepId === step.stepId && 
@@ -645,9 +631,62 @@ const AggregatedPainpointView = ({
                           </div>
                         );
                       })
-                    ) : (
-                      <div className="text-green-400 text-sm italic py-4 text-center">No opportunities</div>
-                    )
+                    ) : null
+                  )}
+                </div>
+              </td>
+            ))}
+          </tr>
+
+          {/* Customer Insights Row */}
+          <tr>
+            <td className="w-32 bg-purple-50 py-4 px-4 rounded-lg">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                <span className="font-semibold text-purple-800">Customer Insights</span>
+              </div>
+            </td>
+            {allSteps.map((step, index) => (
+              <td 
+                key={`insights-${step.stepId || step.id}`} 
+                className="w-64 align-top"
+              >
+                <div className="space-y-2">
+                  {!step.isEmpty && (
+                    step.insights && step.insights.trim() ? (
+                      <div>
+                        <CardWithEdit
+                          className="bg-purple-100 rounded-lg p-2 hover:bg-purple-200"
+                          onEdit={() => {
+                            // Find stage and task for this insight
+                            const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
+                            const taskData = stageData?.tasks.find(t => t.id === step.taskId);
+                            if (stageData && taskData) {
+                              const stageName = typeof stageData.name === 'string' ? stageData.name : stageData.name?.name || 'Unnamed Stage';
+                              const taskName = typeof taskData.name === 'string' ? taskData.name : taskData.name?.name || 'Unnamed Task';
+                              const insightItem = {
+                                text: step.insights,
+                                stepDescription: step.description,
+                                persona: step.persona,
+                                stepId: step.stepId,
+                                taskId: step.taskId,
+                                stageName,
+                                taskName
+                              };
+                              openEditPanel(insightItem, 'insight', stageData.id, stageName, taskData.id, taskName);
+                            }
+                          }}
+                          isHighlighted={false}
+                          highlightColor="purple"
+                          title="Click to edit customer insights details"
+                          type="customer insight"
+                        >
+                          <p className="text-purple-800 font-medium text-sm">{step.insights}</p>
+                        </CardWithEdit>
+                      </div>
+                    ) : null
                   )}
                 </div>
               </td>

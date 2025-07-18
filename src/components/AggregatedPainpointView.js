@@ -410,7 +410,6 @@ const AggregatedPainpointView = ({
             {allTasks.map((task) => {
               const stageData = stages.find(s => s.tasks.some(t => t.id === task.taskId));
               const droppableId = `task-${stageData?.id || 'unknown'}-${task.taskId}`;
-              console.log('🎯 Creating droppable with ID:', droppableId, 'for task:', task.taskName);
               
               return (
                 <td 
@@ -429,8 +428,6 @@ const AggregatedPainpointView = ({
                       {task.steps.map((step, index) => {
                         const isHighlighted = highlightedItems.stepId === step.stepId;
                         const stepRefKey = `step-${step.taskId}-${step.stepId}`;
-                        
-                        console.log('🎯 Creating draggable for step:', step.id, 'in task:', task.taskName, 'index:', index);
                         
                         return (
                           <Draggable key={step.id} draggableId={step.id} index={index}>

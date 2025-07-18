@@ -243,7 +243,8 @@ const AggregatedPainpointView = ({
     highlightColor = 'blue',
     title,
     type = 'step',
-    dragHandleProps
+    dragHandleProps,
+    isDraggable = false
   }) => {
     const highlightClasses = {
       blue: 'ring-4 ring-blue-400 ring-opacity-50 scale-105 shadow-lg bg-blue-200',
@@ -254,7 +255,7 @@ const AggregatedPainpointView = ({
 
     return (
       <div 
-        className={`${className} cursor-pointer relative transition-all duration-200 ${
+        className={`${className} ${isDraggable ? '' : 'cursor-pointer'} relative transition-all duration-200 ${
           isHighlighted ? highlightClasses[highlightColor] : ''
         }`}
         onClick={(e) => {
@@ -455,6 +456,7 @@ const AggregatedPainpointView = ({
                                     title="Click to edit step details"
                                     type="step"
                                     dragHandleProps={dragProvided.dragHandleProps}
+                                    isDraggable={true}
                                   >
                                     <div className="flex items-start justify-between">
                                       <div className="flex-1">

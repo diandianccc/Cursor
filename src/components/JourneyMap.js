@@ -178,6 +178,7 @@ const JourneyMap = ({
                   onOpenStepDetail={onOpenStepDetail}
                   onUpdateStep={onUpdateStep}
                   onDeleteStep={onDeleteStep}
+                  onMoveStep={onMoveStep}
                   onUpdateStage={onUpdateStage}
                   onUpdateTask={onUpdateTask}
                   onDeleteTask={onDeleteTask}

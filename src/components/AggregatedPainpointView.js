@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Droppable, Draggable } from 'react-beautiful-dnd';
 import { getPersonaById } from '../constants/personas';
 import EditableTitle from './EditableTitle';
 
@@ -12,6 +13,7 @@ const AggregatedPainpointView = ({
   onDeleteStage,
   onUpdateStage,
   onUpdateTask,
+  onMoveStep,
   onOpenEditPanel,
   editPanel,
   editablePainPoints,
@@ -404,43 +406,81 @@ const AggregatedPainpointView = ({
                 key={`steps-${task.taskId}`} 
                 className="w-64 align-top"
               >
-                <div className="space-y-2">
-                  {task.steps.map((step) => {
-                    const isHighlighted = highlightedItems.stepId === step.stepId;
-                    const stepRefKey = `step-${step.taskId}-${step.stepId}`;
-                    
-                    return (
-                      <div key={step.id} ref={el => cardRefs.current[stepRefKey] = el}>
-                        <CardWithEdit
-                          className="bg-indigo-100 rounded-lg p-2 hover:bg-indigo-200"
-                          onEdit={() => {
-                            // Find stage and task for this step
-                            const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
-                            const taskData = stageData?.tasks.find(t => t.id === step.taskId);
-                            if (stageData && taskData) {
-                              openEditPanel(step, 'step', stageData.id, stageData.name, taskData.id, taskData.name);
-                            }
-                          }}
-                          isHighlighted={isHighlighted}
-                          highlightColor="indigo"
-                          title="Click to edit step details"
-                          type="step"
-                        >
-                          <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
-                          {step.persona && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <div className={`${step.persona.color} w-2 h-2 rounded-full`}></div>
-                              <span className="text-xs text-indigo-600">{step.persona.name}</span>
-                            </div>
-                          )}
-                        </CardWithEdit>
-                      </div>
-                    );
-                  })}
-                  {task.steps.length === 0 && (
-                    <div className="text-indigo-400 text-sm italic py-4 text-center">No steps</div>
+                <Droppable droppableId={`task-${stages.find(s => s.tasks.some(t => t.id === task.taskId))?.id || task.stageIndex}-${task.taskId}`}>
+                  {(provided, snapshot) => (
+                    <div 
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={`space-y-2 min-h-24 transition-colors ${
+                        snapshot.isDraggingOver ? 'bg-blue-50 border-blue-200 border-2 border-dashed rounded-lg p-2' : ''
+                      }`}
+                    >
+                      {task.steps.map((step, index) => {
+                        const isHighlighted = highlightedItems.stepId === step.stepId;
+                        const stepRefKey = `step-${step.taskId}-${step.stepId}`;
+                        
+                        return (
+                          <Draggable key={step.id} draggableId={step.id} index={index}>
+                            {(dragProvided, dragSnapshot) => (
+                              <div
+                                ref={dragProvided.innerRef}
+                                {...dragProvided.draggableProps}
+                                className={dragSnapshot.isDragging ? 'shadow-2xl rotate-2 scale-105' : ''}
+                              >
+                                <div key={step.id} ref={el => cardRefs.current[stepRefKey] = el}>
+                                  <CardWithEdit
+                                    className="bg-indigo-100 rounded-lg p-2 hover:bg-indigo-200"
+                                    onEdit={() => {
+                                      // Find stage and task for this step
+                                      const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
+                                      const taskData = stageData?.tasks.find(t => t.id === step.taskId);
+                                      if (stageData && taskData) {
+                                        openEditPanel(step, 'step', stageData.id, stageData.name, taskData.id, taskData.name);
+                                      }
+                                    }}
+                                    isHighlighted={isHighlighted}
+                                    highlightColor="indigo"
+                                    title="Click to edit step details"
+                                    type="step"
+                                    dragHandleProps={dragProvided.dragHandleProps}
+                                  >
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex-1">
+                                        <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
+                                        {step.persona && (
+                                          <div className="flex items-center gap-1 mt-1">
+                                            <div className={`${step.persona.color} w-2 h-2 rounded-full`}></div>
+                                            <span className="text-xs text-indigo-600">{step.persona.name}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      {/* Drag handle */}
+                                      <div
+                                        {...dragProvided.dragHandleProps}
+                                        data-is-drag-handle="true"
+                                        className="text-indigo-400 hover:text-indigo-600 cursor-grab active:cursor-grabbing p-1 ml-2"
+                                        title="Drag to move step"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  </CardWithEdit>
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                      {provided.placeholder}
+                      {task.steps.length === 0 && !snapshot.isDraggingOver && (
+                        <div className="text-indigo-400 text-sm italic py-4 text-center">No steps</div>
+                      )}
+                    </div>
                   )}
-                </div>
+                </Droppable>
               </td>
             ))}
           </tr>

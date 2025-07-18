@@ -5,7 +5,7 @@ import EditStepModal from './EditStepModal';
 
 const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentView, onUpdateStep, onDeleteStep, onOpenStepDetail, isHighlighted }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const persona = getPersonaById(step.personaId);
+  const persona = getPersonaById(step?.personaId) || getPersonaById('developer');
 
   const handleDeleteStep = () => {
     if (window.confirm('Are you sure you want to delete this step?')) {

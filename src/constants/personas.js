@@ -23,5 +23,14 @@ export const PERSONAS = [
 ];
 
 export const getPersonaById = (id) => {
+  if (!PERSONAS || PERSONAS.length === 0) {
+    return {
+      id: 'developer',
+      name: 'Developer',
+      color: 'bg-blue-500',
+      textColor: 'text-white',
+      borderColor: 'border-blue-500'
+    };
+  }
   return PERSONAS.find(persona => persona.id === id) || PERSONAS[0];
 }; 

@@ -26,16 +26,16 @@ const EditPanel = ({
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [stepDescription, setStepDescription] = useState('');
-  const [stepPersonaId, setStepPersonaId] = useState(PERSONAS[0].id);
+  const [stepPersonaId, setStepPersonaId] = useState(PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer');
 
   // Initialize step description and persona when panel opens or changes
   React.useEffect(() => {
     if (editPanel.isOpen && editPanel.editData?.step) {
       setStepDescription(editPanel.editData.step.description || '');
-      setStepPersonaId(editPanel.editData.step.personaId || PERSONAS[0].id);
+      setStepPersonaId(editPanel.editData.step.personaId || (PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer'));
     } else if (editPanel.isOpen) {
       setStepDescription('');
-      setStepPersonaId(PERSONAS[0].id);
+      setStepPersonaId(PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer');
     }
   }, [editPanel.isOpen, editPanel.editData?.step]);
 
@@ -202,16 +202,16 @@ const EditPanel = ({
                       onChange={(e) => setStepPersonaId(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
-                      {PERSONAS.map((persona) => (
+                      {PERSONAS && PERSONAS.map((persona) => (
                         <option key={persona.id} value={persona.id}>
                           {persona.name}
                         </option>
                       ))}
                     </select>
-                    {stepPersonaId && (
+                    {stepPersonaId && getPersonaById(stepPersonaId) && (
                       <div className="flex items-center gap-2 mt-2">
-                        <div className={`${getPersonaById(stepPersonaId)?.color} w-3 h-3 rounded-full`}></div>
-                        <span className="text-sm text-gray-600">{getPersonaById(stepPersonaId)?.name}</span>
+                        <div className={`${getPersonaById(stepPersonaId).color} w-3 h-3 rounded-full`}></div>
+                        <span className="text-sm text-gray-600">{getPersonaById(stepPersonaId).name}</span>
                       </div>
                     )}
                   </div>

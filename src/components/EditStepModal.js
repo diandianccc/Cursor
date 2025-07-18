@@ -4,7 +4,7 @@ import { PERSONAS } from '../constants/personas';
 
 const EditStepModal = ({ isOpen, onClose, step, onUpdate }) => {
   const [description, setDescription] = useState('');
-  const [personaId, setPersonaId] = useState(PERSONAS[0].id);
+  const [personaId, setPersonaId] = useState(PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer');
   const [painPoints, setPainPoints] = useState('');
   const [opportunities, setOpportunities] = useState('');
   const [insights, setInsights] = useState('');
@@ -12,7 +12,7 @@ const EditStepModal = ({ isOpen, onClose, step, onUpdate }) => {
   useEffect(() => {
     if (step && isOpen) {
       setDescription(step.description || '');
-      setPersonaId(step.personaId || PERSONAS[0].id);
+      setPersonaId(step.personaId || (PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer'));
       setPainPoints(step.painPoints ? step.painPoints.join('. ') : '');
       setOpportunities(step.opportunities ? step.opportunities.join('. ') : '');
       setInsights(step.insights || '');

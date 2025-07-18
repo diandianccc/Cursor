@@ -15,7 +15,7 @@ const StepDetailPanel = ({
   onDeleteStage 
 }) => {
   const [description, setDescription] = useState('');
-  const [personaId, setPersonaId] = useState(PERSONAS[0].id);
+  const [personaId, setPersonaId] = useState(PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer');
   const [painPoints, setPainPoints] = useState('');
   const [opportunities, setOpportunities] = useState('');
   const [insights, setInsights] = useState('');
@@ -25,7 +25,7 @@ const StepDetailPanel = ({
   useEffect(() => {
     if (step && isOpen) {
       setDescription(step.description || '');
-      setPersonaId(step.personaId || PERSONAS[0].id);
+      setPersonaId(step.personaId || (PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer'));
       setPainPoints(step.painPoints ? step.painPoints.join('. ') : '');
       setOpportunities(step.opportunities ? step.opportunities.join('. ') : '');
       setInsights(step.insights || '');
@@ -41,7 +41,7 @@ const StepDetailPanel = ({
       
       const hasChanged = 
         description !== (step.description || '') ||
-        personaId !== (step.personaId || PERSONAS[0].id) ||
+        personaId !== (step.personaId || (PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer')) ||
         painPoints !== originalPainPoints ||
         opportunities !== originalOpportunities ||
         insights !== (step.insights || '');
@@ -94,7 +94,7 @@ const StepDetailPanel = ({
     }
   };
 
-  const persona = getPersonaById(personaId);
+  const persona = getPersonaById(personaId) || getPersonaById('developer');
 
   if (!isOpen || !step) return null;
 

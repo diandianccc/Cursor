@@ -23,7 +23,8 @@ const Task = ({
   const [highlightedStepId, setHighlightedStepId] = useState(null);
 
   const handleDeleteTask = () => {
-    if (window.confirm(`Are you sure you want to delete the "${task.name}" task? This will also delete all associated steps.`)) {
+    const taskName = typeof task.name === 'string' ? task.name : task.name?.name || 'this task';
+    if (window.confirm(`Are you sure you want to delete the "${taskName}" task? This will also delete all associated steps.`)) {
       onDeleteTask(stageId, task.id);
     }
   };
@@ -39,8 +40,8 @@ const Task = ({
               index={index}
               stageId={stageId}
               taskId={task.id}
-              stageName={stageName}
-              taskName={task.name}
+              stageName={typeof stageName === 'string' ? stageName : stageName?.name || 'Unnamed Stage'}
+              taskName={typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'}
               currentView={currentView}
               onUpdateStep={onUpdateStep}
               onDeleteStep={onDeleteStep}
@@ -66,7 +67,7 @@ const Task = ({
     <div className="bg-white rounded-lg p-4 border-2 border-gray-100 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <EditableTitle
-          title={task.name}
+          title={typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'}
           onSave={(newName) => onUpdateTask(stageId, task.id, { name: newName })}
           className="text-md font-semibold text-gray-700"
         />

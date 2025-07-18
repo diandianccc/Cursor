@@ -106,7 +106,7 @@ const EditPanel = ({
             <div>
               <h2 className="text-2xl font-bold">Edit Journey Details</h2>
               <p className="text-blue-100 mt-1">
-                {editPanel.editData?.stage?.name} → {editPanel.editData?.task?.name}
+                {typeof editPanel.editData?.stage?.name === 'string' ? editPanel.editData.stage.name : editPanel.editData?.stage?.name?.name || 'Unnamed Stage'} → {typeof editPanel.editData?.task?.name === 'string' ? editPanel.editData.task.name : editPanel.editData?.task?.name?.name || 'Unnamed Task'}
               </p>
             </div>
             <div className="flex items-center gap-2">

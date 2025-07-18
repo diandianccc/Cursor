@@ -22,7 +22,8 @@ const Stage = ({
   const [isEditStageModalOpen, setIsEditStageModalOpen] = useState(false);
 
   const handleDeleteStage = () => {
-    if (window.confirm(`Are you sure you want to delete the "${stage.name}" stage? This will also delete all associated tasks and steps.`)) {
+    const stageName = typeof stage.name === 'string' ? stage.name : stage.name?.name || 'this stage';
+    if (window.confirm(`Are you sure you want to delete the "${stageName}" stage? This will also delete all associated tasks and steps.`)) {
       onDeleteStage(stage.id);
     }
   };
@@ -31,7 +32,7 @@ const Stage = ({
     <div className="bg-gray-50 rounded-lg p-6 border-2 border-gray-200">
       <div className="flex items-center justify-between mb-6">
         <EditableTitle
-          title={stage.name}
+          title={typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage'}
           onSave={(newName) => onUpdateStage(stage.id, { name: newName })}
           className="text-lg font-semibold text-gray-800"
         />

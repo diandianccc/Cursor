@@ -116,7 +116,7 @@ const StepDetailPanel = ({
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Step Details</h2>
             <p className="text-sm text-gray-600 mt-1">
-              {stageName} → {taskName}
+              {typeof stageName === 'string' ? stageName : stageName?.name || 'Unnamed Stage'} → {typeof taskName === 'string' ? taskName : taskName?.name || 'Unnamed Task'}
             </p>
           </div>
           <button

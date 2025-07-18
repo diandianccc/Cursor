@@ -111,7 +111,7 @@ const JourneyMap = ({
     <div className="bg-white rounded-lg p-2 relative">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
-          <h2 className="text-lg font-medium text-gray-800">{terminology.stages} <span className="text-xs text-green-600">🎯 DnD</span></h2>
+          <h2 className="text-lg font-medium text-gray-800">{terminology.stages}</h2>
           <PersonaLegend personas={PERSONAS} />
         </div>
         <div className="flex items-center gap-2">

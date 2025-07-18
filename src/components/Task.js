@@ -30,25 +30,24 @@ const Task = ({
   };
 
   const renderTaskContent = () => {
-    // Temporarily disable drag and drop to debug Step View issues
+    // Use CSS Grid to ensure all step cards have equal height
     return (
-      <div className="space-y-3 min-h-24">
+      <div className={`grid gap-3 h-full ${task.steps.length > 0 ? 'grid-rows-[repeat(auto-fit,1fr)]' : ''}`} style={{ gridTemplateRows: task.steps.length > 0 ? `repeat(${task.steps.length}, 1fr)` : 'auto' }}>
         {task.steps.map((step, index) => (
-          <div key={step.id}>
-            <StepCard
-              step={step}
-              index={index}
-              stageId={stageId}
-              taskId={task.id}
-              stageName={typeof stageName === 'string' ? stageName : stageName?.name || 'Unnamed Stage'}
-              taskName={typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'}
-              currentView={currentView}
-              onUpdateStep={onUpdateStep}
-              onDeleteStep={onDeleteStep}
-              onOpenStepDetail={onOpenStepDetail}
-              isHighlighted={highlightedStepId === step.id}
-            />
-          </div>
+          <StepCard
+            key={step.id}
+            step={step}
+            index={index}
+            stageId={stageId}
+            taskId={task.id}
+            stageName={typeof stageName === 'string' ? stageName : stageName?.name || 'Unnamed Stage'}
+            taskName={typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'}
+            currentView={currentView}
+            onUpdateStep={onUpdateStep}
+            onDeleteStep={onDeleteStep}
+            onOpenStepDetail={onOpenStepDetail}
+            isHighlighted={highlightedStepId === step.id}
+          />
         ))}
         
         {task.steps.length === 0 && (
@@ -64,7 +63,7 @@ const Task = ({
   };
 
   return (
-    <div className="bg-white rounded-lg p-4 border-2 border-gray-100 shadow-sm">
+    <div className="bg-white rounded-lg p-4 border-2 border-gray-100 shadow-sm h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <EditableTitle
           title={typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'}
@@ -95,7 +94,9 @@ const Task = ({
         </div>
       </div>
 
-      {renderTaskContent()}
+      <div className="flex-1">
+        {renderTaskContent()}
+      </div>
 
       <AddStepModal
         isOpen={isAddStepModalOpen}

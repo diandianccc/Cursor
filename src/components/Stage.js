@@ -59,7 +59,7 @@ const Stage = ({
       </div>
 
       <div 
-        className="flex gap-4 overflow-x-auto pb-4"
+        className="grid grid-flow-col auto-cols-fr gap-4 overflow-x-auto pb-4"
       >
         {stage.tasks.map((task) => (
           <Task

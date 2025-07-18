@@ -20,7 +20,7 @@ const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentVi
   // Conditionally render draggable only in step view
   const stepContent = (
     <div
-      className={`${persona.color} ${persona.borderColor} border-l-4 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${highlightClasses}`}
+      className={`${persona.color} ${persona.borderColor} border-l-4 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer h-full flex flex-col ${highlightClasses}`}
       onClick={() => {
         if (onOpenStepDetail) {
           onOpenStepDetail(step, stageId, taskId, stageName, taskName);
@@ -29,8 +29,8 @@ const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentVi
         }
       }}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
+      <div className="flex items-start justify-between h-full">
+        <div className="flex-1 flex flex-col">
           {currentView === 'step' && (
             <div className="flex items-center gap-2 mb-2">
               <span className={`${persona.color} ${persona.textColor} text-xs px-2 py-1 rounded-full`}>
@@ -43,31 +43,33 @@ const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentVi
             {step.description || 'No description'}
           </p>
           
-          {step.painPoints && step.painPoints.length > 0 && (
-            <div className="mb-2">
-              <p className="text-xs font-semibold text-red-600 mb-1">Pain Points:</p>
-              <div className="flex flex-wrap gap-1">
-                {step.painPoints.map((point, index) => (
-                  <span key={index} className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                    {point.trim()}
-                  </span>
-                ))}
+          <div className="flex-1 space-y-2">
+            {step.painPoints && step.painPoints.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-red-600 mb-1">Pain Points:</p>
+                <div className="flex flex-wrap gap-1">
+                  {step.painPoints.map((point, index) => (
+                    <span key={index} className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                      {point.trim()}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          
-          {step.opportunities && step.opportunities.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-green-600 mb-1">Opportunities:</p>
-              <div className="flex flex-wrap gap-1">
-                {step.opportunities.map((opportunity, index) => (
-                  <span key={index} className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                    {opportunity.trim()}
-                  </span>
-                ))}
+            )}
+            
+            {step.opportunities && step.opportunities.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-green-600 mb-1">Opportunities:</p>
+                <div className="flex flex-wrap gap-1">
+                  {step.opportunities.map((opportunity, index) => (
+                    <span key={index} className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                      {opportunity.trim()}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         
         <div className="flex items-center gap-1 ml-2">

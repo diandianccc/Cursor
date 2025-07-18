@@ -330,7 +330,7 @@ const AggregatedPainpointView = ({
                 colSpan={stageSpan.span}
                 className="bg-purple-100 text-center rounded-lg"
               >
-                <div className="py-4 px-4">
+                <div className="py-4 px-4 text-center">
                   <EditableTitle
                     title={stageSpan.stageName}
                     onSave={(newName) => {
@@ -339,7 +339,7 @@ const AggregatedPainpointView = ({
                         onUpdateStage(stage.id, { name: newName });
                       }
                     }}
-                    className="font-semibold text-purple-800"
+                    className="font-semibold text-purple-800 text-center"
                   />
                 </div>
               </td>
@@ -362,22 +362,17 @@ const AggregatedPainpointView = ({
                 colSpan={taskSpan.span}
                 className="w-64 text-center"
               >
-                <div className="bg-blue-100 rounded-lg p-3">
-                  <div className="mb-2">
-                    <EditableTitle
-                      title={taskSpan.taskName}
-                      onSave={(newName) => {
-                        const stage = stages.find(s => s.tasks.some(t => t.id === taskSpan.taskId));
-                        if (stage && onUpdateTask) {
-                          onUpdateTask(stage.id, taskSpan.taskId, { name: newName });
-                        }
-                      }}
-                      className="font-semibold text-blue-800 break-words"
-                    />
-                  </div>
-                  <div className="text-xs text-blue-600">
-                    {taskSpan.span} step{taskSpan.span !== 1 ? 's' : ''}
-                  </div>
+                <div className="bg-blue-100 rounded-lg p-3 text-center">
+                  <EditableTitle
+                    title={taskSpan.taskName}
+                    onSave={(newName) => {
+                      const stage = stages.find(s => s.tasks.some(t => t.id === taskSpan.taskId));
+                      if (stage && onUpdateTask) {
+                        onUpdateTask(stage.id, taskSpan.taskId, { name: newName });
+                      }
+                    }}
+                    className="font-semibold text-blue-800 break-words text-center"
+                  />
                 </div>
               </td>
             ))}

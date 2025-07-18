@@ -71,18 +71,6 @@ const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentVi
         </div>
         
         <div className="flex items-center gap-1 ml-2">
-          {/* Show drag handle in both views */}
-          <div
-            data-is-drag-handle="true"
-            className="text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing p-1"
-            title="Drag to move step"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
-            </svg>
-          </div>
-          
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -102,19 +90,10 @@ const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentVi
 
   return (
     <>
-      <Draggable draggableId={step.id} index={index}>
-        {(provided, snapshot) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            className={snapshot.isDragging ? 'shadow-2xl rotate-2 scale-105' : ''}
-          >
-            <div {...provided.dragHandleProps}>
-              {stepContent}
-            </div>
-          </div>
-        )}
-      </Draggable>
+      {/* Temporarily disable drag and drop to debug Step View issues */}
+      <div>
+        {stepContent}
+      </div>
 
       <EditStepModal
         isOpen={isEditModalOpen}

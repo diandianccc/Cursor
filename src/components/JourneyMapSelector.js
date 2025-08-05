@@ -26,7 +26,7 @@ const JourneyMapSelector = ({ onSelectJourneyMap, onBack, user }) => {
       onSelectJourneyMap(newMapId, name, mapType);
     } catch (error) {
       console.error('Failed to create journey map:', error);
-      alert(`Failed to create journey map: ${error.message}`);
+      alert('Failed to create journey map. Please try again.');
     }
   };
 
@@ -133,7 +133,7 @@ const JourneyMapSelector = ({ onSelectJourneyMap, onBack, user }) => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {journeyMaps.map((map) => {
-              const terminology = getTerminology(MAP_TYPES.USER_JOURNEY); // TODO: Use map.map_type when column exists
+              const terminology = getTerminology(map.map_type);
               
               return (
                 <div
@@ -190,7 +190,7 @@ const JourneyMapSelector = ({ onSelectJourneyMap, onBack, user }) => {
                     </div>
 
                     <button
-                      onClick={() => onSelectJourneyMap(map.id, map.name, MAP_TYPES.USER_JOURNEY)} // TODO: Use map.map_type when column exists
+                      onClick={() => onSelectJourneyMap(map.id, map.name, map.map_type)}
                       className="w-full bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors"
                     >
                       Open Map

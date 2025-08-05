@@ -1,21 +1,11 @@
 import React, { useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
-import { getPersonaByIdSync, getJobPerformerStyles } from '../services/jobPerformerService';
+import { getPersonaById } from '../constants/personas';
 import EditStepModal from './EditStepModal';
 
 const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentView, onUpdateStep, onDeleteStep, onOpenStepDetail, isHighlighted }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const persona = getPersonaByIdSync(step?.personaId);
-  const customStyles = getJobPerformerStyles(persona);
-  
-  // Debug logging for color issues
-  console.log('🎨 StepCard Debug:', {
-    stepId: step?.id,
-    personaId: step?.personaId,
-    persona: persona,
-    customStyles: customStyles,
-    hasCustomBg: !!customStyles.backgroundColor
-  });
+  const persona = getPersonaById(step?.personaId) || getPersonaById('developer');
 
   const handleDeleteStep = () => {
     if (window.confirm('Are you sure you want to delete this step?')) {
@@ -30,8 +20,7 @@ const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentVi
   // Conditionally render draggable only in step view
   const stepContent = (
     <div
-      className={`border-l-4 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer h-full flex flex-col ${highlightClasses} ${!customStyles.borderLeftColor ? `${persona.color} ${persona.borderColor}` : ''}`}
-      style={customStyles.borderLeftColor ? { borderLeftColor: customStyles.borderLeftColor } : {}}
+      className={`${persona.color} ${persona.borderColor} border-l-4 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer h-full flex flex-col ${highlightClasses}`}
       onClick={() => {
         if (onOpenStepDetail) {
           onOpenStepDetail(step, stageId, taskId, stageName, taskName);
@@ -44,10 +33,7 @@ const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentVi
         <div className="flex-1 flex flex-col">
           {currentView === 'step' && (
             <div className="flex items-center gap-2 mb-2">
-              <span 
-                className={`text-xs px-2 py-1 rounded-full ${!customStyles.backgroundColor ? `${persona.color} ${persona.textColor}` : ''}`}
-                style={customStyles.backgroundColor ? { backgroundColor: customStyles.backgroundColor, color: customStyles.color } : {}}
-              >
+              <span className={`${persona.color} ${persona.textColor} text-xs px-2 py-1 rounded-full`}>
                 {persona.name}
               </span>
             </div>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { PERSONAS } from '../constants/personas';
-import { getPersonaByIdSync, getJobPerformerStyles } from '../services/jobPerformerService';
+import { PERSONAS, getPersonaById } from '../constants/personas';
 
 const EditPanel = ({
   editPanel,
@@ -9,7 +8,6 @@ const EditPanel = ({
   editableOpportunities,
   editableCurrentExperiences,
   editableInsights,
-  jobPerformers,
   onCloseEditPanel,
   onAddPainPoint,
   onRemovePainPoint,
@@ -28,19 +26,18 @@ const EditPanel = ({
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [stepDescription, setStepDescription] = useState('');
-  const [stepPersonaId, setStepPersonaId] = useState('');
+  const [stepPersonaId, setStepPersonaId] = useState(PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer');
 
   // Initialize step description and persona when panel opens or changes
   React.useEffect(() => {
-    const availableJobPerformers = jobPerformers || PERSONAS || [];
     if (editPanel.isOpen && editPanel.editData?.step) {
       setStepDescription(editPanel.editData.step.description || '');
-      setStepPersonaId(editPanel.editData.step.personaId || (availableJobPerformers.length > 0 ? availableJobPerformers[0].id : 'customer'));
+      setStepPersonaId(editPanel.editData.step.personaId || (PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer'));
     } else if (editPanel.isOpen) {
       setStepDescription('');
-      setStepPersonaId(availableJobPerformers.length > 0 ? availableJobPerformers[0].id : 'customer');
+      setStepPersonaId(PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer');
     }
-  }, [editPanel.isOpen, editPanel.editData?.step, jobPerformers]);
+  }, [editPanel.isOpen, editPanel.editData?.step]);
 
   if (!editPanel.isOpen) return null;
 
@@ -198,26 +195,23 @@ const EditPanel = ({
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Job Performer
+                      Persona
                     </label>
                     <select
                       value={stepPersonaId}
                       onChange={(e) => setStepPersonaId(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
-                      {(jobPerformers || PERSONAS || []).map((persona) => (
+                      {PERSONAS && PERSONAS.map((persona) => (
                         <option key={persona.id} value={persona.id}>
                           {persona.name}
                         </option>
                       ))}
                     </select>
-                    {stepPersonaId && getPersonaByIdSync(stepPersonaId) && (
+                    {stepPersonaId && getPersonaById(stepPersonaId) && (
                       <div className="flex items-center gap-2 mt-2">
-                        <div 
-                          className={`w-3 h-3 rounded-full ${!getJobPerformerStyles(getPersonaByIdSync(stepPersonaId)).backgroundColor ? getPersonaByIdSync(stepPersonaId).color : ''}`}
-                          style={getJobPerformerStyles(getPersonaByIdSync(stepPersonaId)).backgroundColor ? { backgroundColor: getJobPerformerStyles(getPersonaByIdSync(stepPersonaId)).backgroundColor } : {}}
-                        ></div>
-                        <span className="text-sm text-gray-600">{getPersonaByIdSync(stepPersonaId).name}</span>
+                        <div className={`${getPersonaById(stepPersonaId).color} w-3 h-3 rounded-full`}></div>
+                        <span className="text-sm text-gray-600">{getPersonaById(stepPersonaId).name}</span>
                       </div>
                     )}
                   </div>

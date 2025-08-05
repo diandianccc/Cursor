@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { getPersonaByIdSync, getJobPerformerStyles } from '../services/jobPerformerService';
+import { getPersonaById } from '../constants/personas';
 import EditableTitle from './EditableTitle';
 
 const AggregatedPainpointView = ({ 
@@ -81,7 +81,7 @@ const AggregatedPainpointView = ({
           task.steps.forEach((step, stepIndex) => {
             allSteps.push({
               ...step,
-                              persona: getPersonaByIdSync(step.personaId),
+              persona: getPersonaById(step.personaId),
               stepId: step.id,
               taskId: task.id,
               stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
@@ -426,10 +426,7 @@ const AggregatedPainpointView = ({
                             <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
                             {step.persona && (
                               <div className="flex items-center gap-1 mt-1">
-                                <div 
-                                  className={`w-2 h-2 rounded-full ${!getJobPerformerStyles(step.persona).backgroundColor ? step.persona.color : ''}`}
-                                  style={getJobPerformerStyles(step.persona).backgroundColor ? { backgroundColor: getJobPerformerStyles(step.persona).backgroundColor } : {}}
-                                ></div>
+                                <div className={`${step.persona.color} w-2 h-2 rounded-full`}></div>
                                 <span className="text-xs text-indigo-600">{step.persona.name || 'Unknown Persona'}</span>
                               </div>
                             )}

@@ -7,8 +7,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import EditableTitle from './components/EditableTitle';
 import StepDetailPanel from './components/StepDetailPanel';
 import EditPanel from './components/EditPanel';
-import { initializeJobPerformers, updatePersonasArray, getAllJobPerformers } from './services/jobPerformerService';
-import { subscribeToJobPerformers } from './firebase/journeyService';
+import { PERSONAS } from './constants/personas';
 import { getTerminology, MAP_TYPES } from './constants/mapTypes';
 
 // Supabase imports
@@ -37,7 +36,6 @@ function App() {
   const [stages, setStages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hasReset, setHasReset] = useState(false);
-  const [jobPerformers, setJobPerformers] = useState([]);
   const [currentView, setCurrentView] = useState(() => {
     try {
       return localStorage.getItem('journeyMapView') || 'painpoint';
@@ -251,13 +249,6 @@ function App() {
           }
         }
         
-        // Initialize job performers
-        try {
-          await initializeJobPerformers();
-        } catch (error) {
-          console.error('Failed to initialize job performers:', error);
-        }
-        
         await initializeDefaultJourneyMap();
       } else {
         // Sign in anonymously
@@ -272,25 +263,6 @@ function App() {
 
     return unsubscribe;
   }, []);
-
-  // Subscribe to job performers changes
-  useEffect(() => {
-    if (!user) return;
-
-    const unsubscribe = subscribeToJobPerformers(async (performers) => {
-      // Get the combined list (database + defaults) instead of just database performers
-      const allJobPerformers = await getAllJobPerformers();
-      setJobPerformers(allJobPerformers);
-      // Update the personas array for legacy compatibility
-      updatePersonasArray(allJobPerformers);
-      
-      // Force re-render of components that depend on PERSONAS
-      // This ensures dropdowns and legends update immediately
-      setStages(prevStages => [...prevStages]);
-    });
-
-    return unsubscribe;
-  }, [user]);
 
   // Initialize with default journey map or load existing one
   const initializeDefaultJourneyMap = async () => {
@@ -318,12 +290,12 @@ function App() {
           const mostRecent = maps[0]; // Already sorted by last_modified desc
           setJourneyMapId(mostRecent.id);
           setJourneyMapName(mostRecent.name);
-          setJourneyMapType(MAP_TYPES.USER_JOURNEY); // TODO: Use mostRecent.map_type when column exists
+          setJourneyMapType(mostRecent.map_type || MAP_TYPES.USER_JOURNEY);
           
           // Save to localStorage
           localStorage.setItem('currentJourneyMapId', mostRecent.id);
           localStorage.setItem('currentJourneyMapName', mostRecent.name);
-          localStorage.setItem('currentJourneyMapType', MAP_TYPES.USER_JOURNEY);
+          localStorage.setItem('currentJourneyMapType', mostRecent.map_type || MAP_TYPES.USER_JOURNEY);
         } else {
           // No journey maps exist, create a default one
           createDefaultJourneyMap();
@@ -361,7 +333,7 @@ function App() {
     const unsubscribe = subscribeToJourneyMap(journeyMapId, (journeyMap) => {
       if (journeyMap && journeyMap.stages) {
         setStages(journeyMap.stages);
-        setJourneyMapType(MAP_TYPES.USER_JOURNEY); // TODO: Use journeyMap.map_type when column exists
+        setJourneyMapType(journeyMap.map_type || MAP_TYPES.USER_JOURNEY);
       } else {
         // Initialize with default stages if empty
         const terminology = getTerminology(journeyMapType);
@@ -431,37 +403,12 @@ function App() {
 
   // Helper function to update stages in Firebase with detailed tracking
   const updateStagesInFirebase = async (newStages, changeDetails) => {
-    if (!journeyMapId) {
-      console.error('No journey map ID available for saving!');
-      alert('⚠️ Cannot save: No journey map selected');
-      return;
-    }
-    
-    try {
-      console.log('Saving stages to journey map:', journeyMapId, newStages);
-      await updateJourneyMapStages(journeyMapId, newStages, changeDetails);
-      console.log('✅ Stages saved successfully!');
-    } catch (error) {
-      console.error('❌ Failed to update stages:', error);
-      
-      // Better error message handling
-      let errorMessage = 'Unknown error occurred';
-      if (error && typeof error === 'object') {
-        if (error.message) {
-          errorMessage = error.message;
-        } else if (error.error_description) {
-          errorMessage = error.error_description;
-        } else if (error.details) {
-          errorMessage = error.details;
-        } else {
-          errorMessage = JSON.stringify(error, null, 2);
-        }
-      } else if (typeof error === 'string') {
-        errorMessage = error;
+    if (journeyMapId) {
+      try {
+        await updateJourneyMapStages(journeyMapId, newStages, changeDetails);
+      } catch (error) {
+        console.error('Failed to update stages:', error);
       }
-      
-      alert(`Failed to save changes: ${errorMessage}\n\nCheck the console for full details.`);
-      throw error; // Re-throw so calling functions know it failed
     }
   };
 
@@ -766,7 +713,6 @@ function App() {
           journeyMapName={journeyMapName}
           journeyMapType={journeyMapType}
           currentView={currentView}
-          jobPerformers={jobPerformers}
           onAddStage={addStage}
           onUpdateStage={updateStage}
           onDeleteStage={deleteStage}
@@ -810,7 +756,6 @@ function App() {
         stageName={stepDetailPanel.stageName}
         taskName={stepDetailPanel.taskName}
         journeyMapType={journeyMapType}
-        jobPerformers={jobPerformers}
         onDeleteStep={deleteStep}
         onDeleteTask={deleteTask}
         onDeleteStage={deleteStage}
@@ -822,7 +767,6 @@ function App() {
         editableOpportunities={editableOpportunities}
         editableCurrentExperiences={editableCurrentExperiences}
         editableInsights={editableInsights}
-        jobPerformers={jobPerformers}
         onCloseEditPanel={closeEditPanel}
         onAddPainPoint={addPainPoint}
         onRemovePainPoint={removePainPoint}

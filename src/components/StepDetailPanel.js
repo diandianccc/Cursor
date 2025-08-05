@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PERSONAS } from '../constants/personas';
-import { getPersonaByIdSync, getJobPerformerStyles } from '../services/jobPerformerService';
+import { getPersonaById, PERSONAS } from '../constants/personas';
 
 const StepDetailPanel = ({ 
   isOpen, 
@@ -11,13 +10,12 @@ const StepDetailPanel = ({
   taskId,
   stageName,
   taskName,
-  jobPerformers,
   onDeleteStep,
   onDeleteTask,
   onDeleteStage 
 }) => {
   const [description, setDescription] = useState('');
-  const [personaId, setPersonaId] = useState('');
+  const [personaId, setPersonaId] = useState(PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer');
   const [painPoints, setPainPoints] = useState('');
   const [opportunities, setOpportunities] = useState('');
   const [insights, setInsights] = useState('');
@@ -27,32 +25,30 @@ const StepDetailPanel = ({
   useEffect(() => {
     if (step && isOpen) {
       setDescription(step.description || '');
-      const availableJobPerformers = jobPerformers || PERSONAS || [];
-      setPersonaId(step.personaId || (availableJobPerformers.length > 0 ? availableJobPerformers[0].id : 'customer'));
+      setPersonaId(step.personaId || (PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer'));
       setPainPoints(step.painPoints ? step.painPoints.join('. ') : '');
       setOpportunities(step.opportunities ? step.opportunities.join('. ') : '');
       setInsights(step.insights || '');
       setHasChanges(false);
     }
-  }, [step, isOpen, jobPerformers]);
+  }, [step, isOpen]);
 
   // Track changes
   useEffect(() => {
     if (step) {
       const originalPainPoints = step.painPoints ? step.painPoints.join('. ') : '';
       const originalOpportunities = step.opportunities ? step.opportunities.join('. ') : '';
-      const availableJobPerformers = jobPerformers || PERSONAS || [];
       
       const hasChanged = 
         description !== (step.description || '') ||
-        personaId !== (step.personaId || (availableJobPerformers.length > 0 ? availableJobPerformers[0].id : 'customer')) ||
+        personaId !== (step.personaId || (PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer')) ||
         painPoints !== originalPainPoints ||
         opportunities !== originalOpportunities ||
         insights !== (step.insights || '');
       
       setHasChanges(hasChanged);
     }
-  }, [description, personaId, painPoints, opportunities, insights, step, jobPerformers]);
+  }, [description, personaId, painPoints, opportunities, insights, step]);
 
   const handleSave = () => {
     if (!step) return;
@@ -98,7 +94,7 @@ const StepDetailPanel = ({
     }
   };
 
-  const persona = getPersonaByIdSync(personaId) || getPersonaByIdSync('customer');
+  const persona = getPersonaById(personaId) || getPersonaById('developer');
 
   if (!isOpen || !step) return null;
 
@@ -150,17 +146,17 @@ const StepDetailPanel = ({
             />
           </div>
 
-                        {/* Job Performer */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Job Performer
-                </label>
+          {/* Persona */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Persona
+            </label>
             <select
               value={personaId}
               onChange={(e) => setPersonaId(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             >
-              {(jobPerformers || PERSONAS || []).map((p) => (
+              {PERSONAS.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
                 </option>
@@ -168,10 +164,7 @@ const StepDetailPanel = ({
             </select>
             {persona && (
               <div className="flex items-center gap-2 mt-2">
-                <div 
-                  className={`w-3 h-3 rounded-full ${!getJobPerformerStyles(persona).backgroundColor ? persona.color : ''}`}
-                  style={getJobPerformerStyles(persona).backgroundColor ? { backgroundColor: getJobPerformerStyles(persona).backgroundColor } : {}}
-                ></div>
+                <div className={`${persona.color} w-3 h-3 rounded-full`}></div>
                 <span className="text-sm text-gray-600">{persona.name}</span>
               </div>
             )}

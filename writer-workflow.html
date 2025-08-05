@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writer Workflow Map</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #1e293b;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .personas {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .persona {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .persona:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .persona.active {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .persona-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .content-writer { background: #3b82f6; }
+        .editor { background: #10b981; }
+        .content-strategist { background: #8b5cf6; }
+
+        .workflow {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 20px 0;
+            min-height: 500px;
+        }
+
+        .phase {
+            min-width: 280px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .phase:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .phase-header {
+            padding: 20px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .phase-1 .phase-header { background: #22c55e; }
+        .phase-2 .phase-header { background: #06b6d4; }
+        .phase-3 .phase-header { background: #3b82f6; }
+        .phase-4 .phase-header { background: #8b5cf6; }
+        .phase-5 .phase-header { background: #f59e0b; }
+
+        .activities {
+            padding: 20px;
+        }
+
+        .activity {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .activity:hover {
+            border-color: #cbd5e1;
+            background: #f1f5f9;
+        }
+
+        .activity.expanded {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .tasks {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .tasks.show {
+            display: block;
+        }
+
+        .task {
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            border-left: 4px solid;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .task:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .task.content-writer {
+            background: #dbeafe;
+            border-left-color: #3b82f6;
+        }
+
+        .task.editor {
+            background: #d1fae5;
+            border-left-color: #10b981;
+        }
+
+        .task.content-strategist {
+            background: #e9d5ff;
+            border-left-color: #8b5cf6;
+        }
+
+        .task.highlight {
+            transform: translateX(4px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .workflow {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .phase {
+                min-width: 100%;
+                max-width: 400px;
+            }
+            
+            .personas {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✍️ Writer Workflow Map</h1>
+        <p>Interactive workflow from ideation to publication</p>
+    </div>
+
+    <div class="personas">
+        <div class="persona" data-persona="content-writer">
+            <div class="persona-dot content-writer"></div>
+            <span>Content Writer</span>
+        </div>
+        <div class="persona" data-persona="editor">
+            <div class="persona-dot editor"></div>
+            <span>Editor</span>
+        </div>
+        <div class="persona" data-persona="content-strategist">
+            <div class="persona-dot content-strategist"></div>
+            <span>Content Strategist</span>
+        </div>
+    </div>
+
+    <div class="workflow">
+        <div class="phase phase-1">
+            <div class="phase-header">
+                🎯 Planning & Ideation
+            </div>
+            <div class="activities">
+                <div class="activity" data-activity="topic-research">
+                    <div class="activity-title">Topic Research</div>
+                    <div class="tasks">
+                        <div class="task content-strategist">Brainstorm content ideas</div>
+                        <div class="task content-strategist">Validate topic relevance</div>
+                        <div class="task content-writer">Research target audience</div>
+                    </div>
+                </div>
+                <div class="activity" data-activity="content-strategy">
+                    <div class="activity-title">Content Strategy</div>
+                    <div class="tasks">
+                        <div class="task content-strategist">Define content goals</div>
+                        <div class="task content-strategist">Set success metrics</div>
+                        <div class="task content-strategist">Plan content calendar</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="phase phase-2">
+            <div class="phase-header">
+                📚 Research & Content Gathering
+            </div>
+            <div class="activities">
+                <div class="activity" data-activity="source-research">
+                    <div class="activity-title">Source Research</div>
+                    <div class="tasks">
+                        <div class="task content-writer">Gather primary sources</div>
+                        <div class="task content-writer">Organize research materials</div>
+                        <div class="task content-writer">Create reference list</div>
+                    </div>
+                </div>
+                <div class="activity" data-activity="fact-checking">
+                    <div class="activity-title">Fact Checking</div>
+                    <div class="tasks">
+                        <div class="task editor">Verify information accuracy</div>
+                        <div class="task editor">Cross-reference sources</div>
+                        <div class="task content-writer">Document citations</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="phase phase-3">
+            <div class="phase-header">
+                ✍️ Writing & Drafting
+            </div>
+            <div class="activities">
+                <div class="activity" data-activity="content-creation">
+                    <div class="activity-title">Content Creation</div>
+                    <div class="tasks">
+                        <div class="task content-writer">Create detailed outline</div>
+                        <div class="task content-writer">Write first draft</div>
+                        <div class="task content-writer">Add supporting details</div>
+                    </div>
+                </div>
+                <div class="activity" data-activity="content-development">
+                    <div class="activity-title">Content Development</div>
+                    <div class="tasks">
+                        <div class="task content-writer">Expand key sections</div>
+                        <div class="task content-writer">Add examples and case studies</div>
+                        <div class="task content-writer">Write compelling introduction</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="phase phase-4">
+            <div class="phase-header">
+                📖 Review & Editing
+            </div>
+            <div class="activities">
+                <div class="activity" data-activity="content-review">
+                    <div class="activity-title">Content Review</div>
+                    <div class="tasks">
+                        <div class="task editor">Structural edit</div>
+                        <div class="task editor">Copy edit</div>
+                        <div class="task editor">Check flow and coherence</div>
+                    </div>
+                </div>
+                <div class="activity" data-activity="quality-assurance">
+                    <div class="activity-title">Quality Assurance</div>
+                    <div class="tasks">
+                        <div class="task editor">Proofread for errors</div>
+                        <div class="task editor">Final review</div>
+                        <div class="task content-strategist">Approve for publication</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="phase phase-5">
+            <div class="phase-header">
+                📢 Publishing & Distribution
+            </div>
+            <div class="activities">
+                <div class="activity" data-activity="publication-prep">
+                    <div class="activity-title">Publication Prep</div>
+                    <div class="tasks">
+                        <div class="task content-writer">Format for platform</div>
+                        <div class="task content-strategist">SEO optimization</div>
+                        <div class="task content-strategist">Add metadata</div>
+                    </div>
+                </div>
+                <div class="activity" data-activity="distribution">
+                    <div class="activity-title">Distribution</div>
+                    <div class="tasks">
+                        <div class="task content-strategist">Publish content</div>
+                        <div class="task content-strategist">Promote and share</div>
+                        <div class="task content-strategist">Monitor performance</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Click on activities to expand tasks • Click personas to highlight their responsibilities</p>
+    </div>
+
+    <script>
+        // Activity expansion functionality
+        document.querySelectorAll('.activity').forEach(activity => {
+            activity.addEventListener('click', () => {
+                const tasks = activity.querySelector('.tasks');
+                const isExpanded = activity.classList.contains('expanded');
+                
+                // Close all other activities
+                document.querySelectorAll('.activity').forEach(other => {
+                    if (other !== activity) {
+                        other.classList.remove('expanded');
+                        other.querySelector('.tasks').classList.remove('show');
+                    }
+                });
+                
+                // Toggle current activity
+                if (isExpanded) {
+                    activity.classList.remove('expanded');
+                    tasks.classList.remove('show');
+                } else {
+                    activity.classList.add('expanded');
+                    tasks.classList.add('show');
+                }
+            });
+        });
+
+        // Persona highlighting functionality
+        document.querySelectorAll('.persona').forEach(persona => {
+            persona.addEventListener('click', () => {
+                const personaType = persona.dataset.persona;
+                const isActive = persona.classList.contains('active');
+                
+                // Remove active state from all personas
+                document.querySelectorAll('.persona').forEach(p => {
+                    p.classList.remove('active');
+                });
+                
+                // Remove highlight from all tasks
+                document.querySelectorAll('.task').forEach(task => {
+                    task.classList.remove('highlight');
+                });
+                
+                if (!isActive) {
+                    // Add active state to clicked persona
+                    persona.classList.add('active');
+                    
+                    // Highlight tasks for this persona
+                    document.querySelectorAll(`.task.${personaType}`).forEach(task => {
+                        task.classList.add('highlight');
+                    });
+                }
+            });
+        });
+
+        // Auto-expand first activity on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstActivity = document.querySelector('.activity');
+            if (firstActivity) {
+                firstActivity.click();
+            }
+        });
+    </script>
+</body>
+</html> 

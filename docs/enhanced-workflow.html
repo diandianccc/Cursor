@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Writer Workflow Map</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #1e293b;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toggle-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .personas {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .persona {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .persona:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .persona.active {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .persona-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .content-writer { background: #3b82f6; }
+        .editor { background: #10b981; }
+        .content-strategist { background: #8b5cf6; }
+
+        .workflow {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 20px 0;
+            min-height: 600px;
+        }
+
+        .phase {
+            min-width: 320px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .phase:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .phase-header {
+            padding: 20px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            position: relative;
+        }
+
+        .phase-1 .phase-header { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .phase-2 .phase-header { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .phase-3 .phase-header { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .phase-4 .phase-header { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .phase-5 .phase-header { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+        .phase-stats {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .activities {
+            padding: 20px;
+        }
+
+        .activity {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .activity:hover {
+            border-color: #cbd5e1;
+            background: #f1f5f9;
+        }
+
+        .activity.expanded {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .activity-meta {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .tasks {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .tasks.show {
+            display: block;
+        }
+
+        .task {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border-left: 4px solid;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .task:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .task.content-writer {
+            background: #dbeafe;
+            border-left-color: #3b82f6;
+        }
+
+        .task.editor {
+            background: #d1fae5;
+            border-left-color: #10b981;
+        }
+
+        .task.content-strategist {
+            background: #e9d5ff;
+            border-left-color: #8b5cf6;
+        }
+
+        .task.highlight {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .task-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .task-description {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .task-details {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            font-size: 0.8rem;
+        }
+
+        .task-details.show {
+            display: block;
+        }
+
+        .detail-section {
+            margin-bottom: 8px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .pain-points {
+            color: #dc2626;
+        }
+
+        .opportunities {
+            color: #059669;
+        }
+
+        .time-estimate {
+            color: #7c3aed;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .legend {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .legend h3 {
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+
+        .legend-items {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .workflow {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .phase {
+                min-width: 100%;
+                max-width: 400px;
+            }
+            
+            .personas, .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✍️ Enhanced Writer Workflow Map</h1>
+        <p>Comprehensive interactive workflow from ideation to publication</p>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <span>View Mode:</span>
+            <button class="toggle-btn active" data-mode="overview">Overview</button>
+            <button class="toggle-btn" data-mode="detailed">Detailed</button>
+        </div>
+        <div class="control-group">
+            <span>Show:</span>
+            <button class="toggle-btn" data-filter="pain-points">Pain Points</button>
+            <button class="toggle-btn" data-filter="opportunities">Opportunities</button>
+        </div>
+    </div>
+
+    <div class="personas">
+        <div class="persona" data-persona="content-writer">
+            <div class="persona-dot content-writer"></div>
+            <span>Content Writer</span>
+        </div>
+        <div class="persona" data-persona="editor">
+            <div class="persona-dot editor"></div>
+            <span>Editor</span>
+        </div>
+        <div class="persona" data-persona="content-strategist">
+            <div class="persona-dot content-strategist"></div>
+            <span>Content Strategist</span>
+        </div>
+    </div>
+
+    <div class="legend">
+        <h3>Workflow Guide</h3>
+        <div class="legend-items">
+            <div class="legend-item">
+                <span>💡</span>
+                <span>Click activities to expand tasks</span>
+            </div>
+            <div class="legend-item">
+                <span>👤</span>
+                <span>Click personas to highlight responsibilities</span>
+            </div>
+            <div class="legend-item">
+                <span>📋</span>
+                <span>Click tasks for detailed information</span>
+            </div>
+            <div class="legend-item">
+                <span>🎯</span>
+                <span>Use view modes for different perspectives</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="workflow">
+        <div class="phase phase-1">
+            <div class="phase-header">
+                🎯 Planning & Ideation
+                <div class="phase-stats">6 tasks • 2-4 days</div>
+            </div>
+            <div class="activities">
+                <div class="activity" data-activity="topic-research">
+                    <div class="activity-header">
+                        <div class="activity-title">Topic Research & Validation</div>
+                        <div class="activity-meta">3 tasks</div>
+                    </div>
+                    <div class="tasks">
+                        <div class="task content-strategist" data-task="brainstorm">
+                            <div class="task-title">Brainstorm Content Ideas</div>
+                            <div class="task-description">Generate diverse topic ideas using various ideation techniques</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Lack of inspiration, competing ideas, unclear direction
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Trending topics, audience questions, competitor gaps
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 2-4 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-strategist" data-task="validate">
+                            <div class="task-title">Validate Topic Relevance</div>
+                            <div class="task-description">Ensure topics align with audience needs and business objectives</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Unclear target audience, misaligned objectives, market saturation
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Audience surveys, keyword research, competitive analysis
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-2 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-writer" data-task="audience-research">
+                            <div class="task-title">Deep Audience Research</div>
+                            <div class="task-description">Understand target audience preferences, pain points, and content consumption habits</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Limited data access, assumption-based decisions, changing preferences
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Analytics tools, social listening, direct feedback
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 2-3 hours
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="activity" data-activity="content-strategy">
+                    <div class="activity-header">
+                        <div class="activity-title">Content Strategy Development</div>
+                        <div class="activity-meta">3 tasks</div>
+                    </div>
+                    <div class="tasks">
+                        <div class="task content-strategist" data-task="goals">
+                            <div class="task-title">Define Content Goals & KPIs</div>
+                            <div class="task-description">Set clear, measurable objectives for content performance</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Vague objectives, unmeasurable goals, conflicting priorities
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> SMART goals framework, analytics setup, stakeholder alignment
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-2 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-strategist" data-task="calendar">
+                            <div class="task-title">Create Content Calendar</div>
+                            <div class="task-description">Plan publication schedule and content distribution strategy</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Resource constraints, timing conflicts, seasonal relevance
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Planning tools, automation, batch creation
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 2-3 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-strategist" data-task="format">
+                            <div class="task-title">Determine Content Format & Style</div>
+                            <div class="task-description">Choose optimal format and establish style guidelines</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Format limitations, brand consistency, resource requirements
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Multi-format approach, style guides, template creation
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-2 hours
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="phase phase-2">
+            <div class="phase-header">
+                📚 Research & Content Gathering
+                <div class="phase-stats">5 tasks • 1-3 days</div>
+            </div>
+            <div class="activities">
+                <div class="activity" data-activity="source-research">
+                    <div class="activity-header">
+                        <div class="activity-title">Source Research & Documentation</div>
+                        <div class="activity-meta">3 tasks</div>
+                    </div>
+                    <div class="tasks">
+                        <div class="task content-writer" data-task="primary-sources">
+                            <div class="task-title">Gather Primary Sources</div>
+                            <div class="task-description">Collect authoritative, credible sources for content foundation</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Source credibility, access limitations, information overload
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Academic databases, expert interviews, industry reports
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 3-5 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-writer" data-task="organize-research">
+                            <div class="task-title">Organize Research Materials</div>
+                            <div class="task-description">Structure and categorize findings for easy reference</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Information scattered, poor categorization, version control
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Note-taking tools, tagging systems, cloud storage
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-2 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-writer" data-task="citations">
+                            <div class="task-title">Create Reference & Citation List</div>
+                            <div class="task-description">Document all sources with proper attribution format</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Citation format confusion, missing source details, copyright concerns
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Citation tools, style guides, legal compliance
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 30-60 minutes
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="activity" data-activity="fact-checking">
+                    <div class="activity-header">
+                        <div class="activity-title">Fact Checking & Verification</div>
+                        <div class="activity-meta">2 tasks</div>
+                    </div>
+                    <div class="tasks">
+                        <div class="task editor" data-task="verify-accuracy">
+                            <div class="task-title">Verify Information Accuracy</div>
+                            <div class="task-description">Cross-reference facts and validate data points</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Conflicting sources, outdated information, bias detection
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Fact-checking tools, multiple source verification, expert validation
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 2-3 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-writer" data-task="documentation">
+                            <div class="task-title">Document Verification Process</div>
+                            <div class="task-description">Record fact-checking steps and source validation</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Time constraints, documentation overhead, audit trails
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Standardized checklists, collaborative tools, quality assurance
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 30-45 minutes
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="phase phase-3">
+            <div class="phase-header">
+                ✍️ Writing & Drafting
+                <div class="phase-stats">6 tasks • 2-5 days</div>
+            </div>
+            <div class="activities">
+                <div class="activity" data-activity="content-creation">
+                    <div class="activity-header">
+                        <div class="activity-title">Content Creation & Development</div>
+                        <div class="activity-meta">4 tasks</div>
+                    </div>
+                    <div class="tasks">
+                        <div class="task content-writer" data-task="outline">
+                            <div class="task-title">Create Detailed Outline</div>
+                            <div class="task-description">Structure content with clear headings, flow, and key points</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Logical flow issues, missing transitions, scope creep
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Outline templates, collaborative review, structural frameworks
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-3 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-writer" data-task="first-draft">
+                            <div class="task-title">Write First Draft</div>
+                            <div class="task-description">Complete initial version focusing on getting ideas down</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Writer's block, perfectionism paralysis, time pressure
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Timed writing sessions, voice-to-text, writing sprints
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 4-8 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-writer" data-task="expand-sections">
+                            <div class="task-title">Expand Key Sections</div>
+                            <div class="task-description">Develop important points with examples and supporting details</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Insufficient depth, weak examples, repetitive content
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Case studies, data visualization, expert quotes
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 2-4 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-writer" data-task="introduction">
+                            <div class="task-title">Craft Compelling Introduction</div>
+                            <div class="task-description">Write engaging opening that hooks readers and sets expectations</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Weak hooks, unclear value proposition, lengthy setup
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Storytelling techniques, statistical hooks, question frameworks
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-2 hours
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="activity" data-activity="content-enhancement">
+                    <div class="activity-header">
+                        <div class="activity-title">Content Enhancement</div>
+                        <div class="activity-meta">2 tasks</div>
+                    </div>
+                    <div class="tasks">
+                        <div class="task content-writer" data-task="multimedia">
+                            <div class="task-title">Add Multimedia Elements</div>
+                            <div class="task-description">Incorporate images, charts, videos, or interactive elements</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Copyright issues, technical limitations, file sizes
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Stock photo libraries, custom graphics, embedded content
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-3 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-writer" data-task="conclusion">
+                            <div class="task-title">Write Strong Conclusion</div>
+                            <div class="task-description">Summarize key points and provide clear call-to-action</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Weak endings, unclear next steps, repetitive summaries
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Action-oriented CTAs, future-focused closing, thought-provoking questions
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 30-60 minutes
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="phase phase-4">
+            <div class="phase-header">
+                📖 Review & Editing
+                <div class="phase-stats">6 tasks • 1-2 days</div>
+            </div>
+            <div class="activities">
+                <div class="activity" data-activity="content-review">
+                    <div class="activity-header">
+                        <div class="activity-title">Comprehensive Content Review</div>
+                        <div class="activity-meta">3 tasks</div>
+                    </div>
+                    <div class="tasks">
+                        <div class="task editor" data-task="structural-edit">
+                            <div class="task-title">Structural Edit</div>
+                            <div class="task-description">Review organization, flow, and overall messaging effectiveness</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Poor content flow, unclear messaging, structural inconsistencies
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Fresh perspective, reader feedback, content restructuring
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 2-4 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task editor" data-task="copy-edit">
+                            <div class="task-title">Copy Edit</div>
+                            <div class="task-description">Fix grammar, style, clarity, and consistency issues</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Grammar errors, inconsistent tone, unclear sentences
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Style guides, editing tools, collaborative review
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-3 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task editor" data-task="coherence">
+                            <div class="task-title">Check Flow & Coherence</div>
+                            <div class="task-description">Ensure smooth transitions and logical progression</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Abrupt transitions, disconnected ideas, repetitive content
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Transition words, paragraph restructuring, content bridging
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-2 hours
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="activity" data-activity="quality-assurance">
+                    <div class="activity-header">
+                        <div class="activity-title">Quality Assurance & Final Review</div>
+                        <div class="activity-meta">3 tasks</div>
+                    </div>
+                    <div class="tasks">
+                        <div class="task editor" data-task="proofread">
+                            <div class="task-title">Proofread for Errors</div>
+                            <div class="task-description">Final check for typos, formatting, and technical errors</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Missing errors, deadline pressure, review fatigue
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Fresh eyes, automated tools, systematic checking
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-2 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task editor" data-task="final-review">
+                            <div class="task-title">Final Editorial Review</div>
+                            <div class="task-description">Comprehensive review of all content elements</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Time constraints, multiple revisions, approval bottlenecks
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Review checklists, stakeholder alignment, version control
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-2 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-strategist" data-task="approval">
+                            <div class="task-title">Approve for Publication</div>
+                            <div class="task-description">Final strategic review and publication approval</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Approval delays, last-minute changes, stakeholder conflicts
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Clear approval criteria, streamlined process, stakeholder buy-in
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 30-60 minutes
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="phase phase-5">
+            <div class="phase-header">
+                📢 Publishing & Distribution
+                <div class="phase-stats">5 tasks • 1-2 days</div>
+            </div>
+            <div class="activities">
+                <div class="activity" data-activity="publication-prep">
+                    <div class="activity-header">
+                        <div class="activity-title">Publication Preparation</div>
+                        <div class="activity-meta">3 tasks</div>
+                    </div>
+                    <div class="tasks">
+                        <div class="task content-writer" data-task="format-platform">
+                            <div class="task-title">Format for Target Platform</div>
+                            <div class="task-description">Optimize content layout and formatting for publication platform</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Platform limitations, formatting inconsistencies, technical requirements
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Template libraries, automated formatting, platform optimization
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-2 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-strategist" data-task="seo-optimization">
+                            <div class="task-title">SEO Optimization</div>
+                            <div class="task-description">Optimize for search engines and discoverability</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Keyword research complexity, SEO best practices, algorithm changes
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> SEO tools, analytics insights, competitive analysis
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 1-3 hours
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-strategist" data-task="metadata">
+                            <div class="task-title">Add Metadata & Tags</div>
+                            <div class="task-description">Include titles, descriptions, tags, and social media previews</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Character limits, tag relevance, preview optimization
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Metadata templates, social media optimization, A/B testing
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 30-60 minutes
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="activity" data-activity="distribution">
+                    <div class="activity-header">
+                        <div class="activity-title">Distribution & Promotion</div>
+                        <div class="activity-meta">2 tasks</div>
+                    </div>
+                    <div class="tasks">
+                        <div class="task content-strategist" data-task="publish">
+                            <div class="task-title">Publish Content</div>
+                            <div class="task-description">Release content on primary platform with proper scheduling</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Technical publishing issues, timing coordination, rollback procedures
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Scheduling tools, publishing checklists, automated workflows
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 30-60 minutes
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task content-strategist" data-task="promote">
+                            <div class="task-title">Promote & Monitor Performance</div>
+                            <div class="task-description">Share across channels and track initial performance metrics</div>
+                            <div class="task-details">
+                                <div class="detail-section pain-points">
+                                    <span class="detail-label">Pain Points:</span> Limited reach, engagement tracking, performance analysis
+                                </div>
+                                <div class="detail-section opportunities">
+                                    <span class="detail-label">Opportunities:</span> Social media scheduling, analytics dashboards, influencer outreach
+                                </div>
+                                <div class="detail-section time-estimate">
+                                    <span class="detail-label">Time:</span> 2-4 hours
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>🎯 Enhanced Writer Workflow Map • Click elements for detailed information • Use controls to customize view</p>
+    </div>
+
+    <script>
+        let currentMode = 'overview';
+        let activeFilter = null;
+
+        // Activity expansion functionality
+        document.querySelectorAll('.activity').forEach(activity => {
+            activity.addEventListener('click', (e) => {
+                if (e.target.classList.contains('task') || e.target.closest('.task')) return;
+                
+                const tasks = activity.querySelector('.tasks');
+                const isExpanded = activity.classList.contains('expanded');
+                
+                // Close all other activities in overview mode
+                if (currentMode === 'overview') {
+                    document.querySelectorAll('.activity').forEach(other => {
+                        if (other !== activity) {
+                            other.classList.remove('expanded');
+                            other.querySelector('.tasks').classList.remove('show');
+                        }
+                    });
+                }
+                
+                // Toggle current activity
+                if (isExpanded) {
+                    activity.classList.remove('expanded');
+                    tasks.classList.remove('show');
+                } else {
+                    activity.classList.add('expanded');
+                    tasks.classList.add('show');
+                }
+            });
+        });
+
+        // Task detail functionality
+        document.querySelectorAll('.task').forEach(task => {
+            task.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const details = task.querySelector('.task-details');
+                const isExpanded = details.classList.contains('show');
+                
+                // Close all other task details in current activity
+                const parentActivity = task.closest('.activity');
+                parentActivity.querySelectorAll('.task-details').forEach(detail => {
+                    if (detail !== details) {
+                        detail.classList.remove('show');
+                    }
+                });
+                
+                // Toggle current task details
+                if (isExpanded) {
+                    details.classList.remove('show');
+                } else {
+                    details.classList.add('show');
+                }
+            });
+        });
+
+        // Persona highlighting functionality
+        document.querySelectorAll('.persona').forEach(persona => {
+            persona.addEventListener('click', () => {
+                const personaType = persona.dataset.persona;
+                const isActive = persona.classList.contains('active');
+                
+                // Remove active state from all personas
+                document.querySelectorAll('.persona').forEach(p => {
+                    p.classList.remove('active');
+                });
+                
+                // Remove highlight from all tasks
+                document.querySelectorAll('.task').forEach(task => {
+                    task.classList.remove('highlight');
+                });
+                
+                if (!isActive) {
+                    // Add active state to clicked persona
+                    persona.classList.add('active');
+                    
+                    // Highlight tasks for this persona
+                    document.querySelectorAll(`.task.${personaType}`).forEach(task => {
+                        task.classList.add('highlight');
+                    });
+                }
+            });
+        });
+
+        // Mode toggle functionality
+        document.querySelectorAll('[data-mode]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                
+                // Update button states
+                document.querySelectorAll('[data-mode]').forEach(b => {
+                    b.classList.remove('active');
+                });
+                btn.classList.add('active');
+                
+                currentMode = mode;
+                
+                if (mode === 'detailed') {
+                    // Expand all activities
+                    document.querySelectorAll('.activity').forEach(activity => {
+                        activity.classList.add('expanded');
+                        activity.querySelector('.tasks').classList.add('show');
+                    });
+                } else {
+                    // Collapse all activities
+                    document.querySelectorAll('.activity').forEach(activity => {
+                        activity.classList.remove('expanded');
+                        activity.querySelector('.tasks').classList.remove('show');
+                    });
+                }
+            });
+        });
+
+        // Filter functionality
+        document.querySelectorAll('[data-filter]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const filter = btn.dataset.filter;
+                const isActive = btn.classList.contains('active');
+                
+                // Remove active state from all filter buttons
+                document.querySelectorAll('[data-filter]').forEach(b => {
+                    b.classList.remove('active');
+                });
+                
+                // Remove all filter highlights
+                document.querySelectorAll('.detail-section').forEach(section => {
+                    section.style.background = '';
+                    section.style.padding = '';
+                    section.style.borderRadius = '';
+                });
+                
+                if (!isActive) {
+                    btn.classList.add('active');
+                    activeFilter = filter;
+                    
+                    // Highlight relevant sections
+                    document.querySelectorAll(`.${filter}`).forEach(section => {
+                        section.style.background = filter === 'pain-points' ? '#fef2f2' : '#f0fdf4';
+                        section.style.padding = '8px';
+                        section.style.borderRadius = '4px';
+                        section.style.border = filter === 'pain-points' ? '1px solid #fecaca' : '1px solid #bbf7d0';
+                    });
+                    
+                    // Auto-expand first activity to show highlights
+                    const firstActivity = document.querySelector('.activity');
+                    if (firstActivity && !firstActivity.classList.contains('expanded')) {
+                        firstActivity.click();
+                    }
+                } else {
+                    activeFilter = null;
+                }
+            });
+        });
+
+        // Auto-expand first activity on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstActivity = document.querySelector('.activity');
+            if (firstActivity) {
+                firstActivity.click();
+            }
+        });
+    </script>
+</body>
+</html> 

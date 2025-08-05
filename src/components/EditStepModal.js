@@ -4,20 +4,33 @@ import { PERSONAS } from '../constants/personas';
 
 const EditStepModal = ({ isOpen, onClose, step, onUpdate }) => {
   const [description, setDescription] = useState('');
-  const [personaId, setPersonaId] = useState(PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer');
+  const [personaId, setPersonaId] = useState(PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'customer');
   const [painPoints, setPainPoints] = useState('');
   const [opportunities, setOpportunities] = useState('');
   const [insights, setInsights] = useState('');
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   useEffect(() => {
     if (step && isOpen) {
       setDescription(step.description || '');
-      setPersonaId(step.personaId || (PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'developer'));
+      setPersonaId(step.personaId || (PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : 'customer'));
       setPainPoints(step.painPoints ? step.painPoints.join('. ') : '');
       setOpportunities(step.opportunities ? step.opportunities.join('. ') : '');
       setInsights(step.insights || '');
     }
   }, [step, isOpen]);
+
+  // Listen for job performer updates
+  useEffect(() => {
+    const handleJobPerformersUpdate = () => {
+      setForceUpdate(prev => prev + 1);
+    };
+
+    window.addEventListener('jobPerformersUpdated', handleJobPerformersUpdate);
+    return () => {
+      window.removeEventListener('jobPerformersUpdated', handleJobPerformersUpdate);
+    };
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -54,7 +67,7 @@ const EditStepModal = ({ isOpen, onClose, step, onUpdate }) => {
 
         <div>
           <label htmlFor="editPersona" className="block text-sm font-medium text-gray-700 mb-1">
-            Persona
+            Job Performer
           </label>
           <select
             id="editPersona"

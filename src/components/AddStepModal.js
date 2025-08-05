@@ -1,13 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { PERSONAS } from '../constants/personas';
 
 const AddStepModal = ({ isOpen, onClose, onAdd }) => {
   const [description, setDescription] = useState('');
-  const [personaId, setPersonaId] = useState(PERSONAS[0].id);
+  const [personaId, setPersonaId] = useState('');
   const [painPoints, setPainPoints] = useState('');
   const [opportunities, setOpportunities] = useState('');
   const [insights, setInsights] = useState('');
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  // Initialize persona when modal opens or PERSONAS array updates
+  useEffect(() => {
+    if (isOpen && PERSONAS && PERSONAS.length > 0 && !personaId) {
+      setPersonaId(PERSONAS[0].id);
+    }
+  }, [isOpen, personaId]);
+
+  // Listen for job performer updates
+  useEffect(() => {
+    const handleJobPerformersUpdate = () => {
+      console.log('🔄 AddStepModal: Job performers updated, current PERSONAS:', PERSONAS);
+      setForceUpdate(prev => prev + 1);
+      // Reset persona if current one is no longer available
+      if (PERSONAS && PERSONAS.length > 0) {
+        const currentPersonaExists = PERSONAS.find(p => p.id === personaId);
+        if (!currentPersonaExists) {
+          console.log('🔄 AddStepModal: Setting persona to first available:', PERSONAS[0].id);
+          setPersonaId(PERSONAS[0].id);
+        }
+      }
+    };
+
+    window.addEventListener('jobPerformersUpdated', handleJobPerformersUpdate);
+    return () => {
+      window.removeEventListener('jobPerformersUpdated', handleJobPerformersUpdate);
+    };
+  }, [personaId]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -27,7 +56,7 @@ const AddStepModal = ({ isOpen, onClose, onAdd }) => {
 
   const resetForm = () => {
     setDescription('');
-    setPersonaId(PERSONAS[0].id);
+    setPersonaId(PERSONAS && PERSONAS.length > 0 ? PERSONAS[0].id : '');
     setPainPoints('');
     setOpportunities('');
     setInsights('');
@@ -58,7 +87,7 @@ const AddStepModal = ({ isOpen, onClose, onAdd }) => {
 
         <div>
           <label htmlFor="persona" className="block text-sm font-medium text-gray-700 mb-1">
-            Persona
+            Job Performer
           </label>
           <select
             id="persona"
@@ -66,11 +95,14 @@ const AddStepModal = ({ isOpen, onClose, onAdd }) => {
             onChange={(e) => setPersonaId(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
           >
-            {PERSONAS.map((persona) => (
-              <option key={persona.id} value={persona.id}>
-                {persona.name}
-              </option>
-            ))}
+            {PERSONAS && PERSONAS.map((persona) => {
+              console.log('🎭 AddStepModal rendering option:', persona.id, persona.name);
+              return (
+                <option key={persona.id} value={persona.id}>
+                  {persona.name}
+                </option>
+              );
+            })}
           </select>
         </div>
 

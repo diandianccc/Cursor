@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import Stage from './Stage';
 import AddStageModal from './AddStageModal';
-import PersonaLegend from './PersonaLegend';
+import JobPerformerLegend from './PersonaLegend';
 import AggregatedPainpointView from './AggregatedPainpointView';
 import SpreadsheetImportExportModal from './SpreadsheetImportExportModal';
 import ZoomPanControls from './ZoomPanControls';
+import JobPerformerManager from './JobPerformerManager';
 import useZoomPan from '../hooks/useZoomPan';
 import { PERSONAS } from '../constants/personas';
 import { getTerminology } from '../constants/mapTypes';
@@ -15,6 +16,7 @@ const JourneyMap = ({
   journeyMapName,
   journeyMapType,
   currentView,
+  jobPerformers,
   onAddStage, 
   onUpdateStage,
   onDeleteStage,
@@ -47,6 +49,7 @@ const JourneyMap = ({
 }) => {
   const [isAddStageModalOpen, setIsAddStageModalOpen] = useState(false);
   const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
+  const [isJobPerformerManagerOpen, setIsJobPerformerManagerOpen] = useState(false);
 
   // Initialize zoom and pan functionality
   const {
@@ -112,7 +115,7 @@ const JourneyMap = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-medium text-gray-800">{terminology.stages}</h2>
-          <PersonaLegend personas={PERSONAS} />
+          <JobPerformerLegend jobPerformers={jobPerformers || PERSONAS} />
         </div>
         <div className="flex items-center gap-2">
           {currentView === 'painpoint' && (
@@ -126,6 +129,15 @@ const JourneyMap = ({
               Import/Export
             </button>
           )}
+          <button
+            onClick={() => setIsJobPerformerManagerOpen(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-sm transition-colors flex items-center gap-1.5"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Job Performers
+          </button>
           <button
             onClick={() => setIsAddStageModalOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm transition-colors flex items-center gap-1.5"
@@ -236,6 +248,11 @@ const JourneyMap = ({
         journeyMapName={journeyMapName}
         journeyMapType={journeyMapType}
         onImportData={onImportData}
+      />
+
+      <JobPerformerManager
+        isOpen={isJobPerformerManagerOpen}
+        onClose={() => setIsJobPerformerManagerOpen(false)}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { getPersonaById } from '../constants/personas';
+import { getPersonaByIdSync } from '../services/jobPerformerService';
 
 const PainpointView = ({ task, onPainpointClick }) => {
   // Collect all pain points and opportunities from all steps in this task
@@ -12,7 +12,7 @@ const PainpointView = ({ task, onPainpointClick }) => {
         allPainPoints.push({
           text: point,
           stepDescription: step.description,
-          persona: getPersonaById(step.personaId),
+          persona: getPersonaByIdSync(step.personaId),
           stepId: step.id,
           taskId: task.id
         });
@@ -24,7 +24,7 @@ const PainpointView = ({ task, onPainpointClick }) => {
         allOpportunities.push({
           text: opportunity,
           stepDescription: step.description,
-          persona: getPersonaById(step.personaId),
+          persona: getPersonaByIdSync(step.personaId),
           stepId: step.id,
           taskId: task.id
         });

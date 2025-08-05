@@ -1,36 +1,10 @@
-export const PERSONAS = [
-  {
-    id: 'developer',
-    name: 'Developer',
-    color: 'bg-blue-500',
-    textColor: 'text-white',
-    borderColor: 'border-blue-500'
-  },
-  {
-    id: 'merchandiser',
-    name: 'Merchandiser', 
-    color: 'bg-green-500',
-    textColor: 'text-white',
-    borderColor: 'border-green-500'
-  },
-  {
-    id: 'ecommerce-leader',
-    name: 'Ecommerce Leader',
-    color: 'bg-purple-500',
-    textColor: 'text-white',
-    borderColor: 'border-purple-500'
-  }
-];
+// This file now imports from the dynamic job performer service
+// The PERSONAS array is dynamically managed and updated from the database
 
-export const getPersonaById = (id) => {
-  if (!PERSONAS || PERSONAS.length === 0) {
-    return {
-      id: 'developer',
-      name: 'Developer',
-      color: 'bg-blue-500',
-      textColor: 'text-white',
-      borderColor: 'border-blue-500'
-    };
-  }
-  return PERSONAS.find(persona => persona.id === id) || PERSONAS[0];
-}; 
+import { PERSONAS, getPersonaByIdSync } from '../services/jobPerformerService';
+
+// Re-export for compatibility
+export { PERSONAS };
+
+// Legacy compatibility function - now uses the dynamic service
+export const getPersonaById = getPersonaByIdSync; 

@@ -166,18 +166,11 @@ export const updatePersonasArray = (newJobPerformers) => {
 export const getJobPerformerStyles = (jobPerformer) => {
   if (!jobPerformer) return {};
   
-  const hexColor = jobPerformer.hexColor || jobPerformer.hex_color || jobPerformer.color;
-  
-  console.log('🎨 getJobPerformerStyles called with:', {
-    jobPerformer: jobPerformer.name,
-    hexColor,
-    hasHexColor: hexColor && hexColor.startsWith('#'),
-    isDefault: jobPerformer.isDefault
-  });
+  // Try multiple possible hex color fields
+  const hexColor = jobPerformer.hexColor || jobPerformer.hex_color || jobPerformer.color || jobPerformer.personaHexColor;
   
   // Since we only have custom job performers now, check for valid hex colors
   if (hexColor && hexColor.startsWith('#')) {
-    console.log('🎨 Returning custom styles for hex color:', hexColor);
     return {
       backgroundColor: hexColor,
       borderLeftColor: hexColor,
@@ -185,7 +178,6 @@ export const getJobPerformerStyles = (jobPerformer) => {
       color: '#ffffff' // White text for custom colors
     };
   }
-  
-  console.log('🎨 No valid hex color, returning empty styles');
+
   return {};
 };

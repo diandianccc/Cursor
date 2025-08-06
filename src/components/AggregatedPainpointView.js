@@ -236,6 +236,7 @@ const AggregatedPainpointView = ({
     children, 
     onEdit, 
     className, 
+    style,
     isHighlighted, 
     highlightColor = 'blue',
     title,
@@ -253,6 +254,7 @@ const AggregatedPainpointView = ({
         className={`${className} cursor-pointer relative transition-all duration-200 ${
           isHighlighted ? highlightClasses[highlightColor] : ''
         }`}
+        style={style}
         onClick={(e) => {
           e.stopPropagation();
           onEdit();
@@ -403,58 +405,81 @@ const AggregatedPainpointView = ({
                   key={`step-${step.stepId || step.id}`} 
                   className="w-64 align-top"
                 >
-                  {!step.isEmpty && (
-                    <div ref={el => cardRefs.current[stepRefKey] = el}>
-                      <CardWithEdit
-                        className="bg-indigo-100 rounded-lg p-2 hover:bg-indigo-200"
-                        onEdit={() => {
-                          // Find stage and task for this step
-                          const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
-                          const taskData = stageData?.tasks.find(t => t.id === step.taskId);
-                          if (stageData && taskData) {
-                            const stageName = typeof stageData.name === 'string' ? stageData.name : stageData.name?.name || 'Unnamed Stage';
-                            const taskName = typeof taskData.name === 'string' ? taskData.name : taskData.name?.name || 'Unnamed Task';
-                            openEditPanel(step, 'step', stageData.id, stageName, taskData.id, taskName);
-                          }
-                        }}
-                        isHighlighted={isHighlighted}
-                        highlightColor="indigo"
-                        title="Click to edit step details"
-                        type="step"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
-                            {step.persona && (
-                              <div className="flex items-center gap-1 mt-1">
-                                <div 
-                                  className={`w-2 h-2 rounded-full ${!getJobPerformerStyles(step.persona).backgroundColor ? step.persona.color : ''}`}
-                                  style={getJobPerformerStyles(step.persona).backgroundColor ? { backgroundColor: getJobPerformerStyles(step.persona).backgroundColor } : {}}
-                                ></div>
-                                <span className="text-xs text-indigo-600">{step.persona.name || 'Unknown Persona'}</span>
-                              </div>
-                            )}
+                  {!step.isEmpty && (() => {
+                    const customStyles = getJobPerformerStyles(step.persona);
+                    const hasCustomColor = customStyles.backgroundColor;
+                    
+
+                    
+                    return (
+                      <div ref={el => cardRefs.current[stepRefKey] = el}>
+                        <CardWithEdit
+                          className={`rounded-lg p-2 ${
+                            hasCustomColor 
+                              ? 'hover:bg-gray-50' 
+                              : 'bg-indigo-100 hover:bg-indigo-200 border-l-8'
+                          }`}
+                          style={hasCustomColor ? { 
+                            borderLeft: `8px solid ${customStyles.borderLeftColor || customStyles.backgroundColor}`,
+                            backgroundColor: `${customStyles.backgroundColor}20` // Light tint with transparency
+                          } : {}}
+                          onEdit={() => {
+                            // Find stage and task for this step
+                            const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
+                            const taskData = stageData?.tasks.find(t => t.id === step.taskId);
+                            if (stageData && taskData) {
+                              const stageName = typeof stageData.name === 'string' ? stageData.name : stageData.name?.name || 'Unnamed Stage';
+                              const taskName = typeof taskData.name === 'string' ? taskData.name : taskData.name?.name || 'Unnamed Task';
+                              openEditPanel(step, 'step', stageData.id, stageName, taskData.id, taskName);
+                            }
+                          }}
+                          isHighlighted={isHighlighted}
+                          highlightColor={hasCustomColor ? "custom" : "indigo"}
+                          title="Click to edit step details"
+                          type="step"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p 
+                                className={`font-medium text-sm ${hasCustomColor ? 'text-gray-800' : 'text-indigo-800'}`}
+                              >
+                                {step.description || 'No description'}
+                              </p>
+                              {step.persona && (
+                                <div className="flex items-center gap-1 mt-1">
+                                  <div 
+                                    className={`w-2 h-2 rounded-full ${!getJobPerformerStyles(step.persona).backgroundColor ? step.persona.color : ''}`}
+                                    style={getJobPerformerStyles(step.persona).backgroundColor ? { backgroundColor: getJobPerformerStyles(step.persona).backgroundColor } : {}}
+                                  ></div>
+                                  <span 
+                                    className={`text-xs ${hasCustomColor ? 'text-gray-600' : 'text-indigo-600'}`}
+                                  >
+                                    {step.persona.name || 'Unknown Persona'}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="ml-2">
+                              <CommentIndicator 
+                                stepId={step.stepId} 
+                                onClick={() => {
+                                  // Find stage and task for this step to open panel
+                                  const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
+                                  const taskData = stageData?.tasks.find(t => t.id === step.taskId);
+                                  const actualStep = taskData?.steps.find(s => s.id === step.stepId);
+                                  if (stageData && taskData && actualStep) {
+                                    const stageName = typeof stageData.name === 'string' ? stageData.name : stageData.name?.name || 'Unnamed Stage';
+                                    const taskName = typeof taskData.name === 'string' ? taskData.name : taskData.name?.name || 'Unnamed Task';
+                                    onOpenStepDetail(actualStep, stageData.id, taskData.id, stageName, taskName, 'comments');
+                                  }
+                                }}
+                              />
+                            </div>
                           </div>
-                          <div className="ml-2">
-                            <CommentIndicator 
-                              stepId={step.stepId} 
-                              onClick={() => {
-                                // Find stage and task for this step to open panel
-                                const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
-                                const taskData = stageData?.tasks.find(t => t.id === step.taskId);
-                                const actualStep = taskData?.steps.find(s => s.id === step.stepId);
-                                if (stageData && taskData && actualStep) {
-                                  const stageName = typeof stageData.name === 'string' ? stageData.name : stageData.name?.name || 'Unnamed Stage';
-                                  const taskName = typeof taskData.name === 'string' ? taskData.name : taskData.name?.name || 'Unnamed Task';
-                                  onOpenStepDetail(actualStep, stageData.id, taskData.id, stageName, taskName, 'comments');
-                                }
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </CardWithEdit>
-                    </div>
-                  )}
+                        </CardWithEdit>
+                      </div>
+                    );
+                  })()}
                 </td>
               );
             })}

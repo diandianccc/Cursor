@@ -11,7 +11,7 @@ const AddStepPanel = ({
   stageId, 
   taskId, 
   stageName, 
-  taskName, 
+  taskName,
   jobPerformers 
 }) => {
   const [description, setDescription] = useState('');

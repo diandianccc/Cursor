@@ -77,11 +77,9 @@ const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentVi
 
   // Get border classes - only apply border-l-4 when no job performers assigned
   const getBorderClasses = () => {
-    if (performerColors.length === 0 && !primaryPerformer) {
+    if (assignedJobPerformers.length === 0) {
       return 'border-l-4 border-gray-300'; // Gray border when no performers
-    } else if (performerColors.length === 0 && primaryPerformer) {
-      return `border-l-4 ${primaryPerformer.color} ${primaryPerformer.borderColor}`; // Single performer legacy styling
-    } else if (performerColors.length === 1) {
+    } else if (assignedJobPerformers.length === 1) {
       return 'border-l-4'; // Single performer with custom color
     }
     // Multiple performers - no border class, CSS will handle it
@@ -93,7 +91,10 @@ const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentVi
     <div
       className={`bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer h-full flex flex-col relative ${highlightClasses} ${getMultiPerformerClass()} ${getBorderClasses()}`}
       style={{
-        ...(performerColors.length > 0 ? getBorderStyle() : (customStyles.borderLeftColor ? { borderLeftColor: customStyles.borderLeftColor } : {})),
+        ...(assignedJobPerformers.length === 1 ? { 
+          borderLeftColor: assignedJobPerformers[0]?.hexColor || assignedJobPerformers[0]?.hex_color || assignedJobPerformers[0]?.color || '#6B7280',
+          borderLeftWidth: '4px'
+        } : {}),
         ...getMultiPerformerCSSVars()
       }}
       onClick={() => {

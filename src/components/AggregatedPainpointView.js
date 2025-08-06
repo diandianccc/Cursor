@@ -30,7 +30,8 @@ const AggregatedPainpointView = ({
   onRemoveCurrentExperience,
   onUpdateCurrentExperience,
   onSaveEditChanges,
-  jobPerformers = []
+  jobPerformers = [],
+  selectedPerformerFilters = []
 }) => {
   const [highlightedItems, setHighlightedItems] = useState({ 
     stepId: null, 
@@ -42,6 +43,34 @@ const AggregatedPainpointView = ({
   const [connectorLines, setConnectorLines] = useState([]);
   const cardRefs = useRef({});
   const containerRef = useRef(null);
+  
+  // Helper function to check if a step should be visible based on filters
+  const shouldShowStep = (step) => {
+    // If no filters are selected, show all steps
+    if (selectedPerformerFilters.length === 0) {
+      return true;
+    }
+    
+    // Handle both old (single personaId) and new (multiple jobPerformerIds) data structures
+    let assignedJobPerformers = [];
+    if (step.jobPerformerIds && Array.isArray(step.jobPerformerIds)) {
+      assignedJobPerformers = getJobPerformersByIds(step.jobPerformerIds);
+    } else if (step.personaId) {
+      const singlePerformer = getPersonaByIdSync(step.personaId);
+      assignedJobPerformers = singlePerformer ? [singlePerformer] : [];
+    }
+    
+    // Check if step has no performers and "unassigned" filter is selected
+    if (assignedJobPerformers.length === 0) {
+      return selectedPerformerFilters.includes('unassigned');
+    }
+    
+    // Check if any of the step's performers are in the selected filters
+    return assignedJobPerformers.some(performer => 
+      selectedPerformerFilters.includes(performer.id)
+    );
+  };
+  
   // Collect all steps as individual columns, organize by stage and task
   const allSteps = [];
   const taskSpans = []; // Track which columns each task spans
@@ -55,12 +84,14 @@ const AggregatedPainpointView = ({
       stage.tasks.forEach((task, taskIndex) => {
         const taskStartIndex = allSteps.length;
         
-        // Handle tasks with no steps
-        if (task.steps.length === 0) {
-          // Create a placeholder step for empty tasks
+        // Handle tasks with no steps or no visible steps due to filtering
+        const visibleSteps = task.steps.filter(shouldShowStep);
+        
+        if (task.steps.length === 0 || visibleSteps.length === 0) {
+          // Create a placeholder step for empty tasks or tasks with no visible steps
           allSteps.push({
             id: `empty-${task.id}`,
-            description: '',
+            description: task.steps.length === 0 ? '' : 'No steps match current filters',
             painPoints: [],
             opportunities: [],
             persona: null,
@@ -68,7 +99,8 @@ const AggregatedPainpointView = ({
             taskId: task.id,
             stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
             taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task',
-            isEmpty: true
+            isEmpty: true,
+            isFiltered: task.steps.length > 0 && visibleSteps.length === 0
           });
           stageTotalSteps += 1;
           
@@ -79,8 +111,9 @@ const AggregatedPainpointView = ({
             span: 1
           });
         } else {
-                    // Add each step as its own column
-          task.steps.forEach((step, stepIndex) => {
+                    // Add each step as its own column (but only if it should be visible)
+          
+          visibleSteps.forEach((step, stepIndex) => {
             // Handle both old (single personaId) and new (multiple jobPerformerIds) data structures
             let assignedJobPerformers = [];
             if (step.jobPerformerIds && Array.isArray(step.jobPerformerIds)) {
@@ -103,23 +136,28 @@ const AggregatedPainpointView = ({
             });
           });
           
-          stageTotalSteps += task.steps.length;
+          stageTotalSteps += visibleSteps.length;
           
-          taskSpans.push({
-            taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task',
-            taskId: task.id,
-            startIndex: taskStartIndex,
-            span: task.steps.length
-          });
+          // Only add task span if there are visible steps
+          if (visibleSteps.length > 0) {
+            taskSpans.push({
+              taskName: typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task',
+              taskId: task.id,
+              startIndex: taskStartIndex,
+              span: visibleSteps.length
+            });
+          }
         }
       });
 
-      // Record the span for this stage
-      stageSpans.push({
-        stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
-        startIndex: stageStartIndex,
-        span: stageTotalSteps
-      });
+      // Record the span for this stage (only if it has visible content)
+      if (stageTotalSteps > 0) {
+        stageSpans.push({
+          stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
+          startIndex: stageStartIndex,
+          span: stageTotalSteps
+        });
+      }
     }
   });
 
@@ -303,6 +341,21 @@ const AggregatedPainpointView = ({
 
   return (
     <>
+      {/* Filter Status */}
+      {selectedPerformerFilters.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            <span className="text-sm text-blue-800">
+              Showing steps for {selectedPerformerFilters.length} selected job performer{selectedPerformerFilters.length === 1 ? '' : 's'}
+              {allSteps.length === 0 && ' (no matching steps found)'}
+            </span>
+          </div>
+        </div>
+      )}
+      
       <div 
         ref={containerRef}
         className="bg-white p-4 relative w-full min-h-full"
@@ -417,22 +470,30 @@ const AggregatedPainpointView = ({
                 let className = 'bg-indigo-100 rounded-lg p-4 shadow-sm hover:shadow-md transition-all relative';
                 let style = {};
 
-                if (!step.performerColors || step.performerColors.length === 0) {
-                  className += ' border-l-4 border-gray-300'; // Default gray border
-                } else if (step.performerColors.length === 1) {
-                  className += ' border-l-4'; // Single performer with custom color
-                  style.borderLeftColor = step.performerColors[0];
+                // Check if step has any job performers assigned
+                const hasJobPerformers = step.assignedJobPerformers && step.assignedJobPerformers.length > 0;
+                
+                if (!hasJobPerformers) {
+                  // No job performers assigned - gray border
+                  className += ' border-l-4 border-gray-300';
+                } else if (step.assignedJobPerformers.length === 1) {
+                  // Single job performer - use their color
+                  className += ' border-l-4';
+                  const performer = step.assignedJobPerformers[0];
+                  const hexColor = performer.hexColor || performer.hex_color || performer.color;
+                  style.borderLeftColor = hexColor || '#6B7280';
                   style.borderLeftWidth = '4px';
                 } else {
                   // Multiple performers - use CSS class and stripes
                   className += ' step-multi-performer';
                   const stripesCSS = [];
-                  const stripeHeight = 100 / step.performerColors.length;
+                  const stripeHeight = 100 / step.assignedJobPerformers.length;
                   
-                  step.performerColors.forEach((color, index) => {
+                  step.assignedJobPerformers.forEach((performer, index) => {
+                    const hexColor = performer.hexColor || performer.hex_color || performer.color || '#6B7280';
                     const start = index * stripeHeight;
                     const end = (index + 1) * stripeHeight;
-                    stripesCSS.push(`${color} ${start}%, ${color} ${end}%`);
+                    stripesCSS.push(`${hexColor} ${start}%, ${hexColor} ${end}%`);
                   });
                   
                   style['--performer-stripes'] = `linear-gradient(to bottom, ${stripesCSS.join(', ')})`;
@@ -448,7 +509,27 @@ const AggregatedPainpointView = ({
                   key={`step-${step.stepId || step.id}`} 
                   className="w-64 align-top"
                 >
-                  {!step.isEmpty && (
+                  {step.isEmpty ? (
+                    <div className={`rounded-lg p-4 text-center ${step.isFiltered ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50 border border-gray-200'}`}>
+                      <div className="text-gray-400 text-sm">
+                        {step.isFiltered ? (
+                          <>
+                            <svg className="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                            </svg>
+                            <p className="text-xs">Filtered out</p>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <p className="text-xs">No steps</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
                     <div 
                       ref={el => cardRefs.current[stepRefKey] = el}
                     >

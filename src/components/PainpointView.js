@@ -69,17 +69,20 @@ const PainpointView = ({ task, onPainpointClick }) => {
               
               // Get border style for multiple performers
               const getBorderStyle = () => {
-                if (performerColors.length === 0) return {};
-                if (performerColors.length === 1) {
-                  return { borderLeftColor: performerColors[0], borderLeftWidth: '4px' };
+                if (assignedJobPerformers.length === 0) return {};
+                if (assignedJobPerformers.length === 1) {
+                  const performer = assignedJobPerformers[0];
+                  const hexColor = performer.hexColor || performer.hex_color || performer.color || '#6B7280';
+                  return { borderLeftColor: hexColor, borderLeftWidth: '4px' };
                 }
                 // For multiple performers, create gradient stripes
                 const stripesCSS = [];
-                const stripeHeight = 100 / performerColors.length;
-                performerColors.forEach((color, index) => {
+                const stripeHeight = 100 / assignedJobPerformers.length;
+                assignedJobPerformers.forEach((performer, index) => {
+                  const hexColor = performer.hexColor || performer.hex_color || performer.color || '#6B7280';
                   const start = index * stripeHeight;
                   const end = (index + 1) * stripeHeight;
-                  stripesCSS.push(`${color} ${start}%, ${color} ${end}%`);
+                  stripesCSS.push(`${hexColor} ${start}%, ${hexColor} ${end}%`);
                 });
                 return {
                   borderLeft: `4px solid transparent`,
@@ -91,8 +94,10 @@ const PainpointView = ({ task, onPainpointClick }) => {
               
               // Get border classes for fallback
               const getBorderClasses = () => {
-                if (performerColors.length > 0) return 'border-l-4';
-                return customStyles.borderLeftColor ? 'border-l-4' : 'border-l-4 border-gray-300';
+                if (assignedJobPerformers.length === 0) {
+                  return 'border-l-4 border-gray-300';
+                }
+                return 'border-l-4';
               };
               
               return (

@@ -51,6 +51,7 @@ const JourneyMap = ({
   const [isAddStageModalOpen, setIsAddStageModalOpen] = useState(false);
   const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
   const [isJobPerformerManagerOpen, setIsJobPerformerManagerOpen] = useState(false);
+  const [selectedPerformerFilters, setSelectedPerformerFilters] = useState([]);
 
   // Initialize zoom and pan functionality
   const {
@@ -116,7 +117,11 @@ const JourneyMap = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-medium text-gray-800">{terminology.stages}</h2>
-          <JobPerformerLegend jobPerformers={jobPerformers || []} />
+          <JobPerformerLegend 
+            jobPerformers={jobPerformers || []} 
+            selectedFilters={selectedPerformerFilters}
+            onFilterChange={setSelectedPerformerFilters}
+          />
         </div>
         <div className="flex items-center gap-2">
           {currentView === 'painpoint' && (
@@ -219,6 +224,7 @@ const JourneyMap = ({
                 onUpdateCurrentExperience={onUpdateCurrentExperience}
                 onSaveEditChanges={onSaveEditChanges}
                 jobPerformers={jobPerformers}
+                selectedPerformerFilters={selectedPerformerFilters}
               />
               </div>
             </DragDropContext>

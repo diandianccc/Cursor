@@ -516,9 +516,9 @@ const AggregatedPainpointView = ({
                               }}
                             />
                           </div>
-                        </CardWithEdit>
-                      </div>
-                    )
+                        </div>
+                      </CardWithEdit>
+                    </div>
                   )}
                 </td>
               );

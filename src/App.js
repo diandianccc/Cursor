@@ -19,7 +19,6 @@ import {
   subscribeToJourneyMaps,
   updateJourneyMapStages, 
   updateJourneyMapName,
-  createJourneyMap,
   resetAllData,
   trackStageChange,
   trackTaskChange,
@@ -359,7 +358,7 @@ function App() {
     };
   }, []);
 
-  // Initialize with default journey map or load existing one
+  // Initialize with last viewed journey map or show selector
   const initializeDefaultJourneyMap = async () => {
     try {
       // Check if we have a saved journey map ID
@@ -367,52 +366,57 @@ function App() {
       let mapName = localStorage.getItem('currentJourneyMapName');
       let mapType = localStorage.getItem('currentJourneyMapType') || MAP_TYPES.USER_JOURNEY;
       
-      // If saved ID looks like a UUID, clear localStorage and start fresh
+      // If saved ID looks like a UUID, clear localStorage and show selector
       if (mapId && (mapId.includes('-') || mapId.length > 10)) {
-        console.log('🔄 App: Clearing UUID-based localStorage, migrating to integer IDs');
+        console.log('🔄 App: Clearing UUID-based localStorage, showing selector');
         localStorage.removeItem('currentJourneyMapId');
         localStorage.removeItem('currentJourneyMapName');
         localStorage.removeItem('currentJourneyMapType');
-        mapId = null; // Force creation of new journey map
+        mapId = null;
       }
       
       if (mapId) {
-        // Use existing saved journey map (integer ID)
+        // Verify the saved journey map still exists
         const parsedMapId = parseInt(mapId, 10);
         if (!isNaN(parsedMapId)) {
-          setJourneyMapId(parsedMapId);
-          setJourneyMapName(mapName || 'My Journey Map');
-          setJourneyMapType(mapType);
-          setLoading(false);
+          console.log('🔄 App: Checking if saved journey map exists:', parsedMapId);
+          
+          // Get all journey maps to verify the saved one still exists
+          const unsubscribeFromMaps = subscribeToJourneyMaps((maps) => {
+            unsubscribeFromMaps(); // Unsubscribe immediately after getting the data
+            
+            const savedMapExists = maps.find(map => map.id === parsedMapId);
+            
+            if (savedMapExists) {
+              // Saved journey map still exists, use it
+              console.log('✅ App: Saved journey map found, loading:', savedMapExists.name);
+              setJourneyMapId(parsedMapId);
+              setJourneyMapName(mapName || savedMapExists.name);
+              setJourneyMapType(mapType);
+              setLoading(false);
+            } else {
+              // Saved journey map was deleted, clear localStorage and show selector
+              console.log('❌ App: Saved journey map no longer exists, showing selector');
+              localStorage.removeItem('currentJourneyMapId');
+              localStorage.removeItem('currentJourneyMapName');
+              localStorage.removeItem('currentJourneyMapType');
+              setShowSelector(true);
+              setLoading(false);
+            }
+          });
           return;
         }
       }
 
-      // No saved journey map, check if any journey maps exist
-      const unsubscribeFromMaps = subscribeToJourneyMaps((maps) => {
-        unsubscribeFromMaps(); // Unsubscribe immediately after getting the data
-        
-        if (maps.length > 0) {
-          // Use the most recent journey map
-          const mostRecent = maps[0]; // Already sorted by last_modified desc
-          setJourneyMapId(mostRecent.id);
-          setJourneyMapName(mostRecent.name);
-          setJourneyMapType(MAP_TYPES.USER_JOURNEY); // TODO: Use mostRecent.map_type when column exists
-          
-          // Save to localStorage
-          localStorage.setItem('currentJourneyMapId', mostRecent.id);
-          localStorage.setItem('currentJourneyMapName', mostRecent.name);
-          localStorage.setItem('currentJourneyMapType', MAP_TYPES.USER_JOURNEY);
-        } else {
-          // No journey maps exist, show the selector instead of auto-creating
-          console.log('🔄 App: No journey maps found, showing selector');
-          setShowSelector(true);
-        }
-        setLoading(false);
-      });
+      // No saved journey map, show the selector (don't auto-select any journey map)
+      console.log('🔄 App: No saved journey map, showing selector');
+      setShowSelector(true);
+      setLoading(false);
       
     } catch (error) {
       console.error('Failed to initialize journey map:', error);
+      // On error, show selector instead of leaving user in broken state
+      setShowSelector(true);
       setLoading(false);
     }
   };

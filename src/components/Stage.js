@@ -16,7 +16,8 @@ const Stage = ({
   onUpdateStep, 
   onDeleteStep,
   onSwitchToStepView,
-  onOpenStepDetail
+  onOpenStepDetail,
+  onOpenAddStepPanel
 }) => {
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
   const [isEditStageModalOpen, setIsEditStageModalOpen] = useState(false);
@@ -75,6 +76,7 @@ const Stage = ({
             onDeleteStep={onDeleteStep}
             onSwitchToStepView={onSwitchToStepView}
             onOpenStepDetail={onOpenStepDetail}
+            onOpenAddStepPanel={onOpenAddStepPanel}
           />
         ))}
         

@@ -9,8 +9,18 @@ const JOB_PERFORMERS_TABLE = 'job_performers';
 // Create version history entry
 const createVersionHistory = async (journeyMapId, changeType, changeDetails, previousData = null, newData = null) => {
   try {
+    console.log('🔄 journeyService: Creating version history');
+    console.log('🔄 journeyService: journeyMapId for version:', journeyMapId, 'type:', typeof journeyMapId);
+    
+    // Ensure journeyMapId is proper type for database
+    const sanitizedJourneyMapId = parseInt(journeyMapId, 10);
+    if (isNaN(sanitizedJourneyMapId)) {
+      console.warn('⚠️ journeyService: Invalid journeyMapId for version history, skipping:', journeyMapId);
+      return; // Skip version history if ID is invalid
+    }
+    
     const versionEntry = {
-      journey_map_id: journeyMapId,
+      journey_map_id: sanitizedJourneyMapId, // Ensure it's an integer
       change_type: changeType,
       change_details: changeDetails,
       previous_data: previousData,
@@ -18,17 +28,23 @@ const createVersionHistory = async (journeyMapId, changeType, changeDetails, pre
       timestamp: new Date().toISOString()
     };
 
+    console.log('🔄 journeyService: Version entry:', JSON.stringify(versionEntry, null, 2));
+
     const { error } = await supabase
       .from(VERSION_HISTORY_TABLE)
       .insert([versionEntry]);
 
     if (error) {
-      console.error('Error creating version history:', error);
-      console.error('Version history error details:', JSON.stringify(error, null, 2));
+      console.error('❌ journeyService: Error creating version history:', error);
+      console.error('❌ journeyService: Version history error details:', JSON.stringify(error, null, 2));
+      // Don't throw error for version history - it's not critical for main functionality
+    } else {
+      console.log('✅ journeyService: Version history created successfully');
     }
   } catch (error) {
-    console.error('Error in createVersionHistory:', error);
-    console.error('Exception details:', JSON.stringify(error, null, 2));
+    console.error('❌ journeyService: Exception in createVersionHistory:', error);
+    console.error('❌ journeyService: Exception details:', JSON.stringify(error, null, 2));
+    // Don't throw error for version history - it's not critical for main functionality
   }
 };
 
@@ -135,18 +151,53 @@ export const createJourneyMap = async (name = 'My Journey Map', mapType = 'user_
 // Update journey map stages with version tracking
 export const updateJourneyMapStages = async (journeyMapId, stages, changeDetails = 'Stages updated') => {
   try {
+    console.log('🔄 journeyService: updateJourneyMapStages called');
+    console.log('🔄 journeyService: journeyMapId:', journeyMapId, 'type:', typeof journeyMapId);
+    console.log('🔄 journeyService: stages:', JSON.stringify(stages, null, 2));
+    
+    // Validate journeyMapId
+    if (!journeyMapId || (typeof journeyMapId !== 'string' && typeof journeyMapId !== 'number')) {
+      throw new Error(`Invalid journeyMapId: ${journeyMapId} (type: ${typeof journeyMapId})`);
+    }
+    
+    // Sanitize stages data to ensure proper types
+    const sanitizedStages = stages.map(stage => ({
+      ...stage,
+      id: String(stage.id), // Ensure ID is string
+      tasks: stage.tasks.map(task => ({
+        ...task,
+        id: String(task.id), // Ensure ID is string
+        steps: task.steps.map(step => ({
+          ...step,
+          id: String(step.id), // Ensure ID is string
+          personaId: step.personaId ? String(step.personaId) : null,
+          painPoints: Array.isArray(step.painPoints) ? step.painPoints : [],
+          opportunities: Array.isArray(step.opportunities) ? step.opportunities : [],
+          currentExperiences: Array.isArray(step.currentExperiences) ? step.currentExperiences : [],
+          insights: step.insights || ''
+        }))
+      }))
+    }));
+    
+    console.log('🔄 journeyService: sanitizedStages:', JSON.stringify(sanitizedStages, null, 2));
+    
     // Get current data for version history
     const currentData = await getJourneyMap(journeyMapId);
     
     const { error } = await supabase
       .from(TABLE_NAME)
       .update({
-        stages,
+        stages: sanitizedStages,
         last_modified: new Date().toISOString()
       })
       .eq('id', journeyMapId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ journeyService: Supabase error:', error);
+      throw error;
+    }
+    
+    console.log('✅ journeyService: Stages updated successfully');
     
     // Create version history entry
     await createVersionHistory(
@@ -154,16 +205,17 @@ export const updateJourneyMapStages = async (journeyMapId, stages, changeDetails
       'stages_updated', 
       changeDetails,
       currentData?.stages,
-      stages
+      sanitizedStages
     );
   } catch (error) {
-    console.error('Error updating journey map:', error);
-    console.error('Error details:', JSON.stringify(error, null, 2));
+    console.error('❌ journeyService: Error updating journey map:', error);
+    console.error('❌ journeyService: Error details:', JSON.stringify(error, null, 2));
     
     // Create a more informative error
     const enhancedError = new Error(
       error.message || 
       error.error_description || 
+      error.hint ||
       `Database error: ${JSON.stringify(error)}`
     );
     enhancedError.originalError = error;
@@ -231,13 +283,34 @@ export const deleteJourneyMap = async (journeyMapId) => {
 // Get a specific journey map
 export const getJourneyMap = async (journeyMapId) => {
   try {
+    console.log('🔄 journeyService: getJourneyMap called with:', journeyMapId, 'type:', typeof journeyMapId);
+    
+    // Try to parse as integer first (for numeric IDs)
+    const parsedId = parseInt(journeyMapId, 10);
+    let queryId = journeyMapId;
+    
+    // If it's a valid integer, use it as integer
+    if (!isNaN(parsedId) && parsedId.toString() === journeyMapId.toString()) {
+      queryId = parsedId;
+      console.log('🔄 journeyService: Using integer ID:', queryId);
+    } else {
+      // It's a UUID string, use it directly
+      console.log('🔄 journeyService: Using UUID string directly:', queryId);
+      queryId = journeyMapId; // Use the original UUID string
+    }
+
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .select('*')
-      .eq('id', journeyMapId)
+      .eq('id', queryId)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ journeyService: Database error:', error);
+      throw error;
+    }
+    
+    console.log('✅ journeyService: Retrieved journey map:', data);
     return data;
   } catch (error) {
     console.error('Error getting journey map:', error);

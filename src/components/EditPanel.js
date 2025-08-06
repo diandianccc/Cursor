@@ -3,6 +3,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { PERSONAS } from '../constants/personas';
 import { getPersonaByIdSync, getJobPerformerStyles } from '../services/jobPerformerService';
 
+
 const EditPanel = ({
   editPanel,
   editablePainPoints,
@@ -29,6 +30,7 @@ const EditPanel = ({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [stepDescription, setStepDescription] = useState('');
   const [stepPersonaId, setStepPersonaId] = useState('');
+
 
   // Initialize step description and persona when panel opens or changes
   React.useEffect(() => {
@@ -107,7 +109,7 @@ const EditPanel = ({
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">Edit Journey Details</h2>
+              <h2 className="text-2xl font-bold">Edit Step</h2>
               <p className="text-blue-100 mt-1">
                 {typeof editPanel.editData?.stage?.name === 'string' ? editPanel.editData.stage.name : editPanel.editData?.stage?.name?.name || 'Unnamed Stage'} → {typeof editPanel.editData?.task?.name === 'string' ? editPanel.editData.task.name : editPanel.editData?.task?.name?.name || 'Unnamed Task'}
               </p>
@@ -170,8 +172,11 @@ const EditPanel = ({
           </div>
         </div>
 
+
+
         {/* Content - Scrollable */}
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
+          {/* Step Details */}
           {editPanel.editData && (
             <>
               {/* Step Section */}
@@ -493,6 +498,8 @@ const EditPanel = ({
               </div>
             </>
           )}
+
+
         </div>
 
         {/* Sticky Footer with Save/Cancel */}

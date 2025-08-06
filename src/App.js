@@ -7,9 +7,11 @@ import LoadingSpinner from './components/LoadingSpinner';
 import EditableTitle from './components/EditableTitle';
 import StepDetailPanel from './components/StepDetailPanel';
 import EditPanel from './components/EditPanel';
+import AddStepPanel from './components/AddStepPanel';
 import { initializeJobPerformers, updatePersonasArray, getAllJobPerformers } from './services/jobPerformerService';
 import { subscribeToJobPerformers } from './firebase/journeyService';
 import { getTerminology, MAP_TYPES } from './constants/mapTypes';
+
 
 // Supabase imports
 import { 
@@ -57,6 +59,15 @@ function App() {
     taskName: ''
   });
 
+  // Add step panel state management
+  const [addStepPanel, setAddStepPanel] = useState({
+    isOpen: false,
+    stageId: null,
+    taskId: null,
+    stageName: '',
+    taskName: ''
+  });
+
   // Edit panel state management for painpoint view
   const [editPanel, setEditPanel] = useState({
     isOpen: false,
@@ -73,14 +84,15 @@ function App() {
   const [editableInsights, setEditableInsights] = useState([]);
 
   // Side panel functions
-  const openStepDetailPanel = (step, stageId, taskId, stageName, taskName) => {
+  const openStepDetailPanel = (step, stageId, taskId, stageName, taskName, defaultTab = 'details') => {
     setStepDetailPanel({
       isOpen: true,
       step,
       stageId,
       taskId,
       stageName,
-      taskName
+      taskName,
+      defaultTab
     });
   };
 
@@ -88,6 +100,27 @@ function App() {
     setStepDetailPanel({
       isOpen: false,
       step: null,
+      stageId: null,
+      taskId: null,
+      stageName: '',
+      taskName: ''
+    });
+  };
+
+  // Add step panel functions
+  const openAddStepPanel = (stageId, taskId, stageName, taskName) => {
+    setAddStepPanel({
+      isOpen: true,
+      stageId,
+      taskId,
+      stageName,
+      taskName
+    });
+  };
+
+  const closeAddStepPanel = () => {
+    setAddStepPanel({
+      isOpen: false,
       stageId: null,
       taskId: null,
       stageName: '',
@@ -258,6 +291,8 @@ function App() {
           console.error('Failed to initialize job performers:', error);
         }
         
+
+        
         await initializeDefaultJourneyMap();
       } else {
         // Sign in anonymously
@@ -300,13 +335,25 @@ function App() {
       let mapName = localStorage.getItem('currentJourneyMapName');
       let mapType = localStorage.getItem('currentJourneyMapType') || MAP_TYPES.USER_JOURNEY;
       
+      // If saved ID looks like a UUID, clear localStorage and start fresh
+      if (mapId && (mapId.includes('-') || mapId.length > 10)) {
+        console.log('🔄 App: Clearing UUID-based localStorage, migrating to integer IDs');
+        localStorage.removeItem('currentJourneyMapId');
+        localStorage.removeItem('currentJourneyMapName');
+        localStorage.removeItem('currentJourneyMapType');
+        mapId = null; // Force creation of new journey map
+      }
+      
       if (mapId) {
-        // Use existing saved journey map
-        setJourneyMapId(mapId);
-        setJourneyMapName(mapName || 'My Journey Map');
-        setJourneyMapType(mapType);
-        setLoading(false);
-        return;
+        // Use existing saved journey map (integer ID)
+        const parsedMapId = parseInt(mapId, 10);
+        if (!isNaN(parsedMapId)) {
+          setJourneyMapId(parsedMapId);
+          setJourneyMapName(mapName || 'My Journey Map');
+          setJourneyMapType(mapType);
+          setLoading(false);
+          return;
+        }
       }
 
       // No saved journey map, check if any journey maps exist
@@ -325,8 +372,9 @@ function App() {
           localStorage.setItem('currentJourneyMapName', mostRecent.name);
           localStorage.setItem('currentJourneyMapType', MAP_TYPES.USER_JOURNEY);
         } else {
-          // No journey maps exist, create a default one
-          createDefaultJourneyMap();
+          // No journey maps exist, show the selector instead of auto-creating
+          console.log('🔄 App: No journey maps found, showing selector');
+          setShowSelector(true);
         }
         setLoading(false);
       });
@@ -337,22 +385,7 @@ function App() {
     }
   };
 
-  // Create the default journey map
-  const createDefaultJourneyMap = async () => {
-    try {
-      const mapId = await createJourneyMap('My Journey Map', MAP_TYPES.USER_JOURNEY);
-      setJourneyMapId(mapId);
-      setJourneyMapName('My Journey Map');
-      setJourneyMapType(MAP_TYPES.USER_JOURNEY);
-      
-      // Save to localStorage
-      localStorage.setItem('currentJourneyMapId', mapId);
-      localStorage.setItem('currentJourneyMapName', 'My Journey Map');
-      localStorage.setItem('currentJourneyMapType', MAP_TYPES.USER_JOURNEY);
-    } catch (error) {
-      console.error('Failed to create default journey map:', error);
-    }
-  };
+  // Removed createDefaultJourneyMap - now showing selector instead of auto-creating
 
   // Subscribe to journey map changes
   useEffect(() => {
@@ -438,11 +471,15 @@ function App() {
     }
     
     try {
-      console.log('Saving stages to journey map:', journeyMapId, newStages);
+      console.log('🔄 App: Saving stages to journey map:', journeyMapId);
+      console.log('🔄 App: Change details:', changeDetails);
+      console.log('🔄 App: Stages data being saved:', JSON.stringify(newStages, null, 2));
+      
       await updateJourneyMapStages(journeyMapId, newStages, changeDetails);
-      console.log('✅ Stages saved successfully!');
+      console.log('✅ App: Stages saved successfully!');
     } catch (error) {
-      console.error('❌ Failed to update stages:', error);
+      console.error('❌ App: Failed to update stages:', error);
+      console.error('❌ App: Error details:', JSON.stringify(error, null, 2));
       
       // Better error message handling
       let errorMessage = 'Unknown error occurred';
@@ -453,11 +490,18 @@ function App() {
           errorMessage = error.error_description;
         } else if (error.details) {
           errorMessage = error.details;
+        } else if (error.hint) {
+          errorMessage = error.hint;
         } else {
           errorMessage = JSON.stringify(error, null, 2);
         }
       } else if (typeof error === 'string') {
         errorMessage = error;
+      }
+      
+      // Check for specific error types
+      if (errorMessage.includes('invalid input syntax for type integer')) {
+        errorMessage = 'Data type validation error: One of the fields contains invalid data format. Please check your input values.';
       }
       
       alert(`Failed to save changes: ${errorMessage}\n\nCheck the console for full details.`);
@@ -557,25 +601,53 @@ function App() {
   };
 
   const addStep = async (stageId, taskId, stepData) => {
-    const terminology = getTerminology(journeyMapType);
-    const newStep = { ...stepData, id: uuidv4() };
-    const newStages = stages.map(stage => 
-      stage.id === stageId 
-        ? { 
-            ...stage, 
-            tasks: stage.tasks.map(task => 
-              task.id === taskId 
-                ? { ...task, steps: [...task.steps, newStep] }
-                : task
-            ) 
-          }
-        : stage
-    );
-    setStages(newStages);
-    
-    // Track the change
-    await trackStepChange(journeyMapId, 'added', newStep, `Added ${terminology.step.toLowerCase()}: "${stepData.description || 'New step'}"`);
-    await updateStagesInFirebase(newStages, `Added ${terminology.step.toLowerCase()}: "${stepData.description || 'New step'}"`);
+    try {
+      console.log('🔧 App: Adding step with data:', stepData);
+      console.log('🔧 App: Stage ID:', stageId, 'Task ID:', taskId);
+      
+      const terminology = getTerminology(journeyMapType);
+      const newStepId = uuidv4();
+      
+      // Ensure step data has proper structure
+      const newStep = { 
+        id: newStepId,
+        description: stepData.description || '',
+        personaId: stepData.personaId || null,
+        painPoints: Array.isArray(stepData.painPoints) ? stepData.painPoints : [],
+        opportunities: Array.isArray(stepData.opportunities) ? stepData.opportunities : [],
+        currentExperiences: Array.isArray(stepData.currentExperiences) ? stepData.currentExperiences : [],
+        insights: stepData.insights || ''
+      };
+      
+      console.log('🔧 App: Created new step:', newStep);
+      
+      const newStages = stages.map(stage => 
+        stage.id === stageId 
+          ? { 
+              ...stage, 
+              tasks: stage.tasks.map(task => 
+                task.id === taskId 
+                  ? { ...task, steps: [...task.steps, newStep] }
+                  : task
+              ) 
+            }
+          : stage
+      );
+      
+      console.log('🔧 App: New stages structure:', newStages);
+      
+      setStages(newStages);
+      
+      // Track the change
+      await trackStepChange(journeyMapId, 'added', newStep, `Added ${terminology.step.toLowerCase()}: "${stepData.description || 'New step'}"`);
+      await updateStagesInFirebase(newStages, `Added ${terminology.step.toLowerCase()}: "${stepData.description || 'New step'}"`);
+      
+      console.log('✅ App: Step added successfully');
+    } catch (error) {
+      console.error('❌ App: Error adding step:', error);
+      alert('Failed to add step. Please check the console for details.');
+      throw error;
+    }
   };
 
   const updateStep = async (stageId, taskId, stepId, stepData) => {
@@ -781,6 +853,7 @@ function App() {
           onImportData={handleImportData}
           onOpenStepDetail={openStepDetailPanel}
           onOpenEditPanel={openEditPanel}
+          onOpenAddStepPanel={openAddStepPanel}
           editPanel={editPanel}
           editablePainPoints={editablePainPoints}
           editableOpportunities={editableOpportunities}
@@ -814,6 +887,7 @@ function App() {
         onDeleteStep={deleteStep}
         onDeleteTask={deleteTask}
         onDeleteStage={deleteStage}
+        defaultTab={stepDetailPanel.defaultTab}
       />
       
       <EditPanel
@@ -840,6 +914,17 @@ function App() {
         onDeleteStep={deleteStep}
         onDeleteTask={deleteTask}
         onDeleteStage={deleteStage}
+      />
+      
+      <AddStepPanel
+        isOpen={addStepPanel.isOpen}
+        onClose={closeAddStepPanel}
+        onAdd={(stepData) => addStep(addStepPanel.stageId, addStepPanel.taskId, stepData)}
+        stageId={addStepPanel.stageId}
+        taskId={addStepPanel.taskId}
+        stageName={addStepPanel.stageName}
+        taskName={addStepPanel.taskName}
+        jobPerformers={jobPerformers}
       />
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Droppable } from 'react-beautiful-dnd';
 import StepCard from './StepCard';
-import AddStepModal from './AddStepModal';
+
 import EditTaskModal from './EditTaskModal';
 import EditableTitle from './EditableTitle';
 
@@ -16,9 +16,9 @@ const Task = ({
   onUpdateStep, 
   onDeleteStep,
   onSwitchToStepView,
-  onOpenStepDetail
+  onOpenStepDetail,
+  onOpenAddStepPanel
 }) => {
-  const [isAddStepModalOpen, setIsAddStepModalOpen] = useState(false);
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
   const [highlightedStepId, setHighlightedStepId] = useState(null);
 
@@ -73,7 +73,7 @@ const Task = ({
         <div className="flex items-center gap-2">
           {currentView === 'step' && (
             <button
-              onClick={() => setIsAddStepModalOpen(true)}
+              onClick={() => onOpenAddStepPanel(stageId, task.id, stageName, typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task')}
               className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-md transition-colors"
               title="Add new step"
             >
@@ -97,12 +97,6 @@ const Task = ({
       <div className="flex-1">
         {renderTaskContent()}
       </div>
-
-      <AddStepModal
-        isOpen={isAddStepModalOpen}
-        onClose={() => setIsAddStepModalOpen(false)}
-        onAdd={(stepData) => onAddStep(stageId, task.id, stepData)}
-      />
 
       <EditTaskModal
         isOpen={isEditTaskModalOpen}

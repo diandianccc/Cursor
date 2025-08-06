@@ -31,6 +31,7 @@ const JourneyMap = ({
   onImportData,
   onOpenStepDetail,
   onOpenEditPanel,
+  onOpenAddStepPanel,
   editPanel,
   editablePainPoints,
   editableOpportunities,
@@ -171,6 +172,7 @@ const JourneyMap = ({
                   onDeleteStep={onDeleteStep}
                   onSwitchToStepView={onSwitchToStepView}
                   onOpenStepDetail={onOpenStepDetail}
+                  onOpenAddStepPanel={onOpenAddStepPanel}
                 />
               ))}
               

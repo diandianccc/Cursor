@@ -41,16 +41,24 @@ const AddStepModal = ({ isOpen, onClose, onAdd }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (description.trim()) {
-      const stepData = {
-        description: description.trim(),
-        personaId,
-        painPoints: painPoints.split('.').map(p => p.trim()).filter(p => p),
-        opportunities: opportunities.split('.').map(o => o.trim()).filter(o => o),
-        insights: insights.trim()
-      };
-      onAdd(stepData);
-      resetForm();
-      onClose();
+      try {
+        const stepData = {
+          description: description.trim(),
+          personaId: personaId || null,
+          painPoints: painPoints ? painPoints.split('.').map(p => p.trim()).filter(p => p) : [],
+          opportunities: opportunities ? opportunities.split('.').map(o => o.trim()).filter(o => o) : [],
+          currentExperiences: [], // Initialize empty array for currentExperiences
+          insights: insights.trim() || ''
+        };
+        
+        console.log('🔧 AddStepModal: Creating step with data:', stepData);
+        onAdd(stepData);
+        resetForm();
+        onClose();
+      } catch (error) {
+        console.error('Error creating step:', error);
+        alert('Failed to create step. Please check the console for details.');
+      }
     }
   };
 

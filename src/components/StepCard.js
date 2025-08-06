@@ -3,6 +3,7 @@ import { Draggable } from 'react-beautiful-dnd';
 import { getPersonaByIdSync, getJobPerformerStyles } from '../services/jobPerformerService';
 import EditStepModal from './EditStepModal';
 
+
 const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentView, onUpdateStep, onDeleteStep, onOpenStepDetail, isHighlighted }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const persona = getPersonaByIdSync(step?.personaId);
@@ -87,6 +88,8 @@ const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentVi
         </div>
         
         <div className="flex items-center gap-1 ml-2">
+
+          
           <button
             onClick={(e) => {
               e.stopPropagation();

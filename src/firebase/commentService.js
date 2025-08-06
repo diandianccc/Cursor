@@ -1,63 +1,12 @@
 import { supabase } from './config';
 
-// Test table access on load
-const testTableAccess = async () => {
-  try {
-    console.log('🧪 Testing journey_maps table for comments...');
-    console.log('🔗 Supabase URL:', supabase.supabaseUrl);
-    console.log('🔑 Using anon key:', supabase.supabaseKey?.substring(0, 20) + '...');
-    
-    // Test 1: Basic table access
-    const { data, error } = await supabase
-      .from('journey_maps')
-      .select('id, name, step_comments')
-      .limit(1);
-    
-    if (error) {
-      console.error('❌ Journey maps access failed:', error);
-      console.error('❌ Full error details:', {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint
-      });
-      
-      if (error.message && error.message.includes('step_comments')) {
-        console.error('🚨 SOLUTION: The step_comments column does not exist!');
-        console.error('🔧 Run this SQL in Supabase:');
-        console.error('   ALTER TABLE public.journey_maps ADD COLUMN step_comments JSONB DEFAULT \'{}\';');
-      }
-    } else {
-      console.log('✅ journey_maps table accessible for comments');
-      console.log('📊 Sample data:', data);
-      
-      // Check if step_comments column exists
-      if (data && data.length > 0) {
-        const firstRow = data[0];
-        if ('step_comments' in firstRow) {
-          console.log('✅ step_comments column exists!', firstRow.step_comments);
-        } else {
-          console.error('❌ step_comments column NOT found in table!');
-          console.log('📋 Available columns:', Object.keys(firstRow));
-        }
-      }
-    }
-    
-    // Test 2: Check current journey map ID
-    const currentJourneyMapId = localStorage.getItem('currentJourneyMapId');
-    console.log('🗺️ Current journey map ID:', currentJourneyMapId);
-    
-  } catch (err) {
-    console.error('❌ Table access test error:', err);
-  }
-};
-
-// Run test when module loads
-testTableAccess();
-
-// Get current journey map ID from localStorage
+// Helper function to get current journey map ID
 const getCurrentJourneyMapId = () => {
-  return localStorage.getItem('currentJourneyMapId');
+  const journeyMapId = localStorage.getItem('currentJourneyMapId');
+  if (!journeyMapId) {
+    console.warn('⚠️ No current journey map ID found in localStorage');
+  }
+  return journeyMapId;
 };
 
 // Get all comments for a specific step
@@ -79,6 +28,10 @@ export const getStepComments = async (stepId) => {
 
     if (error) {
       console.error('Error fetching step comments:', error);
+      if (error.message && error.message.includes('step_comments')) {
+        console.error('🚨 The step_comments column does not exist!');
+        console.error('🔧 Run the SQL script: database_setup_step_comments.sql');
+      }
       throw error;
     }
 
@@ -155,13 +108,13 @@ export const addStepComment = async (stepId, authorName, message) => {
   }
 };
 
-// Get comment counts for multiple steps (for showing indicators)
-export const getStepCommentCounts = async (stepIds) => {
+// Get comment counts for all steps in current journey map
+export const getStepCommentCounts = async () => {
   try {
-    if (!stepIds || stepIds.length === 0) return {};
-
     const journeyMapId = getCurrentJourneyMapId();
-    if (!journeyMapId) return {};
+    if (!journeyMapId) {
+      return {};
+    }
 
     const { data, error } = await supabase
       .from('journey_maps')
@@ -170,16 +123,16 @@ export const getStepCommentCounts = async (stepIds) => {
       .single();
 
     if (error) {
-      console.error('Error fetching step comment counts:', error);
+      console.error('Error fetching comment counts:', error);
       return {};
     }
 
     const stepComments = data?.step_comments || {};
     const counts = {};
     
-    stepIds.forEach(stepId => {
-      const comments = stepComments[stepId] || [];
-      counts[stepId] = comments.length;
+    // Count comments for each step
+    Object.keys(stepComments).forEach(stepId => {
+      counts[stepId] = stepComments[stepId]?.length || 0;
     });
 
     return counts;
@@ -189,7 +142,7 @@ export const getStepCommentCounts = async (stepIds) => {
   }
 };
 
-// Delete a comment (if needed for moderation)
+// Delete a comment
 export const deleteStepComment = async (stepId, commentId) => {
   try {
     const journeyMapId = getCurrentJourneyMapId();
@@ -204,12 +157,13 @@ export const deleteStepComment = async (stepId, commentId) => {
       .eq('id', journeyMapId)
       .single();
 
-    if (fetchError) throw fetchError;
+    if (fetchError) {
+      throw fetchError;
+    }
 
+    // Remove the comment
     const currentComments = currentData?.step_comments || {};
     const stepComments = currentComments[stepId] || [];
-    
-    // Remove the comment
     const updatedStepComments = stepComments.filter(comment => comment.id !== commentId);
     
     const updatedComments = {
@@ -223,19 +177,16 @@ export const deleteStepComment = async (stepId, commentId) => {
       .update({ step_comments: updatedComments })
       .eq('id', journeyMapId);
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
+
+    console.log('✅ Comment deleted successfully');
     return true;
   } catch (error) {
-    console.error('Error in deleteStepComment:', error);
+    console.error('❌ Error in deleteStepComment:', error);
     throw error;
   }
 };
 
-// Simple callback for comment updates (no real-time with JSON approach)
-export const subscribeToStepComments = (stepId, callback) => {
-  // For JSON approach, we'll use polling or manual refresh
-  // This is a placeholder for compatibility
-  return {
-    unsubscribe: () => {}
-  };
-};
+console.log('💬 Comment service initialized');

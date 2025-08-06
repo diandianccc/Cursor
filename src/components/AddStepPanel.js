@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PERSONAS } from '../constants/personas';
 import { getPersonaByIdSync, getJobPerformerStyles } from '../services/jobPerformerService';
+import CommentsSection from './CommentsSection';
 
 
 const AddStepPanel = ({ 
@@ -10,7 +11,7 @@ const AddStepPanel = ({
   stageId, 
   taskId, 
   stageName, 
-  taskName, 
+  taskName,
   jobPerformers 
 }) => {
   const [description, setDescription] = useState('');
@@ -19,6 +20,7 @@ const AddStepPanel = ({
   const [opportunities, setOpportunities] = useState([]);
   const [currentExperiences, setCurrentExperiences] = useState([]);
   const [insights, setInsights] = useState([]);
+  const [activeTab, setActiveTab] = useState('details');
 
 
   // Initialize form when panel opens
@@ -161,12 +163,36 @@ const AddStepPanel = ({
           </div>
         </div>
 
-
+        {/* Tab Navigation */}
+        <div className="border-b border-gray-200 bg-gray-50">
+          <nav className="flex space-x-8 px-6">
+            <button
+              onClick={() => setActiveTab('details')}
+              className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'details'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Step Details
+            </button>
+            <button
+              onClick={() => setActiveTab('comments')}
+              className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'comments'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Comments
+            </button>
+          </nav>
+        </div>
 
         {/* Content - Scrollable */}
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          {/* Step Details */}
-          {(
+          {/* Step Details Tab */}
+          {activeTab === 'details' && (
             <>
               {/* Step Section */}
           <div className="bg-indigo-50 rounded-lg p-4">
@@ -405,7 +431,13 @@ const AddStepPanel = ({
             </>
           )}
 
-
+          {/* Comments Tab */}
+          {activeTab === 'comments' && (
+            <CommentsSection 
+              stepId={null} 
+              stepDescription="this new step"
+            />
+          )}
         </div>
 
         {/* Sticky Footer with Save/Cancel */}

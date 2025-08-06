@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getPersonaByIdSync, getJobPerformerStyles, getJobPerformersByIds, getMultiPerformerColors } from '../services/jobPerformerService';
 import EditableTitle from './EditableTitle';
+import CommentIndicator from './CommentIndicator';
 
 const AggregatedPainpointView = ({ 
   stages, 
@@ -499,9 +500,25 @@ const AggregatedPainpointView = ({
                               </div>
                             )}
                           </div>
-                        </div>
-                      </CardWithEdit>
-                    </div>
+                          <div className="ml-2">
+                            <CommentIndicator 
+                              stepId={step.stepId} 
+                              onClick={() => {
+                                // Find stage and task for this step to open panel
+                                const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
+                                const taskData = stageData?.tasks.find(t => t.id === step.taskId);
+                                const actualStep = taskData?.steps.find(s => s.id === step.stepId);
+                                if (stageData && taskData && actualStep) {
+                                  const stageName = typeof stageData.name === 'string' ? stageData.name : stageData.name?.name || 'Unnamed Stage';
+                                  const taskName = typeof taskData.name === 'string' ? taskData.name : taskData.name?.name || 'Unnamed Task';
+                                  onOpenStepDetail(actualStep, stageData.id, taskData.id, stageName, taskName, 'comments');
+                                }
+                              }}
+                            />
+                          </div>
+                        </CardWithEdit>
+                      </div>
+                    )
                   )}
                 </td>
               );

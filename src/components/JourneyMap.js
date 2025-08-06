@@ -116,7 +116,7 @@ const JourneyMap = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-medium text-gray-800">{terminology.stages}</h2>
-          <JobPerformerLegend jobPerformers={jobPerformers || PERSONAS} />
+          <JobPerformerLegend jobPerformers={jobPerformers || []} />
         </div>
         <div className="flex items-center gap-2">
           {currentView === 'painpoint' && (

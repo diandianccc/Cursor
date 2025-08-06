@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { getPersonaByIdSync, getJobPerformerStyles } from '../services/jobPerformerService';
+import { getPersonaByIdSync, getJobPerformerStyles, getJobPerformersByIds, getMultiPerformerColors } from '../services/jobPerformerService';
 import EditableTitle from './EditableTitle';
 
 const AggregatedPainpointView = ({ 
@@ -28,7 +28,8 @@ const AggregatedPainpointView = ({
   onAddCurrentExperience,
   onRemoveCurrentExperience,
   onUpdateCurrentExperience,
-  onSaveEditChanges
+  onSaveEditChanges,
+  jobPerformers = []
 }) => {
   const [highlightedItems, setHighlightedItems] = useState({ 
     stepId: null, 
@@ -77,11 +78,22 @@ const AggregatedPainpointView = ({
             span: 1
           });
         } else {
-          // Add each step as its own column
+                    // Add each step as its own column
           task.steps.forEach((step, stepIndex) => {
+            // Handle both old (single personaId) and new (multiple jobPerformerIds) data structures
+            let assignedJobPerformers = [];
+            if (step.jobPerformerIds && Array.isArray(step.jobPerformerIds)) {
+              assignedJobPerformers = getJobPerformersByIds(step.jobPerformerIds);
+            } else if (step.personaId) {
+              const singlePerformer = getPersonaByIdSync(step.personaId);
+              assignedJobPerformers = singlePerformer ? [singlePerformer] : [];
+            }
+            
             allSteps.push({
               ...step,
-                              persona: getPersonaByIdSync(step.personaId),
+              persona: getPersonaByIdSync(step.personaId), // Keep for backward compatibility
+              assignedJobPerformers: assignedJobPerformers,
+              performerColors: getMultiPerformerColors(assignedJobPerformers),
               stepId: step.id,
               taskId: task.id,
               stageName: typeof stage.name === 'string' ? stage.name : stage.name?.name || 'Unnamed Stage',
@@ -235,6 +247,7 @@ const AggregatedPainpointView = ({
     children, 
     onEdit, 
     className, 
+    style,
     isHighlighted, 
     highlightColor = 'blue',
     title,
@@ -252,6 +265,7 @@ const AggregatedPainpointView = ({
         className={`${className} cursor-pointer relative transition-all duration-200 ${
           isHighlighted ? highlightClasses[highlightColor] : ''
         }`}
+        style={style}
         onClick={(e) => {
           e.stopPropagation();
           onEdit();
@@ -397,15 +411,53 @@ const AggregatedPainpointView = ({
               const isHighlighted = highlightedItems.stepId === step.stepId;
               const stepRefKey = `step-${step.taskId}-${step.stepId}`;
               
+              // Get styling for multiple performers
+              const getCardStyling = () => {
+                let className = 'bg-indigo-100 rounded-lg p-2 hover:bg-indigo-200';
+                let style = {};
+                let wrapperClass = '';
+                let wrapperStyle = {};
+
+                if (!step.performerColors || step.performerColors.length === 0) {
+                  className += ' border-l-4 border-indigo-300'; // Default indigo border
+                } else if (step.performerColors.length === 1) {
+                  className += ' border-l-4'; // Single performer with custom color
+                  style.borderLeftColor = step.performerColors[0];
+                  style.borderLeftWidth = '4px';
+                } else {
+                  // Multiple performers - use CSS stripes
+                  wrapperClass = 'step-multi-performer';
+                  const stripesCSS = [];
+                  const stripeHeight = 100 / step.performerColors.length;
+                  
+                  step.performerColors.forEach((color, index) => {
+                    const start = index * stripeHeight;
+                    const end = (index + 1) * stripeHeight;
+                    stripesCSS.push(`${color} ${start}%, ${color} ${end}%`);
+                  });
+                  
+                  wrapperStyle['--performer-stripes'] = `linear-gradient(to bottom, ${stripesCSS.join(', ')})`;
+                }
+
+                return { className, style, wrapperClass, wrapperStyle };
+              };
+
+              const cardStyling = getCardStyling();
+              
               return (
                 <td 
                   key={`step-${step.stepId || step.id}`} 
                   className="w-64 align-top"
                 >
                   {!step.isEmpty && (
-                    <div ref={el => cardRefs.current[stepRefKey] = el}>
+                    <div 
+                      ref={el => cardRefs.current[stepRefKey] = el}
+                      className={`relative ${cardStyling.wrapperClass}`}
+                      style={cardStyling.wrapperStyle}
+                    >
                       <CardWithEdit
-                        className="bg-indigo-100 rounded-lg p-2 hover:bg-indigo-200"
+                        className={cardStyling.className}
+                        style={cardStyling.style}
                         onEdit={() => {
                           // Find stage and task for this step
                           const stageData = stages.find(s => s.tasks.some(t => t.id === step.taskId));
@@ -424,13 +476,26 @@ const AggregatedPainpointView = ({
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <p className="text-indigo-800 font-medium text-sm">{step.description || 'No description'}</p>
-                            {step.persona && (
-                              <div className="flex items-center gap-1 mt-1">
-                                <div 
-                                  className={`w-2 h-2 rounded-full ${!getJobPerformerStyles(step.persona).backgroundColor ? step.persona.color : ''}`}
-                                  style={getJobPerformerStyles(step.persona).backgroundColor ? { backgroundColor: getJobPerformerStyles(step.persona).backgroundColor } : {}}
-                                ></div>
-                                <span className="text-xs text-indigo-600">{step.persona.name || 'Unknown Persona'}</span>
+                            {/* Job Performer Labels at Bottom */}
+                            {step.assignedJobPerformers && step.assignedJobPerformers.length > 0 && (
+                              <div className="flex items-center gap-1 mt-2 flex-wrap">
+                                {step.assignedJobPerformers.slice(0, 2).map((performer, index) => (
+                                  <span 
+                                    key={performer.id}
+                                    className="text-xs px-1.5 py-0.5 rounded text-white"
+                                    style={{ 
+                                      backgroundColor: performer.hexColor || performer.color || '#6B7280',
+                                      fontSize: '0.6rem'
+                                    }}
+                                  >
+                                    {performer.name}
+                                  </span>
+                                ))}
+                                {step.assignedJobPerformers.length > 2 && (
+                                  <span className="text-xs px-1.5 py-0.5 rounded bg-gray-200 text-gray-700" style={{ fontSize: '0.6rem' }}>
+                                    +{step.assignedJobPerformers.length - 2}
+                                  </span>
+                                )}
                               </div>
                             )}
                           </div>
@@ -582,7 +647,7 @@ const AggregatedPainpointView = ({
                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
-                <span className="font-semibold text-green-800">Opportunities</span>
+                <span className="font-semibold text-green-800">Highlights</span>
               </div>
             </td>
             {allSteps.map((step, index) => (
@@ -626,7 +691,7 @@ const AggregatedPainpointView = ({
                               }}
                               isHighlighted={isHighlighted}
                               highlightColor="green"
-                              title="Click to edit opportunity details"
+                              title="Click to edit highlight details"
                               type="opportunity"
                             >
                               <p className="text-green-800 font-medium text-sm">{opportunity}</p>
@@ -641,14 +706,14 @@ const AggregatedPainpointView = ({
             ))}
           </tr>
 
-          {/* Customer Insights Row */}
+          {/* Lessons Learned Row */}
           <tr>
             <td className="w-32 bg-purple-50 py-4 px-4 rounded-lg">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
-                <span className="font-semibold text-purple-800">Customer Insights</span>
+                <span className="font-semibold text-purple-800">Lessons Learned</span>
               </div>
             </td>
             {allSteps.map((step, index) => (
@@ -683,7 +748,7 @@ const AggregatedPainpointView = ({
                           }}
                           isHighlighted={false}
                           highlightColor="purple"
-                          title="Click to edit customer insights details"
+                          title="Click to edit lessons learned details"
                           type="customer insight"
                         >
                           <p className="text-purple-800 font-medium text-sm">{step.insights}</p>

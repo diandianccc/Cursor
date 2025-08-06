@@ -173,6 +173,7 @@ const JourneyMap = ({
                   onSwitchToStepView={onSwitchToStepView}
                   onOpenStepDetail={onOpenStepDetail}
                   onOpenAddStepPanel={onOpenAddStepPanel}
+                  jobPerformers={jobPerformers}
                 />
               ))}
               
@@ -189,35 +190,36 @@ const JourneyMap = ({
           ) : (
             <DragDropContext onDragEnd={handleDragEnd}>
               <div className="p-2 bg-white w-full h-full min-h-full">
-                <AggregatedPainpointView 
-                  stages={stages}
-                  journeyMapType={journeyMapType}
-                  onSwitchToStepView={onSwitchToStepView}
-                  onOpenStepDetail={onOpenStepDetail}
-                  onUpdateStep={onUpdateStep}
-                  onDeleteStep={onDeleteStep}
-                  onMoveStep={onMoveStep}
-                  onUpdateStage={onUpdateStage}
-                  onUpdateTask={onUpdateTask}
-                  onDeleteTask={onDeleteTask}
-                  onDeleteStage={onDeleteStage}
-                  onOpenEditPanel={onOpenEditPanel}
-                  editPanel={editPanel}
-                  editablePainPoints={editablePainPoints}
-                  editableOpportunities={editableOpportunities}
-                  editableCurrentExperiences={editableCurrentExperiences}
-                  onCloseEditPanel={onCloseEditPanel}
-                  onAddPainPoint={onAddPainPoint}
-                  onRemovePainPoint={onRemovePainPoint}
-                  onUpdatePainPoint={onUpdatePainPoint}
-                  onAddOpportunity={onAddOpportunity}
-                  onRemoveOpportunity={onRemoveOpportunity}
-                  onUpdateOpportunity={onUpdateOpportunity}
-                  onAddCurrentExperience={onAddCurrentExperience}
-                  onRemoveCurrentExperience={onRemoveCurrentExperience}
-                  onUpdateCurrentExperience={onUpdateCurrentExperience}
-                  onSaveEditChanges={onSaveEditChanges}
-                />
+                              <AggregatedPainpointView 
+                stages={stages}
+                journeyMapType={journeyMapType}
+                onSwitchToStepView={onSwitchToStepView}
+                onOpenStepDetail={onOpenStepDetail}
+                onUpdateStep={onUpdateStep}
+                onDeleteStep={onDeleteStep}
+                onMoveStep={onMoveStep}
+                onUpdateStage={onUpdateStage}
+                onUpdateTask={onUpdateTask}
+                onDeleteTask={onDeleteTask}
+                onDeleteStage={onDeleteStage}
+                onOpenEditPanel={onOpenEditPanel}
+                editPanel={editPanel}
+                editablePainPoints={editablePainPoints}
+                editableOpportunities={editableOpportunities}
+                editableCurrentExperiences={editableCurrentExperiences}
+                onCloseEditPanel={onCloseEditPanel}
+                onAddPainPoint={onAddPainPoint}
+                onRemovePainPoint={onRemovePainPoint}
+                onUpdatePainPoint={onUpdatePainPoint}
+                onAddOpportunity={onAddOpportunity}
+                onRemoveOpportunity={onRemoveOpportunity}
+                onUpdateOpportunity={onUpdateOpportunity}
+                onAddCurrentExperience={onAddCurrentExperience}
+                onRemoveCurrentExperience={onRemoveCurrentExperience}
+                onUpdateCurrentExperience={onUpdateCurrentExperience}
+                onSaveEditChanges={onSaveEditChanges}
+                jobPerformers={jobPerformers}
+              />
               </div>
             </DragDropContext>
           )}

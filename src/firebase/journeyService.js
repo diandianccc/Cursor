@@ -167,10 +167,12 @@ export const updateJourneyMapStages = async (journeyMapId, stages, changeDetails
       tasks: stage.tasks.map(task => ({
         ...task,
         id: String(task.id), // Ensure ID is string
+        jobPerformerIds: Array.isArray(task.jobPerformerIds) ? task.jobPerformerIds : [],
         steps: task.steps.map(step => ({
           ...step,
           id: String(step.id), // Ensure ID is string
           personaId: step.personaId ? String(step.personaId) : null,
+          jobPerformerIds: Array.isArray(step.jobPerformerIds) ? step.jobPerformerIds : [],
           painPoints: Array.isArray(step.painPoints) ? step.painPoints : [],
           opportunities: Array.isArray(step.opportunities) ? step.opportunities : [],
           currentExperiences: Array.isArray(step.currentExperiences) ? step.currentExperiences : [],

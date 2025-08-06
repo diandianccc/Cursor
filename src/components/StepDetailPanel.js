@@ -19,7 +19,8 @@ const StepDetailPanel = ({
   defaultTab = 'details'
 }) => {
   const [description, setDescription] = useState('');
-  const [personaId, setPersonaId] = useState('');
+  const [personaId, setPersonaId] = useState(''); // Keep for backward compatibility
+  const [selectedJobPerformers, setSelectedJobPerformers] = useState([]);
   const [painPoints, setPainPoints] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
   const [currentExperiences, setCurrentExperiences] = useState([]);
@@ -34,7 +35,20 @@ const StepDetailPanel = ({
       setDescription(step.description || '');
 
       const availableJobPerformers = jobPerformers || PERSONAS || [];
-      setPersonaId(step.personaId || (availableJobPerformers.length > 0 ? availableJobPerformers[0].id : 'customer'));
+      
+      // Handle backward compatibility: if step has jobPerformerIds, use those, otherwise use single personaId
+      if (step.jobPerformerIds && Array.isArray(step.jobPerformerIds)) {
+        setSelectedJobPerformers(step.jobPerformerIds);
+        setPersonaId(step.jobPerformerIds[0] || (availableJobPerformers.length > 0 ? availableJobPerformers[0].id : 'customer'));
+      } else if (step.personaId) {
+        setSelectedJobPerformers([step.personaId]);
+        setPersonaId(step.personaId);
+      } else {
+        const defaultId = availableJobPerformers.length > 0 ? availableJobPerformers[0].id : 'customer';
+        setSelectedJobPerformers([defaultId]);
+        setPersonaId(defaultId);
+      }
+      
       setPainPoints(step.painPoints || []);
       setOpportunities(step.opportunities || []);
       setCurrentExperiences(step.currentExperiences || []);
@@ -48,9 +62,19 @@ const StepDetailPanel = ({
     if (step) {
       const availableJobPerformers = jobPerformers || PERSONAS || [];
       
+      // Get original job performer IDs for comparison
+      let originalJobPerformerIds = [];
+      if (step.jobPerformerIds && Array.isArray(step.jobPerformerIds)) {
+        originalJobPerformerIds = step.jobPerformerIds;
+      } else if (step.personaId) {
+        originalJobPerformerIds = [step.personaId];
+      } else {
+        originalJobPerformerIds = availableJobPerformers.length > 0 ? [availableJobPerformers[0].id] : ['customer'];
+      }
+      
       const hasChanged = 
         description !== (step.description || '') ||
-        personaId !== (step.personaId || (availableJobPerformers.length > 0 ? availableJobPerformers[0].id : 'customer')) ||
+        JSON.stringify(selectedJobPerformers.sort()) !== JSON.stringify(originalJobPerformerIds.sort()) ||
         JSON.stringify(painPoints) !== JSON.stringify(step.painPoints || []) ||
         JSON.stringify(opportunities) !== JSON.stringify(step.opportunities || []) ||
         JSON.stringify(currentExperiences) !== JSON.stringify(step.currentExperiences || []) ||
@@ -58,7 +82,7 @@ const StepDetailPanel = ({
       
       setHasChanges(hasChanged);
     }
-  }, [description, personaId, painPoints, opportunities, currentExperiences, insights, step, jobPerformers]);
+  }, [description, selectedJobPerformers, painPoints, opportunities, currentExperiences, insights, step, jobPerformers]);
 
   const handleSave = () => {
     if (!step) return;
@@ -66,7 +90,8 @@ const StepDetailPanel = ({
     try {
       const stepData = {
         description: description.trim(),
-        personaId: personaId || null,
+        personaId: selectedJobPerformers.length > 0 ? selectedJobPerformers[0] : null, // Keep for backward compatibility
+        jobPerformerIds: selectedJobPerformers, // New multi-performer field
         painPoints: painPoints.filter(p => p && p.trim && p.trim()),
         opportunities: opportunities.filter(o => o && o.trim && o.trim()),
         currentExperiences: currentExperiences.filter(e => e && e.trim && e.trim()),
@@ -89,6 +114,8 @@ const StepDetailPanel = ({
     }
     onClose();
   };
+
+  // toggleJobPerformer function removed - now using dropdown-style selection like EditPanel
 
   const handleDeleteStep = () => {
     if (window.confirm(`Are you sure you want to delete this step: "${step.description}"?`)) {
@@ -266,26 +293,86 @@ const StepDetailPanel = ({
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Job Performer
+                  Job Performers
                 </label>
-                <select
-                  value={personaId}
-                  onChange={(e) => setPersonaId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  {(jobPerformers || PERSONAS || []).map((persona) => (
-                    <option key={persona.id} value={persona.id}>
-                      {persona.name}
-                    </option>
+                
+                {/* Multiple Job Performer Selector - matching EditPanel style */}
+                <div className="space-y-2">
+                  {selectedJobPerformers.map((performerId, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <select
+                        value={performerId}
+                        onChange={(e) => {
+                          const newIds = [...selectedJobPerformers];
+                          newIds[index] = e.target.value;
+                          setSelectedJobPerformers(newIds);
+                          // Update personaId for backward compatibility
+                          setPersonaId(newIds[0] || '');
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        {(jobPerformers || PERSONAS || []).map((persona) => (
+                          <option key={persona.id} value={persona.id}>
+                            {persona.name}
+                          </option>
+                        ))}
+                      </select>
+                      {selectedJobPerformers.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newIds = selectedJobPerformers.filter((_, i) => i !== index);
+                            setSelectedJobPerformers(newIds);
+                            setPersonaId(newIds[0] || '');
+                          }}
+                          className="px-2 py-2 text-red-600 hover:bg-red-100 rounded-md transition-colors"
+                          title="Remove job performer"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   ))}
-                </select>
-                {personaId && getPersonaByIdSync(personaId) && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <div 
-                      className={`w-3 h-3 rounded-full ${!getJobPerformerStyles(getPersonaByIdSync(personaId)).backgroundColor ? getPersonaByIdSync(personaId).color : ''}`}
-                      style={getJobPerformerStyles(getPersonaByIdSync(personaId)).backgroundColor ? { backgroundColor: getJobPerformerStyles(getPersonaByIdSync(personaId)).backgroundColor } : {}}
-                    ></div>
-                    <span className="text-sm text-gray-600">{getPersonaByIdSync(personaId).name}</span>
+                  
+                  {/* Add Job Performer Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const availableJobPerformers = jobPerformers || PERSONAS || [];
+                      const unusedPerformers = availableJobPerformers.filter(
+                        performer => !selectedJobPerformers.includes(performer.id)
+                      );
+                      if (unusedPerformers.length > 0) {
+                        const newIds = [...selectedJobPerformers, unusedPerformers[0].id];
+                        setSelectedJobPerformers(newIds);
+                        setPersonaId(newIds[0] || '');
+                      }
+                    }}
+                    className="w-full py-2 px-4 border-2 border-dashed border-indigo-300 text-indigo-600 rounded-md hover:bg-indigo-50 transition-colors"
+                    disabled={selectedJobPerformers.length >= (jobPerformers || PERSONAS || []).length}
+                  >
+                    + Add Job Performer
+                  </button>
+                </div>
+
+                {/* Display selected job performers */}
+                {selectedJobPerformers.length > 0 && (
+                  <div className="flex items-center gap-2 mt-3 flex-wrap">
+                    {selectedJobPerformers.map((performerId) => {
+                      const performer = getPersonaByIdSync(performerId);
+                      if (!performer) return null;
+                      return (
+                        <div key={performerId} className="flex items-center gap-1">
+                          <div 
+                            className={`w-3 h-3 rounded-full ${!getJobPerformerStyles(performer).backgroundColor ? performer.color : ''}`}
+                            style={getJobPerformerStyles(performer).backgroundColor ? { backgroundColor: getJobPerformerStyles(performer).backgroundColor } : {}}
+                          ></div>
+                          <span className="text-sm text-gray-600">{performer.name}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -391,7 +478,7 @@ const StepDetailPanel = ({
                 <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v18m9-9H3" />
                 </svg>
-                Opportunities ({opportunities.length})
+                Highlights ({opportunities.length})
               </div>
             </h3>
             <div className="space-y-2">
@@ -403,12 +490,12 @@ const StepDetailPanel = ({
                       value={opportunity}
                       onChange={(e) => updateOpportunity(index, e.target.value)}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder={`Opportunity ${index + 1}`}
+                      placeholder={`Highlight ${index + 1}`}
                     />
                     <button
                       onClick={() => removeOpportunity(index)}
                       className="px-3 py-2 text-green-600 hover:bg-green-100 rounded-md transition-colors"
-                      title="Remove opportunity"
+                      title="Remove highlight"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -418,26 +505,26 @@ const StepDetailPanel = ({
                 ))
               ) : (
                 <div className="text-center py-4 text-gray-500 italic">
-                  No opportunities yet. Click the button below to add the first one.
+                  No highlights yet. Click the button below to add the first one.
                 </div>
               )}
               <button 
                 onClick={addOpportunity}
                 className="w-full py-2 px-4 border-2 border-dashed border-green-300 text-green-600 rounded-md hover:bg-green-50 transition-colors"
               >
-                + Add Opportunity
+                + Add Highlight
               </button>
             </div>
           </div>
 
-          {/* Customer Insights Section */}
+          {/* Lessons Learned Section */}
           <div className="bg-purple-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center justify-between">
               <div className="flex items-center">
                 <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
-                Customer Insights ({insights ? 1 : 0})
+                Lessons Learned ({insights ? 1 : 0})
               </div>
             </h3>
             <div className="space-y-2">
@@ -445,7 +532,7 @@ const StepDetailPanel = ({
                 value={insights}
                 onChange={(e) => setInsights(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                placeholder="Enter customer insights, research findings, or additional context..."
+                placeholder="Enter lessons learned, key takeaways, or additional context..."
                 rows="4"
               />
             </div>

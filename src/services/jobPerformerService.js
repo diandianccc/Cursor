@@ -1,4 +1,4 @@
-import { getJobPerformers } from '../firebase/journeyService';
+import { getJobPerformers, updateJobPerformer } from '../firebase/journeyService';
 
 // Default job performers (fallback when database is empty)
 export const DEFAULT_JOB_PERFORMERS = [
@@ -61,8 +61,9 @@ const convertToPersonaFormat = (jobPerformer) => {
     return jobPerformer;
   }
   
-  // Database stores color in 'color' field - extract it directly
+  // Handle default job performers vs database job performers
   const hexColor = jobPerformer.color;
+  const isDefault = jobPerformer.isDefault || false;
   
   console.log('🎨 convertToPersonaFormat INPUT (fresh conversion):', jobPerformer);
   console.log('🎨 convertToPersonaFormat EXTRACTED hexColor:', hexColor);
@@ -74,30 +75,120 @@ const convertToPersonaFormat = (jobPerformer) => {
     color: 'bg-gray-500', // Fallback Tailwind class in case custom styles fail
     textColor: 'text-white',
     borderColor: 'border-gray-500',
-    hexColor: hexColor,  // This should be the actual hex color from database
+    hexColor: hexColor,  // This should be the actual hex color
     resources: jobPerformer.resources || [],
-    isDefault: false  // All job performers from database are custom
+    isDefault: isDefault
   };
   
   console.log('🎨 convertToPersonaFormat OUTPUT:', result);
   return result;
 };
 
-// Get all job performers (database + defaults)
+// Get multiple job performers by IDs
+export const getJobPerformersByIds = (jobPerformerIds) => {
+  if (!Array.isArray(jobPerformerIds)) return [];
+  
+  return jobPerformerIds
+    .map(id => getPersonaByIdSync(id))
+    .filter(performer => performer !== null);
+};
+
+// Get styles for multiple job performers (for displaying multiple badges)
+export const getJobPerformersStyles = (jobPerformers) => {
+  if (!Array.isArray(jobPerformers)) return [];
+  
+  return jobPerformers.map(performer => getJobPerformerStyles(performer));
+};
+
+// Generate color stripes for multiple job performers
+export const getMultiPerformerColors = (jobPerformers) => {
+  if (!Array.isArray(jobPerformers) || jobPerformers.length <= 1) return [];
+  
+  return jobPerformers.slice(0, 4).map(performer => {
+    const hexColor = performer.hexColor || performer.hex_color || performer.color;
+    return hexColor || '#6B7280'; // Default gray if no color
+  });
+};
+
+// Clean up duplicate job performers (for users who had the bug)
+export const cleanupDuplicateJobPerformers = async () => {
+  try {
+    const databaseJobPerformers = await getJobPerformers();
+    const defaultIds = DEFAULT_JOB_PERFORMERS.map(d => d.id);
+    
+    // Find database entries that have the same ID as defaults but no replaces_default_id
+    const problematicEntries = databaseJobPerformers.filter(performer => 
+      defaultIds.includes(performer.id) && !performer.replaces_default_id
+    );
+    
+    // Update them to have replaces_default_id
+    for (const entry of problematicEntries) {
+      await updateJobPerformer(entry.id, {
+        ...entry,
+        replaces_default_id: entry.id
+      });
+    }
+    
+    console.log(`✅ Cleaned up ${problematicEntries.length} duplicate job performers`);
+  } catch (error) {
+    console.error('Error cleaning up duplicates:', error);
+  }
+};
+
+// Get all job performers (database + defaults, with database taking priority for same IDs)
 export const getAllJobPerformers = async () => {
   try {
     console.log('🔍 getAllJobPerformers: Fetching from database...');
-    const databaseJobPerformers = await getJobPerformers();
+    let databaseJobPerformers = await getJobPerformers();
     console.log('🔍 Database job performers:', databaseJobPerformers);
     
-    // Only return database job performers - no more defaults
-    const result = databaseJobPerformers.map(convertToPersonaFormat);
-    console.log('🔍 Final converted result:', result);
+    // Auto-cleanup duplicates if needed (one-time fix for users who had the bug)
+    if (databaseJobPerformers.length > 0) {
+      const defaultIds = DEFAULT_JOB_PERFORMERS.map(d => d.id);
+      const hasDuplicates = databaseJobPerformers.some(performer => 
+        defaultIds.includes(performer.id) && !performer.replaces_default_id
+      );
+      
+      if (hasDuplicates) {
+        console.log('🔧 Auto-cleaning duplicate job performers...');
+        await cleanupDuplicateJobPerformers();
+        // Refetch after cleanup
+        databaseJobPerformers = await getJobPerformers();
+      }
+    }
+    
+    // If database is empty, return default job performers
+    if (!databaseJobPerformers || databaseJobPerformers.length === 0) {
+      console.log('🔍 Database empty, returning defaults');
+      const result = DEFAULT_JOB_PERFORMERS.map(convertToPersonaFormat);
+      console.log('🔍 Final converted defaults:', result);
+      return result;
+    }
+    
+    // Track which defaults have been replaced by custom performers
+    const replacedDefaultIds = new Set();
+    databaseJobPerformers.forEach(performer => {
+      if (performer.replaces_default_id) {
+        replacedDefaultIds.add(performer.replaces_default_id);
+      }
+    });
+    
+    // Add database performers and non-replaced defaults
+    const allJobPerformers = [...databaseJobPerformers];
+    DEFAULT_JOB_PERFORMERS.forEach(defaultPerformer => {
+      if (!replacedDefaultIds.has(defaultPerformer.id)) {
+        allJobPerformers.push(defaultPerformer);
+      }
+    });
+    
+    const result = allJobPerformers.map(convertToPersonaFormat);
+    console.log('🔍 Final combined result (database + remaining defaults):', result);
     return result;
   } catch (error) {
     console.error('Error fetching job performers:', error);
-    // Return empty array instead of defaults
-    return [];
+    // Return defaults as fallback
+    console.log('🔍 Error occurred, returning defaults as fallback');
+    return DEFAULT_JOB_PERFORMERS.map(convertToPersonaFormat);
   }
 };
 
@@ -118,11 +209,14 @@ export let PERSONAS = [];
 // Initialize PERSONAS with defaults
 export const initializeJobPerformers = async () => {
   try {
+    console.log('🔄 initializeJobPerformers: Starting initialization...');
     PERSONAS = await getAllJobPerformers();
+    console.log('🔄 initializeJobPerformers: PERSONAS initialized:', PERSONAS);
     return PERSONAS;
   } catch (error) {
     console.error('Error initializing job performers:', error);
     PERSONAS = DEFAULT_JOB_PERFORMERS.map(convertToPersonaFormat);
+    console.log('🔄 initializeJobPerformers: Using defaults:', PERSONAS);
     return PERSONAS;
   }
 };

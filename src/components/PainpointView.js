@@ -97,7 +97,7 @@ const PainpointView = ({ task, onPainpointClick }) => {
           <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
-          <h5 className="font-semibold text-green-800">Opportunities ({allOpportunities.length})</h5>
+          <h5 className="font-semibold text-green-800">Highlights ({allOpportunities.length})</h5>
         </div>
         
         {allOpportunities.length > 0 ? (
@@ -114,7 +114,7 @@ const PainpointView = ({ task, onPainpointClick }) => {
             ))}
           </div>
         ) : (
-          <p className="text-green-600 text-sm italic">No opportunities identified for this task</p>
+          <p className="text-green-600 text-sm italic">No highlights identified for this task</p>
         )}
       </div>
     </div>

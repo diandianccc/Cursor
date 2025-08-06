@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Droppable } from 'react-beautiful-dnd';
 import StepCard from './StepCard';
-
+import { getJobPerformersByIds, getMultiPerformerColors } from '../services/jobPerformerService';
 import EditTaskModal from './EditTaskModal';
 import EditableTitle from './EditableTitle';
 
@@ -17,10 +17,15 @@ const Task = ({
   onDeleteStep,
   onSwitchToStepView,
   onOpenStepDetail,
-  onOpenAddStepPanel
+  onOpenAddStepPanel,
+  jobPerformers = []
 }) => {
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
   const [highlightedStepId, setHighlightedStepId] = useState(null);
+
+  // Get assigned job performers for this task
+  const assignedJobPerformers = getJobPerformersByIds(task.jobPerformerIds || []);
+  const performerColors = getMultiPerformerColors(assignedJobPerformers);
 
   const handleDeleteTask = () => {
     const taskName = typeof task.name === 'string' ? task.name : task.name?.name || 'this task';
@@ -62,14 +67,72 @@ const Task = ({
     );
   };
 
+  // Create style for multiple performers
+  const getTaskBorderStyle = () => {
+    if (performerColors.length === 0) return {};
+    if (performerColors.length === 1) {
+      return { borderLeftColor: performerColors[0], borderLeftWidth: '4px' };
+    }
+    // For multiple performers, we'll use CSS stripes via a pseudo-element
+    return {};
+  };
+
+  // Generate CSS classes for multiple performer colors
+  const getMultiPerformerClass = () => {
+    if (performerColors.length <= 1) return '';
+    return 'task-multi-performer';
+  };
+
+  // Create inline style for CSS variable
+  const getMultiPerformerCSSVars = () => {
+    if (performerColors.length <= 1) return {};
+    
+    const stripesCSS = [];
+    const stripeHeight = 100 / performerColors.length;
+    
+    performerColors.forEach((color, index) => {
+      const start = index * stripeHeight;
+      const end = (index + 1) * stripeHeight;
+      stripesCSS.push(`${color} ${start}%, ${color} ${end}%`);
+    });
+    
+    return {
+      '--performer-stripes': `linear-gradient(to bottom, ${stripesCSS.join(', ')})`
+    };
+  };
+
   return (
-    <div className="bg-white rounded-lg p-4 border-2 border-gray-100 shadow-sm h-full flex flex-col">
+    <div 
+      className={`bg-white rounded-lg p-4 border-2 border-gray-100 shadow-sm h-full flex flex-col relative ${getMultiPerformerClass()}`}
+      style={{...getTaskBorderStyle(), ...getMultiPerformerCSSVars()}}
+    >
       <div className="flex items-center justify-between mb-4">
-        <EditableTitle
-          title={typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'}
-          onSave={(newName) => onUpdateTask(stageId, task.id, { name: newName })}
-          className="text-md font-semibold text-gray-700"
-        />
+        <div className="flex items-center gap-2 flex-1">
+          <EditableTitle
+            title={typeof task.name === 'string' ? task.name : task.name?.name || 'Unnamed Task'}
+            onSave={(newName) => onUpdateTask(stageId, task.id, { name: newName })}
+            className="text-md font-semibold text-gray-700"
+          />
+          {/* Job Performer Indicators */}
+          {assignedJobPerformers.length > 0 && (
+            <div className="flex items-center gap-1">
+              {assignedJobPerformers.slice(0, 3).map((performer, index) => (
+                <div
+                  key={performer.id}
+                  className="w-3 h-3 rounded-full border border-gray-200"
+                  style={{ 
+                    backgroundColor: performer.hexColor || performer.color || '#6B7280',
+                    zIndex: assignedJobPerformers.length - index
+                  }}
+                  title={performer.name}
+                />
+              ))}
+              {assignedJobPerformers.length > 3 && (
+                <span className="text-xs text-gray-500 ml-1">+{assignedJobPerformers.length - 3}</span>
+              )}
+            </div>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           {currentView === 'step' && (
             <button
@@ -103,6 +166,7 @@ const Task = ({
         onClose={() => setIsEditTaskModalOpen(false)}
         task={task}
         onUpdate={(taskData) => onUpdateTask(stageId, task.id, taskData)}
+        jobPerformers={jobPerformers}
       />
     </div>
   );

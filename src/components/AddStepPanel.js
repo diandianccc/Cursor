@@ -318,7 +318,7 @@ const AddStepPanel = ({
                 <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v18m9-9H3" />
                 </svg>
-                Opportunities ({opportunities.length})
+                Highlights ({opportunities.length})
               </div>
             </h3>
             <div className="space-y-2">
@@ -330,12 +330,12 @@ const AddStepPanel = ({
                       value={opportunity}
                       onChange={(e) => updateOpportunity(index, e.target.value)}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder={`Opportunity ${index + 1}`}
+                      placeholder={`Highlight ${index + 1}`}
                     />
                     <button
                       onClick={() => removeOpportunity(index)}
                       className="px-3 py-2 text-green-600 hover:bg-green-100 rounded-md transition-colors"
-                      title="Remove opportunity"
+                      title="Remove highlight"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -345,26 +345,26 @@ const AddStepPanel = ({
                 ))
               ) : (
                 <div className="text-center py-4 text-gray-500 italic">
-                  No opportunities yet. Click the button below to add the first one.
+                  No highlights yet. Click the button below to add the first one.
                 </div>
               )}
               <button 
                 onClick={addOpportunity}
                 className="w-full py-2 px-4 border-2 border-dashed border-green-300 text-green-600 rounded-md hover:bg-green-50 transition-colors"
               >
-                + Add Opportunity
+                + Add Highlight
               </button>
             </div>
           </div>
 
-          {/* Customer Insights Section */}
+          {/* Lessons Learned Section */}
           <div className="bg-purple-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center justify-between">
               <div className="flex items-center">
                 <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
-                Customer Insights ({insights.length})
+                Lessons Learned ({insights.length})
               </div>
             </h3>
             <div className="space-y-2">
@@ -391,7 +391,7 @@ const AddStepPanel = ({
                 ))
               ) : (
                 <div className="text-center py-4 text-gray-500 italic">
-                  No customer insights yet. Click the button below to add the first one.
+                  No lessons learned yet. Click the button below to add the first one.
                 </div>
               )}
               <button 

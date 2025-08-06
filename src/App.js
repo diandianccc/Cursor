@@ -223,7 +223,7 @@ function App() {
     setEditableCurrentExperiences(updated);
   };
 
-  // Customer Insights management functions
+  // Lessons Learned management functions
   const addInsight = () => {
     setEditableInsights([...editableInsights, '']);
   };
@@ -239,7 +239,7 @@ function App() {
   };
 
   // Save function for edit panel
-  const saveEditChanges = (stepDescription = '', stepPersonaId = '') => {
+  const saveEditChanges = (stepDescription = '', jobPerformerIds = []) => {
     if (!editPanel.editData) return;
 
     // Filter out empty pain points, opportunities, current experiences, and insights
@@ -252,12 +252,19 @@ function App() {
     const stepData = {
       ...editPanel.editData.step,
       description: stepDescription,
-      personaId: stepPersonaId,
+      jobPerformerIds: jobPerformerIds, // Use new multiple job performers
       painPoints: filteredPainPoints,
       opportunities: filteredOpportunities,
       currentExperiences: filteredCurrentExperiences,
       insights: filteredInsights.length > 0 ? filteredInsights.join('\n\n') : ''
     };
+
+    // For backward compatibility, also set personaId to the first job performer
+    if (jobPerformerIds.length > 0) {
+      stepData.personaId = jobPerformerIds[0];
+    } else {
+      stepData.personaId = null;
+    }
 
     // Call the update function
     updateStep(editPanel.stageId, editPanel.taskId, editPanel.stepId, stepData);

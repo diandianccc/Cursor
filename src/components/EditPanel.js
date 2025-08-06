@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { PERSONAS } from '../constants/personas';
-import { getPersonaByIdSync, getJobPerformerStyles } from '../services/jobPerformerService';
+import { getPersonaByIdSync, getJobPerformerStyles, getJobPerformersByIds } from '../services/jobPerformerService';
 
 
 const EditPanel = ({
@@ -29,18 +29,26 @@ const EditPanel = ({
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [stepDescription, setStepDescription] = useState('');
-  const [stepPersonaId, setStepPersonaId] = useState('');
+  const [stepJobPerformerIds, setStepJobPerformerIds] = useState([]);
 
 
-  // Initialize step description and persona when panel opens or changes
+  // Initialize step description and job performers when panel opens or changes
   React.useEffect(() => {
     const availableJobPerformers = jobPerformers || PERSONAS || [];
     if (editPanel.isOpen && editPanel.editData?.step) {
       setStepDescription(editPanel.editData.step.description || '');
-      setStepPersonaId(editPanel.editData.step.personaId || (availableJobPerformers.length > 0 ? availableJobPerformers[0].id : 'customer'));
+      
+      // Handle both new jobPerformerIds and legacy personaId
+      if (editPanel.editData.step.jobPerformerIds && Array.isArray(editPanel.editData.step.jobPerformerIds)) {
+        setStepJobPerformerIds(editPanel.editData.step.jobPerformerIds);
+      } else if (editPanel.editData.step.personaId) {
+        setStepJobPerformerIds([editPanel.editData.step.personaId]);
+      } else {
+        setStepJobPerformerIds(availableJobPerformers.length > 0 ? [availableJobPerformers[0].id] : ['customer']);
+      }
     } else if (editPanel.isOpen) {
       setStepDescription('');
-      setStepPersonaId(availableJobPerformers.length > 0 ? availableJobPerformers[0].id : 'customer');
+      setStepJobPerformerIds(availableJobPerformers.length > 0 ? [availableJobPerformers[0].id] : ['customer']);
     }
   }, [editPanel.isOpen, editPanel.editData?.step, jobPerformers]);
 
@@ -203,26 +211,74 @@ const EditPanel = ({
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Job Performer
+                      Job Performers
                     </label>
-                    <select
-                      value={stepPersonaId}
-                      onChange={(e) => setStepPersonaId(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                      {(jobPerformers || PERSONAS || []).map((persona) => (
-                        <option key={persona.id} value={persona.id}>
-                          {persona.name}
-                        </option>
+                    
+                    {/* Multiple Job Performer Selector */}
+                    <div className="space-y-2">
+                      {stepJobPerformerIds.map((performerId, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <select
+                            value={performerId}
+                            onChange={(e) => {
+                              const newIds = [...stepJobPerformerIds];
+                              newIds[index] = e.target.value;
+                              setStepJobPerformerIds(newIds);
+                            }}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          >
+                            {(jobPerformers || PERSONAS || []).map((persona) => (
+                              <option key={persona.id} value={persona.id}>
+                                {persona.name}
+                              </option>
+                            ))}
+                          </select>
+                          {stepJobPerformerIds.length > 1 && (
+                            <button
+                              onClick={() => {
+                                setStepJobPerformerIds(stepJobPerformerIds.filter((_, i) => i !== index));
+                              }}
+                              className="px-2 py-2 text-red-600 hover:bg-red-100 rounded-md transition-colors"
+                              title="Remove job performer"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
                       ))}
-                    </select>
-                    {stepPersonaId && getPersonaByIdSync(stepPersonaId) && (
-                      <div className="flex items-center gap-2 mt-2">
-                        <div 
-                          className={`w-3 h-3 rounded-full ${!getJobPerformerStyles(getPersonaByIdSync(stepPersonaId)).backgroundColor ? getPersonaByIdSync(stepPersonaId).color : ''}`}
-                          style={getJobPerformerStyles(getPersonaByIdSync(stepPersonaId)).backgroundColor ? { backgroundColor: getJobPerformerStyles(getPersonaByIdSync(stepPersonaId)).backgroundColor } : {}}
-                        ></div>
-                        <span className="text-sm text-gray-600">{getPersonaByIdSync(stepPersonaId).name}</span>
+                      
+                      {/* Add Job Performer Button */}
+                      <button
+                        onClick={() => {
+                          const availableJobPerformers = jobPerformers || PERSONAS || [];
+                          const unusedPerformers = availableJobPerformers.filter(
+                            performer => !stepJobPerformerIds.includes(performer.id)
+                          );
+                          if (unusedPerformers.length > 0) {
+                            setStepJobPerformerIds([...stepJobPerformerIds, unusedPerformers[0].id]);
+                          }
+                        }}
+                        className="w-full py-2 px-4 border-2 border-dashed border-indigo-300 text-indigo-600 rounded-md hover:bg-indigo-50 transition-colors"
+                        disabled={stepJobPerformerIds.length >= (jobPerformers || PERSONAS || []).length}
+                      >
+                        + Add Job Performer
+                      </button>
+                    </div>
+
+                    {/* Display selected job performers */}
+                    {stepJobPerformerIds.length > 0 && (
+                      <div className="flex items-center gap-2 mt-3 flex-wrap">
+                        {getJobPerformersByIds(stepJobPerformerIds).map((performer) => (
+                          <div key={performer.id} className="flex items-center gap-1">
+                            <div 
+                              className={`w-3 h-3 rounded-full ${!getJobPerformerStyles(performer).backgroundColor ? performer.color : ''}`}
+                              style={getJobPerformerStyles(performer).backgroundColor ? { backgroundColor: getJobPerformerStyles(performer).backgroundColor } : {}}
+                            ></div>
+                            <span className="text-sm text-gray-600">{performer.name}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -384,7 +440,7 @@ const EditPanel = ({
                     <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v18m9-9H3" />
                     </svg>
-                    Opportunities ({editableOpportunities.length})
+                    Highlights ({editableOpportunities.length})
                   </div>
                 </h3>
                 <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'opportunities')}>
@@ -418,12 +474,12 @@ const EditPanel = ({
                                     value={opportunity}
                                     onChange={(e) => onUpdateOpportunity(index, e.target.value)}
                                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                    placeholder={`Opportunity ${index + 1}`}
+                                    placeholder={`Highlight ${index + 1}`}
                                   />
                                   <button
                                     onClick={() => onRemoveOpportunity(index)}
                                     className="px-3 py-2 text-green-600 hover:bg-green-100 rounded-md transition-colors"
-                                    title="Remove opportunity"
+                                    title="Remove highlight"
                                   >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -435,7 +491,7 @@ const EditPanel = ({
                           ))
                         ) : (
                           <div className="text-center py-4 text-gray-500 italic">
-                            No opportunities yet. Click the button below to add the first one.
+                            No highlights yet. Click the button below to add the first one.
                           </div>
                         )}
                         {provided.placeholder}
@@ -447,18 +503,18 @@ const EditPanel = ({
                   onClick={onAddOpportunity}
                   className="w-full py-2 px-4 border-2 border-dashed border-green-300 text-green-600 rounded-md hover:bg-green-50 transition-colors mt-2"
                 >
-                  + Add Opportunity
+                  + Add Highlight
                 </button>
               </div>
 
-              {/* Customer Insights Section */}
+              {/* Lessons Learned Section */}
               <div className="bg-yellow-50 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center justify-between">
                   <div className="flex items-center">
                     <svg className="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
-                    Customer Insights ({editableInsights?.length || 0})
+                    Lessons Learned ({editableInsights?.length || 0})
                   </div>
                 </h3>
                 <div className="space-y-2">
@@ -485,7 +541,7 @@ const EditPanel = ({
                     ))
                   ) : (
                     <div className="text-center py-4 text-gray-500 italic">
-                      No customer insights yet. Click the button below to add the first one.
+                      No lessons learned yet. Click the button below to add the first one.
                     </div>
                   )}
                   <button 
@@ -513,7 +569,7 @@ const EditPanel = ({
               Cancel
             </button>
             <button 
-              onClick={() => onSaveEditChanges(stepDescription, stepPersonaId)}
+              onClick={() => onSaveEditChanges(stepDescription, stepJobPerformerIds)}
               className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
               Save Changes

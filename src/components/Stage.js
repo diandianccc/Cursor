@@ -17,7 +17,8 @@ const Stage = ({
   onDeleteStep,
   onSwitchToStepView,
   onOpenStepDetail,
-  onOpenAddStepPanel
+  onOpenAddStepPanel,
+  jobPerformers = []
 }) => {
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
   const [isEditStageModalOpen, setIsEditStageModalOpen] = useState(false);
@@ -77,6 +78,7 @@ const Stage = ({
             onSwitchToStepView={onSwitchToStepView}
             onOpenStepDetail={onOpenStepDetail}
             onOpenAddStepPanel={onOpenAddStepPanel}
+            jobPerformers={jobPerformers}
           />
         ))}
         
@@ -94,6 +96,7 @@ const Stage = ({
         isOpen={isAddTaskModalOpen}
         onClose={() => setIsAddTaskModalOpen(false)}
         onAdd={(taskData) => onAddTask(stage.id, taskData)}
+        jobPerformers={jobPerformers}
       />
 
       <EditStageModal

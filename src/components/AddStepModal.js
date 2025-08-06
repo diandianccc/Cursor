@@ -131,7 +131,7 @@ const AddStepModal = ({ isOpen, onClose, onAdd }) => {
 
         <div>
           <label htmlFor="opportunities" className="block text-sm font-medium text-gray-700 mb-1">
-            Opportunities
+            Highlights
           </label>
           <textarea
             id="opportunities"
@@ -139,14 +139,14 @@ const AddStepModal = ({ isOpen, onClose, onAdd }) => {
             onChange={(e) => setOpportunities(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             rows="2"
-            placeholder="Enter opportunities separated by periods..."
+            placeholder="Enter highlights separated by periods..."
           />
-          <p className="text-xs text-gray-500 mt-1">Separate multiple opportunities with periods</p>
+          <p className="text-xs text-gray-500 mt-1">Separate multiple highlights with periods</p>
         </div>
 
         <div>
           <label htmlFor="insights" className="block text-sm font-medium text-gray-700 mb-1">
-            Customer Insights
+            Lessons Learned
           </label>
           <textarea
             id="insights"
@@ -154,9 +154,9 @@ const AddStepModal = ({ isOpen, onClose, onAdd }) => {
             onChange={(e) => setInsights(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             rows="3"
-            placeholder="Enter customer insights, research findings, or additional context..."
+            placeholder="Enter lessons learned, key takeaways, or additional context..."
           />
-          <p className="text-xs text-gray-500 mt-1">Add any customer research, behavioral insights, or contextual information</p>
+          <p className="text-xs text-gray-500 mt-1">Add key takeaways, lessons learned, or contextual information</p>
         </div>
         
         <div className="flex justify-end gap-3 pt-4">

@@ -9,7 +9,7 @@ export const TERMINOLOGY = {
   [MAP_TYPES.USER_JOURNEY]: {
     name: 'User Journey Map',
     stage: 'Stage',
-    stages: 'Stages',
+    stages: 'Job Performers',
     task: 'Task',
     tasks: 'Tasks',
     step: 'Step',

@@ -68,9 +68,14 @@ const JobPerformerManager = ({ isOpen, onClose }) => {
       console.log('🚀 handleSave called with:', jobPerformerData);
       
       if (editingJobPerformer && editingJobPerformer.isDefault) {
-        // If editing a default job performer, create a new one instead of updating
+        // If editing a default job performer, create a new custom one (with new ID)
+        // and mark which default it's replacing
         console.log('Converting default job performer to custom job performer');
-        await createJobPerformer(jobPerformerData);
+        const customJobPerformer = {
+          ...jobPerformerData,
+          replaces_default_id: editingJobPerformer.id // Track which default this replaces
+        };
+        await createJobPerformer(customJobPerformer);
       } else if (editingJobPerformer) {
         // Editing an existing custom job performer
         console.log('Updating existing job performer:', editingJobPerformer.id);

@@ -41,7 +41,7 @@ const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData, j
   const handleExportCSV = () => {
     // Flatten the journey map data for CSV export
     const rows = [];
-    rows.push(['Stage', 'Task', 'Step Description', 'Persona', 'Pain Points', 'Opportunities', 'Insights']);
+    rows.push(['Stage', 'Task', 'Step Description', 'Persona', 'Pain Points', 'Highlights', 'Insights']);
     
     stages.forEach(stage => {
       stage.tasks.forEach(task => {
@@ -391,9 +391,9 @@ const SpreadsheetImportExportModal = ({ isOpen, onClose, stages, onImportData, j
                 <h4 className="font-medium text-blue-900 mb-2">CSV Format Requirements</h4>
                 <div className="text-sm text-blue-700 space-y-2">
                   <p><strong>Required columns:</strong> Stage, Task, Step (or Description)</p>
-                  <p><strong>Optional columns:</strong> Persona, Pain Points, Opportunities</p>
-                  <p><strong>Example header:</strong> Stage,Task,Step,Persona,Pain Points,Opportunities</p>
-                  <p className="text-xs">• Use semicolons (;) to separate multiple pain points or opportunities</p>
+                  <p><strong>Optional columns:</strong> Persona, Pain Points, Highlights</p>
+                  <p><strong>Example header:</strong> Stage,Task,Step,Persona,Pain Points,Highlights</p>
+                  <p className="text-xs">• Use semicolons (;) to separate multiple pain points or highlights</p>
                   <p className="text-xs">• Column names are case-insensitive and can contain partial matches</p>
                 </div>
               </div>

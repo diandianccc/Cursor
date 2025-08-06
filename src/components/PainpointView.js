@@ -1,5 +1,6 @@
 import React from 'react';
 import { getPersonaByIdSync } from '../services/jobPerformerService';
+import CommentIndicator from './CommentIndicator';
 
 const PainpointView = ({ task, onPainpointClick }) => {
   // Collect all pain points and opportunities from all steps in this task
@@ -54,7 +55,13 @@ const PainpointView = ({ task, onPainpointClick }) => {
             {task.steps.map((step) => {
               return (
                 <div key={step.id} className="bg-white rounded p-3 border border-blue-100">
-                  <p className="text-gray-800 font-medium">{step.description || 'No description'}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-gray-800 font-medium flex-1">{step.description || 'No description'}</p>
+                    <CommentIndicator 
+                      stepId={step.id} 
+                      onClick={() => handleItemClick({ taskId: task.id, stepId: step.id })}
+                    />
+                  </div>
                 </div>
               );
             })}

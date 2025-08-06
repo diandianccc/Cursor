@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import { getPersonaByIdSync, getJobPerformerStyles } from '../services/jobPerformerService';
 import EditStepModal from './EditStepModal';
+import CommentIndicator from './CommentIndicator';
 
 
 const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentView, onUpdateStep, onDeleteStep, onOpenStepDetail, isHighlighted }) => {
@@ -88,7 +89,17 @@ const StepCard = ({ step, index, stageId, taskId, stageName, taskName, currentVi
         </div>
         
         <div className="flex items-center gap-1 ml-2">
-
+          {/* Comment Indicator */}
+          <CommentIndicator 
+            stepId={step.id} 
+            onClick={() => {
+              if (onOpenStepDetail) {
+                onOpenStepDetail(step, stageId, taskId, stageName, taskName, 'comments');
+              } else {
+                setIsEditModalOpen(true);
+              }
+            }}
+          />
           
           <button
             onClick={(e) => {

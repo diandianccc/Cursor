@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { PERSONAS } from '../constants/personas';
 import { getPersonaByIdSync, getJobPerformerStyles } from '../services/jobPerformerService';
+import CommentsSection from './CommentsSection';
 
 
 const EditPanel = ({
@@ -30,6 +31,7 @@ const EditPanel = ({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [stepDescription, setStepDescription] = useState('');
   const [stepPersonaId, setStepPersonaId] = useState('');
+  const [activeTab, setActiveTab] = useState('details');
 
 
   // Initialize step description and persona when panel opens or changes
@@ -172,12 +174,36 @@ const EditPanel = ({
           </div>
         </div>
 
-
+        {/* Tab Navigation */}
+        <div className="border-b border-gray-200 bg-gray-50">
+          <nav className="flex space-x-8 px-6">
+            <button
+              onClick={() => setActiveTab('details')}
+              className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'details'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Step Details
+            </button>
+            <button
+              onClick={() => setActiveTab('comments')}
+              className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'comments'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Comments
+            </button>
+          </nav>
+        </div>
 
         {/* Content - Scrollable */}
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          {/* Step Details */}
-          {editPanel.editData && (
+          {/* Step Details Tab */}
+          {activeTab === 'details' && editPanel.editData && (
             <>
               {/* Step Section */}
               <div className="bg-indigo-50 rounded-lg p-4">
@@ -499,7 +525,13 @@ const EditPanel = ({
             </>
           )}
 
-
+          {/* Comments Tab */}
+          {activeTab === 'comments' && (
+            <CommentsSection 
+              stepId={editPanel.editData?.step?.id} 
+              stepDescription={editPanel.editData?.step?.description || "this step"}
+            />
+          )}
         </div>
 
         {/* Sticky Footer with Save/Cancel */}

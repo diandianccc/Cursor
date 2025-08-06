@@ -1,5 +1,5 @@
 import React from 'react';
-import { getPersonaByIdSync } from '../services/jobPerformerService';
+import { getPersonaByIdSync, getJobPerformerStyles, getJobPerformersByIds, getMultiPerformerColors } from '../services/jobPerformerService';
 import CommentIndicator from './CommentIndicator';
 
 const PainpointView = ({ task, onPainpointClick }) => {
@@ -53,13 +53,65 @@ const PainpointView = ({ task, onPainpointClick }) => {
         {task.steps.length > 0 ? (
           <div className="space-y-2">
             {task.steps.map((step) => {
+              // Handle both old (single personaId) and new (multiple jobPerformerIds) data structures
+              let assignedJobPerformers = [];
+              if (step?.jobPerformerIds && Array.isArray(step.jobPerformerIds)) {
+                assignedJobPerformers = getJobPerformersByIds(step.jobPerformerIds);
+              } else if (step?.personaId) {
+                const singlePerformer = getPersonaByIdSync(step.personaId);
+                assignedJobPerformers = singlePerformer ? [singlePerformer] : [];
+              }
+              
+              // Get primary performer for backward compatibility
+              const primaryPerformer = assignedJobPerformers[0] || null;
+              const customStyles = getJobPerformerStyles(primaryPerformer);
+              const performerColors = getMultiPerformerColors(assignedJobPerformers);
+              
+              // Get border style for multiple performers
+              const getBorderStyle = () => {
+                if (performerColors.length === 0) return {};
+                if (performerColors.length === 1) {
+                  return { borderLeftColor: performerColors[0], borderLeftWidth: '4px' };
+                }
+                // For multiple performers, create gradient stripes
+                const stripesCSS = [];
+                const stripeHeight = 100 / performerColors.length;
+                performerColors.forEach((color, index) => {
+                  const start = index * stripeHeight;
+                  const end = (index + 1) * stripeHeight;
+                  stripesCSS.push(`${color} ${start}%, ${color} ${end}%`);
+                });
+                return {
+                  borderLeft: `4px solid transparent`,
+                  backgroundImage: `linear-gradient(to bottom, ${stripesCSS.join(', ')})`,
+                  backgroundClip: 'border-box',
+                  position: 'relative'
+                };
+              };
+              
+              // Get border classes for fallback
+              const getBorderClasses = () => {
+                if (performerColors.length > 0) return 'border-l-4';
+                return customStyles.borderLeftColor ? 'border-l-4' : 'border-l-4 border-gray-300';
+              };
+              
               return (
-                <div key={step.id} className="bg-white rounded p-3 border border-blue-100">
+                <div 
+                  key={step.id} 
+                  className={`bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${getBorderClasses()}`}
+                  style={{
+                    ...(performerColors.length > 0 ? getBorderStyle() : (customStyles.borderLeftColor ? { borderLeftColor: customStyles.borderLeftColor } : {}))
+                  }}
+                  onClick={() => handleItemClick({ taskId: task.id, stepId: step.id })}
+                >
                   <div className="flex items-center justify-between">
                     <p className="text-gray-800 font-medium flex-1">{step.description || 'No description'}</p>
                     <CommentIndicator 
                       stepId={step.id} 
-                      onClick={() => handleItemClick({ taskId: task.id, stepId: step.id })}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleItemClick({ taskId: task.id, stepId: step.id });
+                      }}
                     />
                   </div>
                 </div>

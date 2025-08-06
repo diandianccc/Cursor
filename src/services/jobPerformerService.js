@@ -3,33 +3,33 @@ import { getJobPerformers, updateJobPerformer } from '../firebase/journeyService
 // Default job performers (fallback when database is empty)
 export const DEFAULT_JOB_PERFORMERS = [
   {
-    id: 'customer',
-    name: 'Customer',
-    description: 'End users who interact with the product or service',
+    id: 'dd',
+    name: 'DD',
+    description: 'Design and development team member',
     color: '#3B82F6', // Blue
     resources: [],
     isDefault: true
   },
   {
-    id: 'support-agent',
-    name: 'Support Agent',
-    description: 'Customer service representatives who help users',
+    id: 'ali',
+    name: 'Ali',
+    description: 'Project coordinator and stakeholder',
     color: '#10B981', // Green
     resources: [],
     isDefault: true
   },
   {
-    id: 'product-manager',
-    name: 'Product Manager',
-    description: 'Team members responsible for product strategy and development',
+    id: 'sabrina',
+    name: 'Sabrina',
+    description: 'User experience and research specialist',
     color: '#8B5CF6', // Purple
     resources: [],
     isDefault: true
   },
   {
-    id: 'admin',
-    name: 'Admin User',
-    description: 'Administrative users with elevated permissions',
+    id: 'kim',
+    name: 'Kim',
+    description: 'Quality assurance and testing lead',
     color: '#EF4444', // Red
     resources: [],
     isDefault: true
@@ -40,10 +40,10 @@ export const DEFAULT_JOB_PERFORMERS = [
 const hexToTailwindClasses = (hexColor) => {
   // This is a simplified conversion - in a real app you might want a more sophisticated mapping
   const colorMap = {
-    '#3B82F6': { bg: 'bg-blue-500', text: 'text-white', border: 'border-blue-500' },
-    '#10B981': { bg: 'bg-green-500', text: 'text-white', border: 'border-green-500' },
-    '#8B5CF6': { bg: 'bg-purple-500', text: 'text-white', border: 'border-purple-500' },
-    '#EF4444': { bg: 'bg-red-500', text: 'text-white', border: 'border-red-500' },
+    '#3B82F6': { bg: 'bg-blue-500', text: 'text-white', border: 'border-blue-500' }, // DD
+    '#10B981': { bg: 'bg-green-500', text: 'text-white', border: 'border-green-500' }, // Ali
+    '#8B5CF6': { bg: 'bg-purple-500', text: 'text-white', border: 'border-purple-500' }, // Sabrina
+    '#EF4444': { bg: 'bg-red-500', text: 'text-white', border: 'border-red-500' }, // Kim
     '#F59E0B': { bg: 'bg-yellow-500', text: 'text-white', border: 'border-yellow-500' },
     '#F97316': { bg: 'bg-orange-500', text: 'text-white', border: 'border-orange-500' },
     '#EC4899': { bg: 'bg-pink-500', text: 'text-white', border: 'border-pink-500' },
@@ -117,6 +117,7 @@ export const cleanupDuplicateJobPerformers = async () => {
     const defaultIds = DEFAULT_JOB_PERFORMERS.map(d => d.id);
     
     // Find database entries that have the same ID as defaults but no replaces_default_id
+    // Handle case where replaces_default_id column might not exist
     const problematicEntries = databaseJobPerformers.filter(performer => 
       defaultIds.includes(performer.id) && !performer.replaces_default_id
     );
@@ -168,6 +169,7 @@ export const getAllJobPerformers = async () => {
     // Track which defaults have been replaced by custom performers
     const replacedDefaultIds = new Set();
     databaseJobPerformers.forEach(performer => {
+      // Handle case where replaces_default_id column might not exist
       if (performer.replaces_default_id) {
         replacedDefaultIds.add(performer.replaces_default_id);
       }
@@ -196,10 +198,17 @@ export const getAllJobPerformers = async () => {
 export const getJobPerformerById = async (id) => {
   try {
     const allJobPerformers = await getAllJobPerformers();
-    return allJobPerformers.find(jp => jp.id === id) || allJobPerformers[0];
+    const found = allJobPerformers.find(jp => jp.id === id);
+    
+    if (!found) {
+      console.log('🔍 Job performer not found for id:', id, 'returning null');
+      return null;
+    }
+    
+    return found;
   } catch (error) {
     console.error('Error fetching job performer by ID:', error);
-    return convertToPersonaFormat(DEFAULT_JOB_PERFORMERS[0]);
+    return null;
   }
 };
 
@@ -237,10 +246,14 @@ export const getPersonaByIdSync = (id) => {
   }
   
   const found = PERSONAS.find(persona => persona.id == id); // Use == to handle string/number comparison
-  const result = found || PERSONAS[0];
-  console.log('🔍 Found persona:', result);
   
-  return result;
+  if (!found) {
+    console.log('🔍 Job performer not found for id:', id, 'returning null instead of fallback');
+    return null;
+  }
+  
+  console.log('🔍 Found persona:', found);
+  return found;
 };
 
 // Update PERSONAS array (for real-time updates)

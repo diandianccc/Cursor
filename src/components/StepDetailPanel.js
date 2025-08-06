@@ -25,7 +25,7 @@ const StepDetailPanel = ({
   const [painPoints, setPainPoints] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
   const [currentExperiences, setCurrentExperiences] = useState([]);
-  const [insights, setInsights] = useState('');
+  const [insights, setInsights] = useState([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(defaultTab);
@@ -54,7 +54,7 @@ const StepDetailPanel = ({
       setPainPoints(step.painPoints || []);
       setOpportunities(step.opportunities || []);
       setCurrentExperiences(step.currentExperiences || []);
-      setInsights(step.insights || '');
+      setInsights(step.insights ? (Array.isArray(step.insights) ? step.insights : [step.insights].filter(Boolean)) : []);
       setHasChanges(false);
     }
   }, [step, isOpen, jobPerformers, defaultTab]);
@@ -80,7 +80,7 @@ const StepDetailPanel = ({
         JSON.stringify(painPoints) !== JSON.stringify(step.painPoints || []) ||
         JSON.stringify(opportunities) !== JSON.stringify(step.opportunities || []) ||
         JSON.stringify(currentExperiences) !== JSON.stringify(step.currentExperiences || []) ||
-        insights !== (step.insights || '');
+        JSON.stringify(insights) !== JSON.stringify(step.insights ? (Array.isArray(step.insights) ? step.insights : [step.insights].filter(Boolean)) : []);
       
       setHasChanges(hasChanged);
     }
@@ -97,7 +97,7 @@ const StepDetailPanel = ({
         painPoints: painPoints.filter(p => p && p.trim && p.trim()),
         opportunities: opportunities.filter(o => o && o.trim && o.trim()),
         currentExperiences: currentExperiences.filter(e => e && e.trim && e.trim()),
-        insights: insights.trim()
+        insights: insights.filter(i => i && i.trim && i.trim())
       };
 
       console.log('🔧 StepDetailPanel: Saving step data:', stepData);
@@ -183,6 +183,20 @@ const StepDetailPanel = ({
     setCurrentExperiences(currentExperiences.filter((_, i) => i !== index));
   };
 
+  const addInsight = () => {
+    setInsights([...insights, '']);
+  };
+
+  const updateInsight = (index, value) => {
+    const updated = [...insights];
+    updated[index] = value;
+    setInsights(updated);
+  };
+
+  const removeInsight = (index) => {
+    setInsights(insights.filter((_, i) => i !== index));
+  };
+
   const persona = getPersonaByIdSync(personaId) || getPersonaByIdSync('customer');
 
   if (!isOpen || !step) return null;
@@ -201,7 +215,7 @@ const StepDetailPanel = ({
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">Step Details</h2>
+              <h2 className="text-2xl font-bold">Edit Step</h2>
               <p className="text-blue-100 mt-1">
                 {typeof stageName === 'string' ? stageName : stageName?.name || 'Unnamed Stage'} → {typeof taskName === 'string' ? taskName : taskName?.name || 'Unnamed Task'}
               </p>
@@ -316,92 +330,96 @@ const StepDetailPanel = ({
                   rows="3"
                 />
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Job Performers
-                </label>
-                
-                {/* Multiple Job Performer Selector - matching EditPanel style */}
-                <div className="space-y-2">
-                  {selectedJobPerformers.map((performerId, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <select
-                        value={performerId}
-                        onChange={(e) => {
-                          const newIds = [...selectedJobPerformers];
-                          newIds[index] = e.target.value;
-                          setSelectedJobPerformers(newIds);
-                          // Update personaId for backward compatibility
-                          setPersonaId(newIds[0] || '');
-                        }}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      >
-                        {(jobPerformers || PERSONAS || []).map((persona) => (
-                          <option key={persona.id} value={persona.id}>
-                            {persona.name}
-                          </option>
-                        ))}
-                      </select>
-                      {selectedJobPerformers.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newIds = selectedJobPerformers.filter((_, i) => i !== index);
-                            setSelectedJobPerformers(newIds);
-                            setPersonaId(newIds[0] || '');
-                          }}
-                          className="px-2 py-2 text-red-600 hover:bg-red-100 rounded-md transition-colors"
-                          title="Remove job performer"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  
-                  {/* Add Job Performer Button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const availableJobPerformers = jobPerformers || PERSONAS || [];
-                      const unusedPerformers = availableJobPerformers.filter(
-                        performer => !selectedJobPerformers.includes(performer.id)
-                      );
-                      if (unusedPerformers.length > 0) {
-                        const newIds = [...selectedJobPerformers, unusedPerformers[0].id];
+            </div>
+          </div>
+
+          {/* Job Performers Section */}
+          <div className="bg-blue-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center justify-between">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Job Performers ({selectedJobPerformers.length})
+              </div>
+            </h3>
+            <div className="space-y-2">
+              {selectedJobPerformers.map((performerId, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <select
+                    value={performerId}
+                    onChange={(e) => {
+                      const newIds = [...selectedJobPerformers];
+                      newIds[index] = e.target.value;
+                      setSelectedJobPerformers(newIds);
+                      // Update personaId for backward compatibility
+                      setPersonaId(newIds[0] || '');
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {(jobPerformers || PERSONAS || []).map((persona) => (
+                      <option key={persona.id} value={persona.id}>
+                        {persona.name}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedJobPerformers.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newIds = selectedJobPerformers.filter((_, i) => i !== index);
                         setSelectedJobPerformers(newIds);
                         setPersonaId(newIds[0] || '');
-                      }
-                    }}
-                    className="w-full py-2 px-4 border-2 border-dashed border-indigo-300 text-indigo-600 rounded-md hover:bg-indigo-50 transition-colors"
-                    disabled={selectedJobPerformers.length >= (jobPerformers || PERSONAS || []).length}
-                  >
-                    + Add Job Performer
-                  </button>
+                      }}
+                      className="px-2 py-2 text-red-600 hover:bg-red-100 rounded-md transition-colors"
+                      title="Remove job performer"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
+              ))}
+              
+              {/* Add Job Performer Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const availableJobPerformers = jobPerformers || PERSONAS || [];
+                  const unusedPerformers = availableJobPerformers.filter(
+                    performer => !selectedJobPerformers.includes(performer.id)
+                  );
+                  if (unusedPerformers.length > 0) {
+                    const newIds = [...selectedJobPerformers, unusedPerformers[0].id];
+                    setSelectedJobPerformers(newIds);
+                    setPersonaId(newIds[0] || '');
+                  }
+                }}
+                className="w-full py-2 px-4 border-2 border-dashed border-blue-300 text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+                disabled={selectedJobPerformers.length >= (jobPerformers || PERSONAS || []).length}
+              >
+                + Add Job Performer
+              </button>
 
-                {/* Display selected job performers */}
-                {selectedJobPerformers.length > 0 && (
-                  <div className="flex items-center gap-2 mt-3 flex-wrap">
-                    {selectedJobPerformers.map((performerId) => {
-                      const performer = getPersonaByIdSync(performerId);
-                      if (!performer) return null;
-                      return (
-                        <div key={performerId} className="flex items-center gap-1">
-                          <div 
-                            className={`w-3 h-3 rounded-full ${!getJobPerformerStyles(performer).backgroundColor ? performer.color : ''}`}
-                            style={getJobPerformerStyles(performer).backgroundColor ? { backgroundColor: getJobPerformerStyles(performer).backgroundColor } : {}}
-                          ></div>
-                          <span className="text-sm text-gray-600">{performer.name}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+              {/* Display selected job performers */}
+              {selectedJobPerformers.length > 0 && (
+                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                  {selectedJobPerformers.map((performerId) => {
+                    const performer = getPersonaByIdSync(performerId);
+                    if (!performer) return null;
+                    return (
+                      <div key={performerId} className="flex items-center gap-1">
+                        <div 
+                          className={`w-3 h-3 rounded-full ${!getJobPerformerStyles(performer).backgroundColor ? performer.color : ''}`}
+                          style={getJobPerformerStyles(performer).backgroundColor ? { backgroundColor: getJobPerformerStyles(performer).backgroundColor } : {}}
+                        ></div>
+                        <span className="text-sm text-gray-600">{performer.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -550,17 +568,42 @@ const StepDetailPanel = ({
                 <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
-                Lessons Learned ({insights ? 1 : 0})
+                Lessons Learned ({insights.length})
               </div>
             </h3>
             <div className="space-y-2">
-              <textarea
-                value={insights}
-                onChange={(e) => setInsights(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                placeholder="Enter lessons learned, key takeaways, or additional context..."
-                rows="4"
-              />
+              {insights && insights.length > 0 ? (
+                insights.map((insight, index) => (
+                  <div key={index} className="flex gap-2">
+                    <textarea
+                      value={insight}
+                      onChange={(e) => updateInsight(index, e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                      placeholder={`Lesson learned ${index + 1}`}
+                      rows="2"
+                    />
+                    <button
+                      onClick={() => removeInsight(index)}
+                      className="px-3 py-2 text-purple-600 hover:bg-purple-100 rounded-md transition-colors self-start"
+                      title="Remove insight"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500 italic">
+                  No lessons learned yet. Click the button below to add the first one.
+                </div>
+              )}
+              <button 
+                onClick={addInsight}
+                className="w-full py-2 px-4 border-2 border-dashed border-purple-300 text-purple-600 rounded-md hover:bg-purple-50 transition-colors"
+              >
+                + Add Lesson Learned
+              </button>
             </div>
           </div>
             </>

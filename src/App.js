@@ -334,6 +334,31 @@ function App() {
     return unsubscribe;
   }, [user]);
 
+  // Listen for custom job performers update events from JobPerformerManager
+  useEffect(() => {
+    const handleJobPerformersUpdate = async (event) => {
+      console.log('🔄 App: Received jobPerformersUpdated event:', event.detail);
+      
+      // Get fresh data and update the App state
+      try {
+        const allJobPerformers = await getAllJobPerformers();
+        setJobPerformers(allJobPerformers);
+        updatePersonasArray(allJobPerformers);
+        
+        // Force re-render of components that depend on PERSONAS
+        setStages(prevStages => [...prevStages]);
+      } catch (error) {
+        console.error('Error handling jobPerformersUpdated event:', error);
+      }
+    };
+
+    window.addEventListener('jobPerformersUpdated', handleJobPerformersUpdate);
+    
+    return () => {
+      window.removeEventListener('jobPerformersUpdated', handleJobPerformersUpdate);
+    };
+  }, []);
+
   // Initialize with default journey map or load existing one
   const initializeDefaultJourneyMap = async () => {
     try {

@@ -26,6 +26,14 @@ const JobPerformerLegend = ({ jobPerformers }) => {
           </div>
         );
       })}
+      {/* Always show "No Job Performer Assigned" entry */}
+      <div className="flex items-center gap-2">
+        <div 
+          className="w-4 h-4 rounded-full"
+          style={{ backgroundColor: '#d1d5db' }}
+        ></div>
+        <span className="text-sm text-gray-700">No Job Performer Assigned</span>
+      </div>
     </div>
   );
 };

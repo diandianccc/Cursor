@@ -234,80 +234,84 @@ const EditPanel = ({
                       rows="3"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Job Performers Section */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Job Performers ({stepJobPerformerIds.length})
+                  </div>
+                </h3>
+                <div className="space-y-2">
+                  {stepJobPerformerIds.map((performerId, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <select
+                        value={performerId}
+                        onChange={(e) => {
+                          const newIds = [...stepJobPerformerIds];
+                          newIds[index] = e.target.value;
+                          setStepJobPerformerIds(newIds);
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {(jobPerformers || PERSONAS || []).map((persona) => (
+                          <option key={persona.id} value={persona.id}>
+                            {persona.name}
+                          </option>
+                        ))}
+                      </select>
+                      {stepJobPerformerIds.length > 1 && (
+                        <button
+                          onClick={() => {
+                            setStepJobPerformerIds(stepJobPerformerIds.filter((_, i) => i !== index));
+                          }}
+                          className="px-2 py-2 text-red-600 hover:bg-red-100 rounded-md transition-colors"
+                          title="Remove job performer"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Job Performers
-                    </label>
-                    
-                    {/* Multiple Job Performer Selector */}
-                    <div className="space-y-2">
-                      {stepJobPerformerIds.map((performerId, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <select
-                            value={performerId}
-                            onChange={(e) => {
-                              const newIds = [...stepJobPerformerIds];
-                              newIds[index] = e.target.value;
-                              setStepJobPerformerIds(newIds);
-                            }}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          >
-                            {(jobPerformers || PERSONAS || []).map((persona) => (
-                              <option key={persona.id} value={persona.id}>
-                                {persona.name}
-                              </option>
-                            ))}
-                          </select>
-                          {stepJobPerformerIds.length > 1 && (
-                            <button
-                              onClick={() => {
-                                setStepJobPerformerIds(stepJobPerformerIds.filter((_, i) => i !== index));
-                              }}
-                              className="px-2 py-2 text-red-600 hover:bg-red-100 rounded-md transition-colors"
-                              title="Remove job performer"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          )}
+                  {/* Add Job Performer Button */}
+                  <button
+                    onClick={() => {
+                      const availableJobPerformers = jobPerformers || PERSONAS || [];
+                      const unusedPerformers = availableJobPerformers.filter(
+                        performer => !stepJobPerformerIds.includes(performer.id)
+                      );
+                      if (unusedPerformers.length > 0) {
+                        setStepJobPerformerIds([...stepJobPerformerIds, unusedPerformers[0].id]);
+                      }
+                    }}
+                    className="w-full py-2 px-4 border-2 border-dashed border-blue-300 text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+                    disabled={stepJobPerformerIds.length >= (jobPerformers || PERSONAS || []).length}
+                  >
+                    + Add Job Performer
+                  </button>
+
+                  {/* Display selected job performers */}
+                  {stepJobPerformerIds.length > 0 && (
+                    <div className="flex items-center gap-2 mt-3 flex-wrap">
+                      {getJobPerformersByIds(stepJobPerformerIds).map((performer) => (
+                        <div key={performer.id} className="flex items-center gap-1">
+                          <div 
+                            className={`w-3 h-3 rounded-full ${!getJobPerformerStyles(performer).backgroundColor ? performer.color : ''}`}
+                            style={getJobPerformerStyles(performer).backgroundColor ? { backgroundColor: getJobPerformerStyles(performer).backgroundColor } : {}}
+                          ></div>
+                          <span className="text-sm text-gray-600">{performer.name}</span>
                         </div>
                       ))}
-                      
-                      {/* Add Job Performer Button */}
-                      <button
-                        onClick={() => {
-                          const availableJobPerformers = jobPerformers || PERSONAS || [];
-                          const unusedPerformers = availableJobPerformers.filter(
-                            performer => !stepJobPerformerIds.includes(performer.id)
-                          );
-                          if (unusedPerformers.length > 0) {
-                            setStepJobPerformerIds([...stepJobPerformerIds, unusedPerformers[0].id]);
-                          }
-                        }}
-                        className="w-full py-2 px-4 border-2 border-dashed border-indigo-300 text-indigo-600 rounded-md hover:bg-indigo-50 transition-colors"
-                        disabled={stepJobPerformerIds.length >= (jobPerformers || PERSONAS || []).length}
-                      >
-                        + Add Job Performer
-                      </button>
                     </div>
-
-                    {/* Display selected job performers */}
-                    {stepJobPerformerIds.length > 0 && (
-                      <div className="flex items-center gap-2 mt-3 flex-wrap">
-                        {getJobPerformersByIds(stepJobPerformerIds).map((performer) => (
-                          <div key={performer.id} className="flex items-center gap-1">
-                            <div 
-                              className={`w-3 h-3 rounded-full ${!getJobPerformerStyles(performer).backgroundColor ? performer.color : ''}`}
-                              style={getJobPerformerStyles(performer).backgroundColor ? { backgroundColor: getJobPerformerStyles(performer).backgroundColor } : {}}
-                            ></div>
-                            <span className="text-sm text-gray-600">{performer.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -574,7 +578,7 @@ const EditPanel = ({
                     onClick={onAddInsight}
                     className="w-full py-2 px-4 border-2 border-dashed border-yellow-300 text-yellow-600 rounded-md hover:bg-yellow-50 transition-colors"
                   >
-                    + Add Customer Insight
+                    + Add Lesson Learned
                   </button>
                 </div>
               </div>

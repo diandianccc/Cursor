@@ -414,20 +414,18 @@ const AggregatedPainpointView = ({
               
               // Get styling for multiple performers
               const getCardStyling = () => {
-                let className = 'bg-indigo-100 rounded-lg p-2 hover:bg-indigo-200';
+                let className = 'bg-indigo-100 rounded-lg p-4 shadow-sm hover:shadow-md transition-all relative';
                 let style = {};
-                let wrapperClass = '';
-                let wrapperStyle = {};
 
                 if (!step.performerColors || step.performerColors.length === 0) {
-                  className += ' border-l-4 border-indigo-300'; // Default indigo border
+                  className += ' border-l-4 border-gray-300'; // Default gray border
                 } else if (step.performerColors.length === 1) {
                   className += ' border-l-4'; // Single performer with custom color
                   style.borderLeftColor = step.performerColors[0];
                   style.borderLeftWidth = '4px';
                 } else {
-                  // Multiple performers - use CSS stripes
-                  wrapperClass = 'step-multi-performer';
+                  // Multiple performers - use CSS class and stripes
+                  className += ' step-multi-performer';
                   const stripesCSS = [];
                   const stripeHeight = 100 / step.performerColors.length;
                   
@@ -437,10 +435,10 @@ const AggregatedPainpointView = ({
                     stripesCSS.push(`${color} ${start}%, ${color} ${end}%`);
                   });
                   
-                  wrapperStyle['--performer-stripes'] = `linear-gradient(to bottom, ${stripesCSS.join(', ')})`;
+                  style['--performer-stripes'] = `linear-gradient(to bottom, ${stripesCSS.join(', ')})`;
                 }
 
-                return { className, style, wrapperClass, wrapperStyle };
+                return { className, style };
               };
 
               const cardStyling = getCardStyling();
@@ -453,8 +451,6 @@ const AggregatedPainpointView = ({
                   {!step.isEmpty && (
                     <div 
                       ref={el => cardRefs.current[stepRefKey] = el}
-                      className={`relative ${cardStyling.wrapperClass}`}
-                      style={cardStyling.wrapperStyle}
                     >
                       <CardWithEdit
                         className={cardStyling.className}

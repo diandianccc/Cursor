@@ -424,7 +424,7 @@ const AddStepPanel = ({
                 onClick={addInsight}
                 className="w-full py-2 px-4 border-2 border-dashed border-purple-300 text-purple-600 rounded-md hover:bg-purple-50 transition-colors"
               >
-                + Add Customer Insight
+                + Add Lesson Learned
               </button>
             </div>
           </div>

@@ -71,11 +71,21 @@ const JobPerformerManager = ({ isOpen, onClose }) => {
         // If editing a default job performer, create a new custom one (with new ID)
         // and mark which default it's replacing
         console.log('Converting default job performer to custom job performer');
-        const customJobPerformer = {
-          ...jobPerformerData,
-          replaces_default_id: editingJobPerformer.id // Track which default this replaces
-        };
-        await createJobPerformer(customJobPerformer);
+        try {
+          const customJobPerformer = {
+            ...jobPerformerData,
+            replaces_default_id: editingJobPerformer.id // Track which default this replaces
+          };
+          await createJobPerformer(customJobPerformer);
+        } catch (columnError) {
+          // If replaces_default_id column doesn't exist, create without it
+          if (columnError.message && columnError.message.includes('replaces_default_id')) {
+            console.warn('replaces_default_id column not found, creating job performer without it');
+            await createJobPerformer(jobPerformerData);
+          } else {
+            throw columnError;
+          }
+        }
       } else if (editingJobPerformer) {
         // Editing an existing custom job performer
         console.log('Updating existing job performer:', editingJobPerformer.id);
@@ -151,9 +161,16 @@ The job_performers table doesn't exist yet. Check the console for setup instruct
     
     if (window.confirm(`Are you sure you want to delete "${jobPerformer.name}"? This action cannot be undone.`)) {
       try {
+        // Show immediate feedback by removing from local state
+        setJobPerformers(prev => prev.filter(jp => jp.id !== jobPerformer.id));
+        
+        // Perform the actual delete
         await deleteJobPerformer(jobPerformer.id);
       } catch (error) {
         console.error('Error deleting job performer:', error);
+        // Restore the job performer to the list if delete failed
+        const allJobPerformers = await getAllJobPerformers();
+        setJobPerformers(allJobPerformers);
         alert('Failed to delete job performer. Please try again.');
       }
     }

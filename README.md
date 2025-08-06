@@ -2,7 +2,10 @@
 
 A React application for creating and managing user journey maps with interactive three-level hierarchy: stages, tasks, and steps with persona-based color coding. Features dual view modes for comprehensive analysis.
 
-<!-- Latest update: Added drag and drop functionality for steps between tasks and stages -->
+## 🎯 **Live Interactive Demo**
+
+**[🔴 LIVE: Enhanced Writer Workflow Map](https://cool-pasca-9f2869.netlify.app/)**
+> Interactive workflow demonstration showing transformation from static Figma design to fully functional web application
 
 ## Features
 
